@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "KULMS Extension",
+  "version": "0.1.0",
+  "description": "京都大学LMS (KULMS) カスタマイズ拡張機能",
+  "permissions": ["activeTab", "storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"],
+      "css": ["styles.css"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
