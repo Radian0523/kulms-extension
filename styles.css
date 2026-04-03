@@ -290,7 +290,7 @@ body[data-kulms-theme="dark"] .alert {
 
 #kulms-theme-panel {
   position: fixed !important;
-  bottom: 136px !important;
+  bottom: 192px !important;
   right: 24px !important;
   z-index: 99999 !important;
   background: #fff !important;
@@ -911,6 +911,429 @@ body[data-kulms-theme="blue"] .kulms-assign-retry-btn {
 
 body[data-kulms-theme="blue"] .kulms-assign-empty {
   color: var(--kulms-text-muted) !important;
+}
+
+/* === 教科書パネル === */
+
+/* フローティングボタン（📚） */
+#kulms-textbook-toggle {
+  position: fixed !important;
+  bottom: 136px !important;
+  right: 24px !important;
+  z-index: 99999 !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #c67a2e !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+
+#kulms-textbook-toggle:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* サイドパネル */
+#kulms-textbook-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: -380px !important;
+  width: 360px !important;
+  height: 100vh !important;
+  z-index: 100000 !important;
+  background: #fff !important;
+  border-left: 1px solid #ccc !important;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  transition: right 0.3s ease !important;
+}
+
+#kulms-textbook-panel.open {
+  right: 0 !important;
+}
+
+/* パネルヘッダー */
+.kulms-textbook-panel-header {
+  display: flex !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+  flex-shrink: 0 !important;
+}
+
+.kulms-textbook-panel-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #333 !important;
+  flex: 1 !important;
+}
+
+.kulms-textbook-panel-header button {
+  width: 32px !important;
+  height: 32px !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  font-size: 16px !important;
+  color: #666 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-panel-header button:hover {
+  background: #f0f0f0 !important;
+}
+
+/* コンテンツエリア */
+.kulms-textbook-panel-content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 12px !important;
+}
+
+/* ローディング */
+.kulms-textbook-loading {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 16px !important;
+  gap: 12px !important;
+}
+
+.kulms-textbook-loading-text {
+  font-size: 13px !important;
+  color: #888 !important;
+}
+
+/* 空状態 */
+.kulms-textbook-empty {
+  padding: 40px 16px !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  color: #999 !important;
+}
+
+/* 注記 */
+.kulms-textbook-note {
+  font-size: 11px !important;
+  color: #999 !important;
+  padding: 6px 8px 10px !important;
+  line-height: 1.4 !important;
+}
+
+/* 科目セクション */
+.kulms-textbook-course {
+  margin-bottom: 6px !important;
+}
+
+.kulms-textbook-course-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #444 !important;
+  padding: 8px 8px !important;
+  background: #f5f5f5 !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-course-header:hover {
+  background: #eee !important;
+}
+
+.kulms-textbook-course-toggle {
+  font-size: 10px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-textbook-course-toggle.collapsed {
+  transform: rotate(-90deg) !important;
+}
+
+.kulms-textbook-course-name {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.kulms-textbook-course-count {
+  font-weight: 400 !important;
+  color: #999 !important;
+  font-size: 12px !important;
+}
+
+.kulms-textbook-course-badge {
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  color: #aaa !important;
+  background: #f0f0f0 !important;
+  padding: 1px 6px !important;
+  border-radius: 3px !important;
+  margin-left: auto !important;
+}
+
+.kulms-textbook-course-items {
+  display: block !important;
+}
+
+.kulms-textbook-course-items.collapsed {
+  display: none !important;
+}
+
+/* グループラベル（教科書 / 参考書） */
+.kulms-textbook-group-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #888 !important;
+  padding: 6px 10px 2px 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* 書籍行 */
+.kulms-textbook-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 10px 8px 20px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.kulms-textbook-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.kulms-textbook-title {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.kulms-textbook-meta {
+  font-size: 11px !important;
+  color: #999 !important;
+  margin-top: 1px !important;
+}
+
+.kulms-textbook-amazon {
+  flex-shrink: 0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  background: #ff9900 !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-amazon:hover {
+  background: #e68a00 !important;
+  color: #fff !important;
+}
+
+/* === 教科書パネル テーマ対応 === */
+
+/* ダークテーマ */
+body[data-kulms-theme="dark"] #kulms-textbook-panel {
+  background: var(--kulms-bg) !important;
+  border-left-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-panel-header {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-panel-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-panel-header button {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-panel-header button:hover {
+  background: var(--kulms-bg-secondary) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-course-header {
+  background: var(--kulms-bg-secondary) !important;
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-course-header:hover {
+  background: var(--kulms-bg-tertiary) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-course-count {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-item {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-meta {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-amazon {
+  background: #cc7a00 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-amazon:hover {
+  background: #ff9900 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-group-label,
+body[data-kulms-theme="dark"] .kulms-textbook-loading-text,
+body[data-kulms-theme="dark"] .kulms-textbook-empty,
+body[data-kulms-theme="dark"] .kulms-textbook-note {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-textbook-course-badge {
+  color: var(--kulms-text-muted) !important;
+  background: var(--kulms-bg-tertiary) !important;
+}
+
+/* セピアテーマ */
+body[data-kulms-theme="sepia"] #kulms-textbook-panel {
+  background: var(--kulms-bg) !important;
+  border-left-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-panel-header {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-panel-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-panel-header button {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-panel-header button:hover {
+  background: var(--kulms-bg-secondary) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-course-header {
+  background: var(--kulms-bg-secondary) !important;
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-course-header:hover {
+  background: var(--kulms-bg-tertiary) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-item {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-meta {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-group-label,
+body[data-kulms-theme="sepia"] .kulms-textbook-loading-text,
+body[data-kulms-theme="sepia"] .kulms-textbook-empty,
+body[data-kulms-theme="sepia"] .kulms-textbook-note {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-textbook-course-badge {
+  color: var(--kulms-text-muted) !important;
+  background: var(--kulms-bg-tertiary) !important;
+}
+
+/* ブルーテーマ */
+body[data-kulms-theme="blue"] #kulms-textbook-panel {
+  background: var(--kulms-bg) !important;
+  border-left-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-panel-header {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-panel-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-panel-header button {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-panel-header button:hover {
+  background: var(--kulms-bg-secondary) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-course-header {
+  background: var(--kulms-bg-secondary) !important;
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-course-header:hover {
+  background: var(--kulms-bg-tertiary) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-item {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-title {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-meta {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-group-label,
+body[data-kulms-theme="blue"] .kulms-textbook-loading-text,
+body[data-kulms-theme="blue"] .kulms-textbook-empty,
+body[data-kulms-theme="blue"] .kulms-textbook-note {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-textbook-course-badge {
+  color: var(--kulms-text-muted) !important;
+  background: var(--kulms-bg-tertiary) !important;
 }
 
 /* === 授業資料 ツリービュー === */
