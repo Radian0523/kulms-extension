@@ -475,6 +475,7 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
   function openPanel() {
     if (!panelEl) return;
     panelEl.classList.add("open");
+    document.body.classList.add("kulms-panel-open");
     sessionStorage.setItem("kulms-panel-open", "1");
     loadAssignments(false);
   }
@@ -482,6 +483,7 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
   function closePanel() {
     if (!panelEl) return;
     panelEl.classList.remove("open");
+    document.body.classList.remove("kulms-panel-open");
     sessionStorage.removeItem("kulms-panel-open");
   }
 

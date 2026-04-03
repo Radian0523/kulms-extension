@@ -367,6 +367,16 @@ body[data-kulms-theme="dark"] #kulms-theme-panel .kulms-theme-option.active {
   background: #0f3460 !important;
 }
 
+/* === 課題パネル開閉時の押し出し === */
+
+body {
+  transition: margin-right 0.3s ease !important;
+}
+
+body.kulms-panel-open {
+  margin-right: 380px !important;
+}
+
 /* === 課題一覧パネル スタイル === */
 
 /* フローティングボタン（📋） */
