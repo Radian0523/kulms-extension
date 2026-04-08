@@ -259,34 +259,54 @@ body[data-kulms-theme="dark"] .alert {
   color: var(--kulms-text) !important;
 }
 
-/* === テーマ切り替えUI スタイル === */
+/* === サイドバーツールバー === */
 
-#kulms-theme-toggle {
-  position: fixed !important;
-  bottom: 24px !important;
-  right: 24px !important;
-  z-index: 99999 !important;
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  background: #4a6fa5 !important;
-  color: #fff !important;
-  font-size: 22px !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+/* テーマ・教科書ボタンを非表示 */
+#kulms-theme-toggle,
+#kulms-textbook-toggle {
+  display: none !important;
+}
+
+#kulms-toolbar {
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-  line-height: 1 !important;
-  padding: 0 !important;
 }
 
-#kulms-theme-toggle:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+/* Sakai ヘッダーに合わせたボタンスタイル */
+.kulms-toolbar-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 0.5rem !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  white-space: nowrap !important;
+  transition: background 0.15s ease !important;
 }
+
+.kulms-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+.kulms-toolbar-icon {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.kulms-toolbar-label {
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: inherit !important;
+}
+
+/* ヘッダー内ボタンはテーマ不問（ヘッダー自体の色を継承） */
+
+/* === テーマ切り替えUI スタイル === */
 
 #kulms-theme-panel {
   position: fixed !important;
@@ -377,35 +397,11 @@ body.kulms-panel-open {
   margin-right: 380px !important;
 }
 
+body.kulms-textbook-panel-open {
+  margin-right: 360px !important;
+}
+
 /* === 課題一覧パネル スタイル === */
-
-/* フローティングボタン（📋） */
-#kulms-assign-toggle {
-  position: fixed !important;
-  bottom: 80px !important;
-  right: 24px !important;
-  z-index: 99999 !important;
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  background: #5c7a3e !important;
-  color: #fff !important;
-  font-size: 22px !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-  line-height: 1 !important;
-  padding: 0 !important;
-}
-
-#kulms-assign-toggle:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-}
 
 /* サイドパネル */
 #kulms-assign-panel {
@@ -915,34 +911,6 @@ body[data-kulms-theme="blue"] .kulms-assign-empty {
 
 /* === 教科書パネル === */
 
-/* フローティングボタン（📚） */
-#kulms-textbook-toggle {
-  position: fixed !important;
-  bottom: 136px !important;
-  right: 24px !important;
-  z-index: 99999 !important;
-  width: 48px !important;
-  height: 48px !important;
-  border-radius: 50% !important;
-  border: none !important;
-  background: #c67a2e !important;
-  color: #fff !important;
-  font-size: 22px !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-  line-height: 1 !important;
-  padding: 0 !important;
-}
-
-#kulms-textbook-toggle:hover {
-  transform: scale(1.1) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-}
-
 /* サイドパネル */
 #kulms-textbook-panel {
   position: fixed !important;
@@ -1334,6 +1302,116 @@ body[data-kulms-theme="blue"] .kulms-textbook-note {
 body[data-kulms-theme="blue"] .kulms-textbook-course-badge {
   color: var(--kulms-text-muted) !important;
   background: var(--kulms-bg-tertiary) !important;
+}
+
+/* === 設定ビュー === */
+
+.kulms-settings-view {
+  padding: 4px 0 !important;
+}
+
+.kulms-settings-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.kulms-settings-row-text {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.kulms-settings-row-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.kulms-settings-row-desc {
+  font-size: 11px !important;
+  color: #999 !important;
+  margin-top: 1px !important;
+}
+
+/* トグルスイッチ */
+.kulms-toggle {
+  position: relative !important;
+  display: inline-block !important;
+  width: 40px !important;
+  height: 22px !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+}
+
+.kulms-toggle input {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+}
+
+.kulms-toggle-slider {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: #ccc !important;
+  border-radius: 11px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.kulms-toggle-slider::before {
+  content: "" !important;
+  position: absolute !important;
+  width: 18px !important;
+  height: 18px !important;
+  left: 2px !important;
+  bottom: 2px !important;
+  background-color: #fff !important;
+  border-radius: 50% !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-toggle input:checked + .kulms-toggle-slider {
+  background-color: #4a6fa5 !important;
+}
+
+.kulms-toggle input:checked + .kulms-toggle-slider::before {
+  transform: translateX(18px) !important;
+}
+
+/* 設定フッター */
+.kulms-settings-footer {
+  padding: 16px 12px !important;
+  font-size: 11px !important;
+  color: #aaa !important;
+  text-align: center !important;
+}
+
+/* 設定ビュー テーマ対応 */
+
+body[data-kulms-theme] .kulms-settings-row {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme] .kulms-settings-row-label {
+  color: var(--kulms-text) !important;
+}
+
+body[data-kulms-theme] .kulms-settings-row-desc,
+body[data-kulms-theme] .kulms-settings-footer {
+  color: var(--kulms-text-muted) !important;
+}
+
+body[data-kulms-theme] .kulms-toggle input:checked + .kulms-toggle-slider {
+  background-color: var(--kulms-accent) !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-toggle-slider {
+  background-color: #444 !important;
 }
 
 /* === 授業資料 ツリービュー === */
