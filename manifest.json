@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "KULMS+",
   "version": "1.3.0",
-  "description": "京都大学LMS (KULMS) にダークテーマ切替、課題一覧パネル、シラバス教科書情報の表示機能を追加します。",
+  "description": "京都大学LMS (KULMS) を強化するChrome拡張。全科目の課題一覧・締切管理、教科書情報取得、テーマ切替、サイドバーカスタマイズなど15機能を搭載。",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
