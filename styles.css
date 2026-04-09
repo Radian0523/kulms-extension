@@ -1376,6 +1376,38 @@ body[data-kulms-theme] .kulms-textbook-course-badge {
   transform: translateX(18px) !important;
 }
 
+/* ご意見箱 */
+.kulms-settings-feedback {
+  justify-content: center !important;
+  padding: 12px !important;
+}
+
+.kulms-feedback-link {
+  display: block !important;
+  text-align: center !important;
+  padding: 10px 16px !important;
+  background: #f0f4ff !important;
+  color: #4a6fa5 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: background 0.15s !important;
+}
+
+.kulms-feedback-link:hover {
+  background: #e0e8f5 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-feedback-link {
+  background: #1e2a40 !important;
+  color: #64b5f6 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-feedback-link:hover {
+  background: #253550 !important;
+}
+
 /* 設定フッター */
 .kulms-settings-footer {
   padding: 16px 12px !important;

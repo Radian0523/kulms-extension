@@ -10,7 +10,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     theme: true, assignments: true, textbooks: true,
     treeView: true, courseNameCleanup: true, pinSort: true,
     courseRowClick: true, toolVisibility: true, sidebarResize: true,
-    tabColoring: true, notificationBadge: true
+    tabColoring: true, notificationBadge: true, panelPush: false, previewMode: false
   };
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
@@ -567,18 +567,29 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     }
   }
 
+  function isPushMode() {
+    var s = window.__kulmsSettings || {};
+    return s.panelPush === true;
+  }
+
   function openPanel() {
     if (!panelEl) return;
     panelEl.classList.add("open");
-    // クリック外閉じ用オーバーレイ
-    var cover = document.getElementById("kulms-cover");
-    if (!cover) {
-      cover = document.createElement("div");
-      cover.id = "kulms-cover";
-      cover.addEventListener("click", closePanel);
-      document.body.appendChild(cover);
+
+    if (isPushMode()) {
+      document.body.style.marginRight = "300px";
+    } else {
+      // オーバーレイモード: クリック外閉じ用
+      var cover = document.getElementById("kulms-cover");
+      if (!cover) {
+        cover = document.createElement("div");
+        cover.id = "kulms-cover";
+        cover.addEventListener("click", closePanel);
+        document.body.appendChild(cover);
+      }
+      cover.classList.add("visible");
     }
-    cover.classList.add("visible");
+
     sessionStorage.setItem("kulms-panel-open", "1");
     if (currentView === "assignments") {
       loadAssignments(false);
@@ -590,13 +601,14 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   function closePanel() {
     if (!panelEl) return;
     panelEl.classList.remove("open");
+    document.body.style.marginRight = "";
     var cover = document.getElementById("kulms-cover");
     if (cover) cover.classList.remove("visible");
     sessionStorage.removeItem("kulms-panel-open");
   }
 
   function updateCacheInfo(timestamp) {
-    if (!cacheInfoEl || !timestamp) {
+    if (!cacheInfoEl || !timestamp || currentView !== "assignments") {
       if (cacheInfoEl) cacheInfoEl.textContent = "";
       return;
     }
@@ -606,7 +618,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   }
 
   function showLoading(progress, total) {
-    if (!contentEl) return;
+    if (!contentEl || currentView !== "assignments") return;
     const text =
       progress != null && total != null
         ? `課題を取得中... (${progress}/${total})`
@@ -619,7 +631,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   }
 
   function showError(msg) {
-    if (!contentEl) return;
+    if (!contentEl || currentView !== "assignments") return;
     contentEl.innerHTML = "";
     const errorDiv = document.createElement("div");
     errorDiv.className = "kulms-assign-error";
@@ -639,7 +651,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   }
 
   function renderAssignments(assignments) {
-    if (!contentEl) return;
+    if (!contentEl || currentView !== "assignments") return;
     contentEl.innerHTML = "";
     lastAssignments = assignments;
 
@@ -969,6 +981,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     { key: "sidebarResize", label: "サイドバーリサイズ", desc: "サイドバー幅のドラッグ調整" },
     { key: "tabColoring", label: "科目タブ色分け", desc: "サイドバーの科目を締切の緊急度で色分け" },
     { key: "notificationBadge", label: "新着課題バッジ", desc: "新しい課題が追加されたコースにバッジ表示" },
+    { key: "panelPush", label: "パネル押し出し表示", desc: "パネルを開くとページを横に押す（OFFで重ねて表示）" },
+    { key: "previewMode", label: "プレビューモード", desc: "ダミー課題を表示してUIを確認（開発用）" },
   ];
 
   var currentView = "assignments";
@@ -976,6 +990,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   function showSettingsView() {
     if (currentView === "settings") return;
     currentView = "settings";
+    if (window.__kulmsTextbookAPI && window.__kulmsTextbookAPI.detach) {
+      window.__kulmsTextbookAPI.detach();
+    }
 
     if (cacheInfoEl) cacheInfoEl.style.display = "none";
 
@@ -1064,6 +1081,18 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       settingsView.appendChild(row);
     });
 
+    // ご意見箱リンク
+    var feedbackRow = document.createElement("div");
+    feedbackRow.className = "kulms-settings-row kulms-settings-feedback";
+    var feedbackLink = document.createElement("a");
+    feedbackLink.href = "https://docs.google.com/forms/d/e/1FAIpQLSdFa9VASkP0ea8uHK9GEPS3r3VnoOcIpKO0dsIeCACElvCH-Q/viewform";
+    feedbackLink.target = "_blank";
+    feedbackLink.rel = "noopener";
+    feedbackLink.className = "kulms-feedback-link";
+    feedbackLink.textContent = "\uD83D\uDCEC ご意見・要望を送る";
+    feedbackRow.appendChild(feedbackLink);
+    settingsView.appendChild(feedbackRow);
+
     var footer = document.createElement("div");
     footer.className = "kulms-settings-footer";
     footer.textContent = "変更はページ再読み込み後に反映";
@@ -1092,6 +1121,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   function showAssignmentsView() {
     if (currentView === "assignments") return;
     currentView = "assignments";
+    if (window.__kulmsTextbookAPI && window.__kulmsTextbookAPI.detach) {
+      window.__kulmsTextbookAPI.detach();
+    }
 
     if (cacheInfoEl) cacheInfoEl.style.display = "";
     loadAssignments(false);
@@ -1182,6 +1214,27 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     });
   }
 
+  // --- プレビューモード（ダミーデータ） ---
+
+  function generateMockAssignments() {
+    var now = Date.now();
+    var h = 60 * 60 * 1000;
+    var d = 24 * h;
+    return [
+      { courseName: "線形代数学A", courseId: "mock-1", name: "第3回レポート課題", url: "", deadline: now + 6 * h, deadlineText: formatDeadline(now + 6 * h), status: "", grade: "" },
+      { courseName: "プログラミング演習", courseId: "mock-2", name: "演習課題5: ソートアルゴリズム", url: "", deadline: now + 18 * h, deadlineText: formatDeadline(now + 18 * h), status: "", grade: "" },
+      { courseName: "電磁気学", courseId: "mock-3", name: "中間レポート", url: "", deadline: now + 3 * d, deadlineText: formatDeadline(now + 3 * d), status: "", grade: "" },
+      { courseName: "英語リーディング", courseId: "mock-4", name: "Reading Response #4", url: "", deadline: now + 4 * d, deadlineText: formatDeadline(now + 4 * d), status: "", grade: "" },
+      { courseName: "線形代数学A", courseId: "mock-1", name: "演習問題 第4章", url: "", deadline: now + 8 * d, deadlineText: formatDeadline(now + 8 * d), status: "", grade: "" },
+      { courseName: "プログラミング演習", courseId: "mock-2", name: "演習課題4: 再帰", url: "", deadline: now + 10 * d, deadlineText: formatDeadline(now + 10 * d), status: "", grade: "" },
+      { courseName: "電磁気学", courseId: "mock-3", name: "小テスト予習問題", url: "", deadline: now + 20 * d, deadlineText: formatDeadline(now + 20 * d), status: "", grade: "" },
+      { courseName: "情報理論", courseId: "mock-5", name: "期限なし参考課題", url: "", deadline: null, deadlineText: "", status: "", grade: "" },
+      { courseName: "英語リーディング", courseId: "mock-4", name: "Reading Response #3", url: "", deadline: now - 2 * d, deadlineText: formatDeadline(now - 2 * d), status: "提出済", grade: "" },
+      { courseName: "プログラミング演習", courseId: "mock-2", name: "演習課題3: 配列操作", url: "", deadline: now - 5 * d, deadlineText: formatDeadline(now - 5 * d), status: "評定済", grade: "A" },
+      { courseName: "線形代数学A", courseId: "mock-1", name: "第1回レポート課題", url: "", deadline: now - 10 * d, deadlineText: formatDeadline(now - 10 * d), status: "提出済", grade: "" },
+    ];
+  }
+
   // --- メインロジック ---
 
   let isLoading = false;
@@ -1191,6 +1244,16 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     isLoading = true;
 
     try {
+      // プレビューモード
+      var settings = window.__kulmsSettings || {};
+      if (settings.previewMode) {
+        var mockData = generateMockAssignments();
+        updateCacheInfo(Date.now());
+        renderAssignments(mockData);
+        isLoading = false;
+        return;
+      }
+
       if (!forceRefresh) {
         const cached = await loadCache();
         if (cached) {
@@ -1747,7 +1810,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   if (window !== window.top) return;
 
-  const AMAZON_AFFILIATE_TAG = "rrddrd-22";
+  // アフィリエイトタグなし
   const TEXTBOOK_CACHE_KEY = "kulms-textbooks";
   // キャッシュは無期限 (更新ボタンで手動リフレッシュ)
   const BASE_URL = window.location.origin;
@@ -1847,7 +1910,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     if (!book.isbn && book.author) {
       query += " " + book.author;
     }
-    return "https://www.amazon.co.jp/s?k=" + encodeURIComponent(query) + "&i=stripbooks&tag=" + AMAZON_AFFILIATE_TAG;
+    return "https://www.amazon.co.jp/s?k=" + encodeURIComponent(query) + "&i=stripbooks";
   }
 
   // --- UI (課題パネル内に統合) ---
@@ -2070,6 +2133,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     loadInto: function (targetEl, forceRefresh) {
       contentEl = targetEl;
       loadTextbooks(forceRefresh);
+    },
+    detach: function () {
+      contentEl = null;
     },
   };
 })();
