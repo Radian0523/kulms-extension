@@ -10,7 +10,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     theme: true, assignments: true, textbooks: true,
     treeView: true, courseNameCleanup: true, pinSort: true,
     courseRowClick: true, toolVisibility: true, sidebarResize: true,
-    tabColoring: true, notificationBadge: true, panelPush: false, previewMode: false
+    tabColoring: true, notificationBadge: true, sidebarStyle: true, memos: true,
+    panelPush: false, previewMode: false
   };
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
@@ -240,7 +241,10 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   function extractTimestamp(val) {
     if (!val) return null;
     if (typeof val === "number") return val;
-    if (typeof val === "object" && val.time) return val.time;
+    if (typeof val === "object") {
+      if (val.epochSecond) return val.epochSecond * 1000;
+      if (val.time) return val.time;
+    }
     if (typeof val === "string") {
       const n = Number(val);
       return isNaN(n) ? null : n;
@@ -248,12 +252,28 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     return null;
   }
 
-  async function fetchAssignmentsForCourse(course) {
+  // サイドバーDOMから各コースの「課題」ツールURLを抽出
+  function buildAssignmentToolMap() {
+    var map = {};
+    document.querySelectorAll(".nav-item a").forEach(function (a) {
+      if (!a.textContent.trim().match(/^課題/)) return;
+      var match = a.href.match(/\/portal\/site\/([^\/?#]+)\/tool\//);
+      if (match) map[match[1]] = a.href;
+    });
+    return map;
+  }
+
+  async function fetchAssignmentsForCourse(course, toolMap) {
     try {
       const data = await sakaiGet(
         "/direct/assignment/site/" + course.id + ".json"
       );
       const list = data.assignment_collection || [];
+
+      // コースの課題ツールURL（ポータル内遷移）
+      var courseAssignUrl = toolMap[course.id]
+        || BASE_URL + "/portal/site/" + course.id;
+
       return list.map((a) => {
         const deadline =
           extractTimestamp(a.dueTime) ||
@@ -267,17 +287,11 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           status = a.submissionStatus;
         }
 
-        const assignUrl = a.entityURL
-          ? a.entityURL.startsWith("http")
-            ? a.entityURL
-            : BASE_URL + a.entityURL
-          : BASE_URL + "/portal/site/" + course.id;
-
         return {
           courseName: course.name,
           courseId: course.id,
           name: a.title || "",
-          url: assignUrl,
+          url: courseAssignUrl,
           deadline: deadline,
           deadlineText: deadline ? formatDeadline(deadline) : "",
           status: status,
@@ -300,13 +314,16 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       throw new Error("登録コースが見つかりませんでした");
     }
 
+    // サイドバーから課題ツールURLを取得（この時点では描画済み）
+    var toolMap = buildAssignmentToolMap();
+
     const allAssignments = [];
     let completed = 0;
 
     for (let i = 0; i < courses.length; i += CONCURRENT_LIMIT) {
       const batch = courses.slice(i, i + CONCURRENT_LIMIT);
       const results = await Promise.allSettled(
-        batch.map((c) => fetchAssignmentsForCourse(c))
+        batch.map((c) => fetchAssignmentsForCourse(c, toolMap))
       );
       results.forEach((r) => {
         if (r.status === "fulfilled") {
@@ -712,7 +729,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       contentEl.appendChild(createSection("14日以内", success, "success", false));
     }
     if (other.length > 0) {
-      contentEl.appendChild(createSection("その他", other, "other", true));
+      contentEl.appendChild(createSection("その他", other, "other", false));
     }
     if (submitted.length > 0) {
       submitted.sort(function (a, b) {
@@ -806,8 +823,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     if (assignment.url) {
       var a = document.createElement("a");
       a.href = assignment.url;
-      a.target = "_blank";
-      a.rel = "noopener";
       a.textContent = assignment.name;
       nameDiv.appendChild(a);
     } else {
@@ -844,6 +859,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   // --- メモ UI ---
 
   function renderMemos() {
+    if (window.__kulmsSettings && window.__kulmsSettings.memos === false) return;
     if (!memos || memos.length === 0) return;
 
     var section = document.createElement("div");
@@ -910,6 +926,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   }
 
   function appendMemoButton() {
+    if (window.__kulmsSettings && window.__kulmsSettings.memos === false) return;
     var wrapper = document.createElement("div");
     wrapper.className = "kulms-memo-area";
 
@@ -981,6 +998,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     { key: "sidebarResize", label: "サイドバーリサイズ", desc: "サイドバー幅のドラッグ調整" },
     { key: "tabColoring", label: "科目タブ色分け", desc: "サイドバーの科目を締切の緊急度で色分け" },
     { key: "notificationBadge", label: "新着課題バッジ", desc: "新しい課題が追加されたコースにバッジ表示" },
+    { key: "sidebarStyle", label: "サイドバースタイル変更", desc: "選択中科目の青背景を除去し左ボーダー表示に変更" },
+    { key: "memos", label: "メモ機能", desc: "課題タブにメモを追加・保存できる機能" },
     { key: "panelPush", label: "パネル押し出し表示", desc: "パネルを開くとページを横に押す（OFFで重ねて表示）" },
     { key: "previewMode", label: "プレビューモード", desc: "ダミー課題を表示してUIを確認（開発用）" },
   ];
@@ -1131,6 +1150,30 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   // --- サイドバー機能 ---
 
+  // サイドバースタイル上書き（<style>タグをDOMに直接注入）
+  function injectSidebarOverride() {
+    if (window.__kulmsSettings && window.__kulmsSettings.sidebarStyle === false) return;
+    var style = document.createElement("style");
+    style.id = "kulms-sidebar-override";
+    style.textContent =
+      // 選択中の青背景を消す
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head { background-color: transparent !important; }" +
+      // 文字色を通常と同じ青に戻す
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head a { color: rgb(15, 75, 112) !important; }" +
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head button { color: var(--sakai-text-color-1, #333) !important; }" +
+      // 選択中の科目名の太字・拡大を無効化
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head a { font-weight: 400 !important; font-size: 14px !important; }" +
+      // 選択中の科目を左ボーダーで表示（課題色がない場合）
+      "#portal-nav-sidebar li.site-list-item.is-current-site { border-left: 3px solid #888 !important; }" +
+      // 選択中 + 課題色がある場合は課題色を優先
+      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-danger { border-left: 4px solid #e85555 !important; }" +
+      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-warning { border-left: 4px solid #d7aa57 !important; }" +
+      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-success { border-left: 4px solid #62b665 !important; }" +
+      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-other { border-left: 4px solid #999 !important; }" +
+      "";
+    document.head.appendChild(style);
+  }
+
   function colorSidebarTabs(assignments) {
     if (window.__kulmsSettings && window.__kulmsSettings.tabColoring === false) return;
 
@@ -1159,9 +1202,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
     document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
       li.classList.remove("cs-tab-danger", "cs-tab-warning", "cs-tab-success", "cs-tab-other");
-      var link = li.querySelector('a[href*="/portal/site/"]');
+      var link = li.querySelector('a[href*="/portal/site"]');
       if (!link) return;
-      var match = link.href.match(/\/portal\/site\/([^\/?#]+)/);
+      var match = link.href.match(/\/portal\/site(?:-reset)?\/([^\/?#]+)/);
       if (!match) return;
       var siteId = match[1];
       var u = courseUrgency[siteId];
@@ -1198,9 +1241,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       });
 
       document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
-        var link = li.querySelector('a[href*="/portal/site/"]');
+        var link = li.querySelector('a[href*="/portal/site"]');
         if (!link) return;
-        var match = link.href.match(/\/portal\/site\/([^\/?#]+)/);
+        var match = link.href.match(/\/portal\/site(?:-reset)?\/([^\/?#]+)/);
         if (!match) return;
         var siteId = match[1];
         if (newByCourse[siteId]) {
@@ -1257,6 +1300,11 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       if (!forceRefresh) {
         const cached = await loadCache();
         if (cached) {
+          // キャッシュのURLをポータル内URLに修正
+          var toolMap = buildAssignmentToolMap();
+          cached.assignments.forEach(function (a) {
+            if (toolMap[a.courseId]) a.url = toolMap[a.courseId];
+          });
           updateCacheInfo(cached.timestamp);
           renderAssignments(cached.assignments);
           colorSidebarTabs(cached.assignments);
@@ -1294,6 +1342,19 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     await loadMemos();
     createFloatingButton();
     createPanel();
+    injectSidebarOverride();
+
+    // ページ読み込み時にキャッシュからサイドバー色分け・バッジを適用
+    try {
+      var cached = await loadCache();
+      if (cached && cached.assignments) {
+        colorSidebarTabs(cached.assignments);
+        checkNotificationBadges(cached.assignments);
+      }
+    } catch (e) {
+      // キャッシュ読み込み失敗時は無視
+    }
+
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }

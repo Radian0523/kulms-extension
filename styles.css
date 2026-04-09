@@ -1765,38 +1765,22 @@ body[data-kulms-theme="blue"] .kulms-sidebar-handle:hover {
   background-color: rgba(80, 120, 180, 0.35);
 }
 
-/* === サイドバー科目タブ色分け === */
+/* === サイドバー科目タブ色分け（左ボーダー方式） === */
 
 .cs-tab-danger {
-  background-color: #f78989 !important;
+  border-left: 4px solid #e85555 !important;
 }
 
 .cs-tab-warning {
-  background-color: #fdd783 !important;
+  border-left: 4px solid #d7aa57 !important;
 }
 
 .cs-tab-success {
-  background-color: #8bd48d !important;
+  border-left: 4px solid #62b665 !important;
 }
 
 .cs-tab-other {
-  background-color: #adadad !important;
-}
-
-body[data-kulms-theme="dark"] .cs-tab-danger {
-  background-color: #8b3030 !important;
-}
-
-body[data-kulms-theme="dark"] .cs-tab-warning {
-  background-color: #8b6a20 !important;
-}
-
-body[data-kulms-theme="dark"] .cs-tab-success {
-  background-color: #2d6b30 !important;
-}
-
-body[data-kulms-theme="dark"] .cs-tab-other {
-  background-color: #5a5a5a !important;
+  border-left: 4px solid #999 !important;
 }
 
 /* === 新着課題通知バッジ === */
