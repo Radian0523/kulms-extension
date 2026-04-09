@@ -9,7 +9,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   var DEFAULTS = {
     theme: true, assignments: true, textbooks: true,
     treeView: true, courseNameCleanup: true, pinSort: true,
-    courseRowClick: true, toolVisibility: true, sidebarResize: true
+    courseRowClick: true, toolVisibility: true, sidebarResize: true,
+    tabColoring: true, notificationBadge: true
   };
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
@@ -17,37 +18,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     resolve(window.__kulmsSettings);
   });
 });
-
-// === サイドバーツールバー ===
-
-(function () {
-  "use strict";
-
-  if (window !== window.top) return;
-
-  function insertToolbar() {
-    if (document.getElementById("kulms-toolbar")) return true;
-    // Sakai ヘッダーのナビリストに挿入
-    var header = document.querySelector("header.portal-header");
-    var navList = header && header.querySelector("ul.nav");
-    if (!navList) return false;
-    var li = document.createElement("li");
-    li.id = "kulms-toolbar";
-    navList.appendChild(li);
-    window.__kulmsToolbar = li;
-    window.dispatchEvent(new CustomEvent("kulms-toolbar-ready"));
-    return true;
-  }
-
-  if (!insertToolbar()) {
-    var observer = new MutationObserver(function () {
-      if (insertToolbar()) {
-        observer.disconnect();
-      }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-  }
-})();
 
 // === テーマ切り替え機能 ===
 
@@ -86,110 +56,22 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     chrome.storage.local.set({ [STORAGE_KEY]: themeId });
   }
 
-  // パネル内のアクティブ状態を更新
-  function updateActiveState(themeId) {
-    const panel = document.getElementById("kulms-theme-panel");
-    if (!panel) return;
-    panel.querySelectorAll(".kulms-theme-option").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.theme === themeId);
-    });
+  function getCurrentTheme() {
+    return document.body.getAttribute("data-kulms-theme") || "default";
   }
 
-  // ツールバーボタンを生成
-  function createToggleButton() {
-    const btn = document.createElement("button");
-    btn.id = "kulms-theme-toggle";
-    btn.title = "テーマ切り替え";
-    btn.addEventListener("click", togglePanel);
+  // 他のIIFEから使えるAPI
+  window.__kulmsThemeAPI = {
+    themes: THEMES,
+    apply: applyTheme,
+    save: saveTheme,
+    getCurrent: getCurrentTheme,
+  };
 
-    btn.className = "kulms-toolbar-btn";
-    btn.innerHTML = '<span class="kulms-toolbar-icon">\uD83C\uDFA8</span><span class="kulms-toolbar-label">テーマ</span>';
-    if (window.__kulmsToolbar) {
-      window.__kulmsToolbar.appendChild(btn);
-    } else {
-      window.addEventListener("kulms-toolbar-ready", function () {
-        window.__kulmsToolbar.appendChild(btn);
-      }, { once: true });
-    }
-  }
-
-  // テーマ選択パネルを生成
-  function createPanel() {
-    const panel = document.createElement("div");
-    panel.id = "kulms-theme-panel";
-    panel.style.display = "none";
-
-    const title = document.createElement("div");
-    title.className = "kulms-panel-title";
-    title.textContent = "テーマ選択";
-    panel.appendChild(title);
-
-    THEMES.forEach((theme) => {
-      const option = document.createElement("button");
-      option.className = "kulms-theme-option";
-      option.dataset.theme = theme.id;
-
-      const dot = document.createElement("span");
-      dot.className = "kulms-color-dot";
-      dot.style.backgroundColor = theme.color;
-
-      const label = document.createElement("span");
-      label.textContent = theme.label;
-
-      option.appendChild(dot);
-      option.appendChild(label);
-      option.addEventListener("click", () => {
-        applyTheme(theme.id);
-        saveTheme(theme.id);
-      });
-      panel.appendChild(option);
-    });
-
-    document.body.appendChild(panel);
-  }
-
-  // パネルの表示・非表示を切り替え
-  function togglePanel() {
-    const panel = document.getElementById("kulms-theme-panel");
-    if (!panel) return;
-    const isVisible = panel.style.display !== "none";
-    if (isVisible) {
-      panel.style.display = "none";
-    } else {
-      const btn = document.getElementById("kulms-theme-toggle");
-      if (btn && btn.classList.contains("kulms-toolbar-btn")) {
-        const rect = btn.getBoundingClientRect();
-        panel.style.position = "fixed";
-        panel.style.top = (rect.bottom + 4) + "px";
-        panel.style.left = rect.left + "px";
-        panel.style.bottom = "auto";
-        panel.style.right = "auto";
-      }
-      panel.style.display = "block";
-    }
-  }
-
-  // パネル外クリックで閉じる
-  function handleOutsideClick(e) {
-    const panel = document.getElementById("kulms-theme-panel");
-    const toggle = document.getElementById("kulms-theme-toggle");
-    if (!panel || !toggle) return;
-    if (
-      panel.style.display !== "none" &&
-      !panel.contains(e.target) &&
-      !toggle.contains(e.target)
-    ) {
-      panel.style.display = "none";
-    }
-  }
-
-  // 初期化
+  // 初期化: テーマだけ適用（UIは課題パネル内に統合）
   function init() {
     if (window !== window.top) return;
-    createToggleButton();
-    createPanel();
     loadSavedTheme();
-    document.addEventListener("click", handleOutsideClick);
   }
 
   window.__kulmsSettingsReady.then(function (s) {
@@ -207,6 +89,14 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   const CACHE_TTL = 30 * 60 * 1000; // 30分
   const CONCURRENT_LIMIT = 4;
   const BASE_URL = window.location.origin;
+  const CHECKED_KEY = "kulms-checked-assignments";
+  const MEMO_KEY = "kulms-memos";
+  const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
+
+  // --- State ---
+  let checkedState = {};
+  let memos = [];
+  let lastAssignments = [];
 
   // --- Sakai Direct API ヘルパー ---
 
@@ -313,16 +203,17 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     throw new Error("登録コースが見つかりませんでした");
   }
 
-  // --- 日付・緊急度 ---
+  // --- 日付・緊急度 (CPandA準拠) ---
 
   function getUrgencyClass(deadline) {
-    if (!deadline) return "urgency-ok";
-    const now = Date.now();
-    const diff = deadline - now;
+    if (!deadline) return "urgency-other";
+    var now = Date.now();
+    var diff = deadline - now;
     if (diff < 0) return "urgency-overdue";
-    if (diff < 24 * 60 * 60 * 1000) return "urgency-24h";
-    if (diff < 72 * 60 * 60 * 1000) return "urgency-72h";
-    return "urgency-ok";
+    if (diff < 24 * 60 * 60 * 1000) return "urgency-danger";
+    if (diff < 5 * 24 * 60 * 60 * 1000) return "urgency-warning";
+    if (diff < 14 * 24 * 60 * 60 * 1000) return "urgency-success";
+    return "urgency-other";
   }
 
   function formatDeadline(ts) {
@@ -330,6 +221,18 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     const d = new Date(ts);
     const pad = (n) => String(n).padStart(2, "0");
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function formatRemaining(deadline) {
+    if (!deadline) return "";
+    var diff = deadline - Date.now();
+    if (diff < 0) return "期限切れ";
+    var days = Math.floor(diff / (24 * 60 * 60 * 1000));
+    var hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+    if (days > 0) return "残り" + days + "日" + hours + "時間";
+    if (hours > 0) return "残り" + hours + "時間";
+    var mins = Math.floor(diff / (60 * 1000));
+    return "残り" + mins + "分";
   }
 
   // --- 課題データ取得 (Sakai Direct API) ---
@@ -357,7 +260,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           extractTimestamp(a.dueDate) ||
           extractTimestamp(a.closeTime);
 
-        // 提出状態の判定
         let status = "";
         if (a.submitted === true) {
           status = "提出済";
@@ -365,7 +267,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           status = a.submissionStatus;
         }
 
-        // 課題URL
         const assignUrl = a.entityURL
           ? a.entityURL.startsWith("http")
             ? a.entityURL
@@ -476,6 +377,54 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     });
   }
 
+  // --- 完了チェック状態 ---
+
+  async function loadCheckedState() {
+    return new Promise(function (resolve) {
+      chrome.storage.local.get(CHECKED_KEY, function (result) {
+        checkedState = result[CHECKED_KEY] || {};
+        resolve();
+      });
+    });
+  }
+
+  function saveCheckedState() {
+    chrome.storage.local.set({ [CHECKED_KEY]: checkedState });
+  }
+
+  function getCheckedKey(assignment) {
+    return assignment.courseId + ":" + assignment.name;
+  }
+
+  function isAssignmentChecked(assignment) {
+    return !!checkedState[getCheckedKey(assignment)];
+  }
+
+  function toggleChecked(assignment) {
+    var key = getCheckedKey(assignment);
+    if (checkedState[key]) {
+      delete checkedState[key];
+    } else {
+      checkedState[key] = Date.now();
+    }
+    saveCheckedState();
+  }
+
+  // --- メモ ---
+
+  async function loadMemos() {
+    return new Promise(function (resolve) {
+      chrome.storage.local.get(MEMO_KEY, function (result) {
+        memos = result[MEMO_KEY] || [];
+        resolve();
+      });
+    });
+  }
+
+  function saveMemos() {
+    chrome.storage.local.set({ [MEMO_KEY]: memos });
+  }
+
   // --- UI ---
 
   let panelEl = null;
@@ -483,19 +432,16 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   let cacheInfoEl = null;
 
   function createFloatingButton() {
-    const btn = document.createElement("button");
+    var btn = document.createElement("button");
     btn.id = "kulms-assign-toggle";
     btn.title = "KULMS Extension";
     btn.addEventListener("click", togglePanel);
+    btn.className = "kulms-hamburger-btn";
+    btn.textContent = "\u2630"; // ☰
 
-    btn.className = "kulms-toolbar-btn";
-    btn.innerHTML = '<span class="kulms-toolbar-icon">\u2699</span><span class="kulms-toolbar-label">Ext</span>';
-    if (window.__kulmsToolbar) {
-      window.__kulmsToolbar.appendChild(btn);
-    } else {
-      window.addEventListener("kulms-toolbar-ready", function () {
-        window.__kulmsToolbar.appendChild(btn);
-      }, { once: true });
+    var indicators = document.getElementById("sakai-system-indicators");
+    if (indicators) {
+      indicators.appendChild(btn);
     }
   }
 
@@ -503,33 +449,97 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     panelEl = document.createElement("div");
     panelEl.id = "kulms-assign-panel";
 
-    // ヘッダー
-    const header = document.createElement("div");
+    // ヘッダー (ロゴ + ×ボタン)
+    var header = document.createElement("div");
     header.className = "kulms-assign-header";
 
-    const title = document.createElement("span");
-    title.className = "kulms-assign-header-title";
-    title.textContent = "課題一覧";
+    var logo = document.createElement("span");
+    logo.className = "kulms-assign-logo";
+    logo.textContent = "KULMS Ext";
 
-    const settingsBtn = document.createElement("button");
-    settingsBtn.textContent = "\u2699"; // ⚙
-    settingsBtn.title = "設定";
-    settingsBtn.addEventListener("click", showSettingsView);
+    var headerRight = document.createElement("div");
+    headerRight.className = "kulms-assign-header-right";
 
-    const refreshBtn = document.createElement("button");
+    var refreshBtn = document.createElement("button");
+    refreshBtn.className = "kulms-assign-header-btn";
     refreshBtn.textContent = "\uD83D\uDD04"; // 🔄
     refreshBtn.title = "更新";
-    refreshBtn.addEventListener("click", () => loadAssignments(true));
+    refreshBtn.addEventListener("click", function () {
+      if (currentView === "assignments") loadAssignments(true);
+      else if (currentView === "textbooks" && window.__kulmsTextbookAPI) {
+        window.__kulmsTextbookAPI.loadInto(contentEl, true);
+      }
+    });
 
-    const closeBtn = document.createElement("button");
-    closeBtn.textContent = "\u2715"; // ✕
+    var closeBtn = document.createElement("button");
+    closeBtn.className = "kulms-assign-close";
+    closeBtn.textContent = "\u00D7"; // ×
     closeBtn.title = "閉じる";
     closeBtn.addEventListener("click", closePanel);
 
-    header.appendChild(title);
-    header.appendChild(settingsBtn);
-    header.appendChild(refreshBtn);
-    header.appendChild(closeBtn);
+    headerRight.appendChild(refreshBtn);
+    headerRight.appendChild(closeBtn);
+    header.appendChild(logo);
+    header.appendChild(headerRight);
+
+    // タブバー (課題 / 教科書 / 設定)
+    var tabBar = document.createElement("div");
+    tabBar.className = "kulms-panel-tab-bar";
+
+    var tabs = [];
+
+    var tabAssign = document.createElement("label");
+    tabAssign.className = "kulms-panel-tab active";
+    var radioAssign = document.createElement("input");
+    radioAssign.type = "radio";
+    radioAssign.name = "kulms-tab";
+    radioAssign.value = "assignments";
+    radioAssign.checked = true;
+    tabAssign.appendChild(radioAssign);
+    tabAssign.appendChild(document.createTextNode("課題"));
+    tabs.push(tabAssign);
+
+    var tabTextbook = document.createElement("label");
+    tabTextbook.className = "kulms-panel-tab";
+    var radioTextbook = document.createElement("input");
+    radioTextbook.type = "radio";
+    radioTextbook.name = "kulms-tab";
+    radioTextbook.value = "textbooks";
+    tabTextbook.appendChild(radioTextbook);
+    tabTextbook.appendChild(document.createTextNode("教科書"));
+    tabs.push(tabTextbook);
+
+    var tabSettings = document.createElement("label");
+    tabSettings.className = "kulms-panel-tab";
+    var radioSettings = document.createElement("input");
+    radioSettings.type = "radio";
+    radioSettings.name = "kulms-tab";
+    radioSettings.value = "settings";
+    tabSettings.appendChild(radioSettings);
+    tabSettings.appendChild(document.createTextNode("設定"));
+    tabs.push(tabSettings);
+
+    function setActiveTab(activeTab) {
+      tabs.forEach(function (t) { t.classList.remove("active"); });
+      activeTab.classList.add("active");
+    }
+
+    tabBar.appendChild(tabAssign);
+    tabBar.appendChild(tabTextbook);
+    tabBar.appendChild(tabSettings);
+
+    tabAssign.addEventListener("click", function () {
+      setActiveTab(tabAssign);
+      showAssignmentsView();
+    });
+    tabTextbook.addEventListener("click", function () {
+      setActiveTab(tabTextbook);
+      showTextbooksView();
+    });
+    tabSettings.addEventListener("click", function () {
+      setActiveTab(tabSettings);
+      showSettingsView();
+    });
 
     // キャッシュ情報
     cacheInfoEl = document.createElement("div");
@@ -541,6 +551,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     contentEl.className = "kulms-assign-content";
 
     panelEl.appendChild(header);
+    panelEl.appendChild(tabBar);
     panelEl.appendChild(cacheInfoEl);
     panelEl.appendChild(contentEl);
     document.body.appendChild(panelEl);
@@ -548,7 +559,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   function togglePanel() {
     if (!panelEl) return;
-    const isOpen = panelEl.classList.contains("open");
+    var isOpen = panelEl.classList.contains("open");
     if (isOpen) {
       closePanel();
     } else {
@@ -558,22 +569,29 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   function openPanel() {
     if (!panelEl) return;
-    // 教科書パネルが開いていれば閉じる
-    var textbookPanel = document.getElementById("kulms-textbook-panel");
-    if (textbookPanel && textbookPanel.classList.contains("open")) {
-      textbookPanel.classList.remove("open");
-      document.body.classList.remove("kulms-textbook-panel-open");
-    }
     panelEl.classList.add("open");
-    document.body.classList.add("kulms-panel-open");
+    // クリック外閉じ用オーバーレイ
+    var cover = document.getElementById("kulms-cover");
+    if (!cover) {
+      cover = document.createElement("div");
+      cover.id = "kulms-cover";
+      cover.addEventListener("click", closePanel);
+      document.body.appendChild(cover);
+    }
+    cover.classList.add("visible");
     sessionStorage.setItem("kulms-panel-open", "1");
-    loadAssignments(false);
+    if (currentView === "assignments") {
+      loadAssignments(false);
+    } else if (currentView === "textbooks" && window.__kulmsTextbookAPI) {
+      window.__kulmsTextbookAPI.loadInto(contentEl, false);
+    }
   }
 
   function closePanel() {
     if (!panelEl) return;
     panelEl.classList.remove("open");
-    document.body.classList.remove("kulms-panel-open");
+    var cover = document.getElementById("kulms-cover");
+    if (cover) cover.classList.remove("visible");
     sessionStorage.removeItem("kulms-panel-open");
   }
 
@@ -623,78 +641,118 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   function renderAssignments(assignments) {
     if (!contentEl) return;
     contentEl.innerHTML = "";
+    lastAssignments = assignments;
 
-    if (assignments.length === 0) {
-      const empty = document.createElement("div");
+    if (assignments.length === 0 && (!memos || memos.length === 0)) {
+      var empty = document.createElement("div");
       empty.className = "kulms-assign-empty";
       empty.textContent = "課題が見つかりませんでした";
       contentEl.appendChild(empty);
+      appendMemoButton();
       return;
     }
 
-    const notSubmitted = assignments
-      .filter((a) => !isSubmitted(a.status))
-      .sort((a, b) => {
-        if (a.deadline && b.deadline) return a.deadline - b.deadline;
-        if (a.deadline) return -1;
-        if (b.deadline) return 1;
-        return 0;
-      });
+    // 振り分け: checked / submitted / active
+    var checked = [];
+    var submitted = [];
+    var active = [];
 
-    const submitted = assignments
-      .filter((a) => isSubmitted(a.status))
-      .sort((a, b) => {
+    assignments.forEach(function (a) {
+      if (isAssignmentChecked(a)) {
+        checked.push(a);
+      } else if (isSubmitted(a.status)) {
+        submitted.push(a);
+      } else {
+        active.push(a);
+      }
+    });
+
+    // active を期限順ソート
+    active.sort(function (a, b) {
+      if (a.deadline && b.deadline) return a.deadline - b.deadline;
+      if (a.deadline) return -1;
+      if (b.deadline) return 1;
+      return 0;
+    });
+
+    // 緊急度別グループ
+    var danger = active.filter(function (a) {
+      var u = getUrgencyClass(a.deadline);
+      return u === "urgency-danger" || u === "urgency-overdue";
+    });
+    var warning = active.filter(function (a) {
+      return getUrgencyClass(a.deadline) === "urgency-warning";
+    });
+    var success = active.filter(function (a) {
+      return getUrgencyClass(a.deadline) === "urgency-success";
+    });
+    var other = active.filter(function (a) {
+      return getUrgencyClass(a.deadline) === "urgency-other";
+    });
+
+    if (danger.length > 0) {
+      contentEl.appendChild(createSection("緊急", danger, "danger", false));
+    }
+    if (warning.length > 0) {
+      contentEl.appendChild(createSection("5日以内", warning, "warning", false));
+    }
+    if (success.length > 0) {
+      contentEl.appendChild(createSection("14日以内", success, "success", false));
+    }
+    if (other.length > 0) {
+      contentEl.appendChild(createSection("その他", other, "other", true));
+    }
+    if (submitted.length > 0) {
+      submitted.sort(function (a, b) {
         if (a.deadline && b.deadline) return b.deadline - a.deadline;
         if (a.deadline) return -1;
         if (b.deadline) return 1;
         return 0;
       });
-
-    if (notSubmitted.length > 0) {
-      contentEl.appendChild(
-        createSection("未提出", notSubmitted, false)
-      );
+      contentEl.appendChild(createSection("提出済み", submitted, "other", true));
+    }
+    if (checked.length > 0) {
+      contentEl.appendChild(createSection("完了済み", checked, "checked", true));
     }
 
-    if (submitted.length > 0) {
-      contentEl.appendChild(
-        createSection("提出済み", submitted, true)
-      );
-    }
+    // メモ
+    renderMemos();
+    // メモ追加ボタン
+    appendMemoButton();
   }
 
-  function createSection(label, items, collapsed) {
-    const section = document.createElement("div");
+  function createSection(label, items, type, collapsed) {
+    var section = document.createElement("div");
     section.className = "kulms-assign-section";
 
-    const header = document.createElement("div");
-    header.className = "kulms-assign-section-header";
+    var header = document.createElement("div");
+    header.className = "kulms-assign-section-header kulms-section-" + type;
 
-    const toggle = document.createElement("span");
+    var toggle = document.createElement("span");
     toggle.className =
       "kulms-assign-section-toggle" + (collapsed ? " collapsed" : "");
-    toggle.textContent = "\u25BC"; // ▼
+    toggle.textContent = "\u25BC";
 
-    const titleSpan = document.createElement("span");
+    var titleSpan = document.createElement("span");
     titleSpan.textContent = label;
 
-    const count = document.createElement("span");
+    var count = document.createElement("span");
     count.className = "kulms-assign-section-count";
-    count.textContent = `(${items.length})`;
+    count.textContent = "(" + items.length + ")";
 
     header.appendChild(toggle);
     header.appendChild(titleSpan);
     header.appendChild(count);
 
-    const itemsContainer = document.createElement("div");
+    var itemsContainer = document.createElement("div");
     itemsContainer.className =
       "kulms-assign-section-items" + (collapsed ? " collapsed" : "");
 
-    items.forEach((a) => {
+    items.forEach(function (a) {
       itemsContainer.appendChild(createCard(a));
     });
 
-    header.addEventListener("click", () => {
+    header.addEventListener("click", function () {
       toggle.classList.toggle("collapsed");
       itemsContainer.classList.toggle("collapsed");
     });
@@ -705,17 +763,36 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   }
 
   function createCard(assignment) {
-    const card = document.createElement("div");
-    card.className = `kulms-assign-card ${getUrgencyClass(assignment.deadline)}`;
+    var urgency = getUrgencyClass(assignment.deadline);
+    var checked = isAssignmentChecked(assignment);
 
-    const course = document.createElement("div");
-    course.className = "kulms-assign-card-course";
-    course.textContent = assignment.courseName;
+    var card = document.createElement("div");
+    card.className = "kulms-assign-card " + urgency;
+    if (checked) card.classList.add("kulms-checked");
 
-    const nameDiv = document.createElement("div");
+    // チェックボックス
+    var checkbox = document.createElement("div");
+    checkbox.className = "kulms-checkbox" + (checked ? " checked" : "");
+    checkbox.addEventListener("click", function (e) {
+      e.stopPropagation();
+      toggleChecked(assignment);
+      renderAssignments(lastAssignments);
+    });
+
+    // カード本体
+    var body = document.createElement("div");
+    body.className = "kulms-assign-card-body";
+
+    // コース名ピルバッジ
+    var pill = document.createElement("span");
+    pill.className = "kulms-course-pill " + urgency;
+    pill.textContent = assignment.courseName;
+
+    // 課題タイトル
+    var nameDiv = document.createElement("div");
     nameDiv.className = "kulms-assign-card-name";
     if (assignment.url) {
-      const a = document.createElement("a");
+      var a = document.createElement("a");
       a.href = assignment.url;
       a.target = "_blank";
       a.rel = "noopener";
@@ -725,28 +802,162 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       nameDiv.textContent = assignment.name;
     }
 
-    const meta = document.createElement("div");
+    // メタ情報
+    var meta = document.createElement("div");
     meta.className = "kulms-assign-card-meta";
 
-    const deadline = document.createElement("span");
-    deadline.textContent = formatDeadline(assignment.deadline);
+    var deadlineSpan = document.createElement("span");
+    deadlineSpan.textContent = formatDeadline(assignment.deadline);
+    meta.appendChild(deadlineSpan);
 
-    const badge = document.createElement("span");
-    badge.className = `kulms-assign-badge ${getStatusBadgeClass(assignment.status)}`;
-    badge.textContent = getStatusLabel(assignment.status);
+    // 残り時間
+    var remaining = formatRemaining(assignment.deadline);
+    if (remaining) {
+      var remainEl = document.createElement("span");
+      remainEl.className = "kulms-time-remain";
+      if (remaining === "期限切れ") remainEl.classList.add("overdue");
+      remainEl.textContent = remaining;
+      meta.appendChild(remainEl);
+    }
 
-    meta.appendChild(deadline);
-    meta.appendChild(badge);
+    body.appendChild(pill);
+    body.appendChild(nameDiv);
+    body.appendChild(meta);
 
-    card.appendChild(course);
-    card.appendChild(nameDiv);
-    card.appendChild(meta);
+    card.appendChild(checkbox);
+    card.appendChild(body);
     return card;
+  }
+
+  // --- メモ UI ---
+
+  function renderMemos() {
+    if (!memos || memos.length === 0) return;
+
+    var section = document.createElement("div");
+    section.className = "kulms-assign-section";
+
+    var header = document.createElement("div");
+    header.className = "kulms-assign-section-header kulms-section-memo";
+
+    var toggle = document.createElement("span");
+    toggle.className = "kulms-assign-section-toggle";
+    toggle.textContent = "\u25BC";
+
+    var titleSpan = document.createElement("span");
+    titleSpan.textContent = "メモ";
+
+    var count = document.createElement("span");
+    count.className = "kulms-assign-section-count";
+    count.textContent = "(" + memos.length + ")";
+
+    header.appendChild(toggle);
+    header.appendChild(titleSpan);
+    header.appendChild(count);
+
+    var itemsContainer = document.createElement("div");
+    itemsContainer.className = "kulms-assign-section-items";
+
+    memos.forEach(function (memo) {
+      var card = document.createElement("div");
+      card.className = "kulms-assign-card kulms-memo-card";
+
+      var badge = document.createElement("span");
+      badge.className = "kulms-badge-memo";
+      badge.textContent = "メモ";
+
+      var text = document.createElement("div");
+      text.className = "kulms-memo-text";
+      text.textContent = memo.text;
+
+      var delBtn = document.createElement("button");
+      delBtn.className = "kulms-memo-delete";
+      delBtn.textContent = "\u00D7";
+      delBtn.title = "削除";
+      delBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        memos = memos.filter(function (m) { return m.id !== memo.id; });
+        saveMemos();
+        renderAssignments(lastAssignments);
+      });
+
+      card.appendChild(badge);
+      card.appendChild(text);
+      card.appendChild(delBtn);
+      itemsContainer.appendChild(card);
+    });
+
+    header.addEventListener("click", function () {
+      toggle.classList.toggle("collapsed");
+      itemsContainer.classList.toggle("collapsed");
+    });
+
+    section.appendChild(header);
+    section.appendChild(itemsContainer);
+    contentEl.appendChild(section);
+  }
+
+  function appendMemoButton() {
+    var wrapper = document.createElement("div");
+    wrapper.className = "kulms-memo-area";
+
+    // メモ入力フォーム (初期非表示)
+    var form = document.createElement("div");
+    form.className = "kulms-memo-form";
+    form.style.display = "none";
+
+    var textarea = document.createElement("textarea");
+    textarea.className = "kulms-memo-input";
+    textarea.placeholder = "メモを入力...";
+    textarea.rows = 3;
+
+    var actions = document.createElement("div");
+    actions.className = "kulms-memo-form-actions";
+
+    var saveBtn = document.createElement("button");
+    saveBtn.className = "kulms-memo-save";
+    saveBtn.textContent = "保存";
+    saveBtn.addEventListener("click", function () {
+      var text = textarea.value.trim();
+      if (!text) return;
+      memos.push({ id: Date.now(), text: text, created: Date.now() });
+      saveMemos();
+      renderAssignments(lastAssignments);
+    });
+
+    var cancelBtn = document.createElement("button");
+    cancelBtn.className = "kulms-memo-cancel";
+    cancelBtn.textContent = "キャンセル";
+    cancelBtn.addEventListener("click", function () {
+      form.style.display = "none";
+      addBtn.style.display = "";
+      textarea.value = "";
+    });
+
+    actions.appendChild(saveBtn);
+    actions.appendChild(cancelBtn);
+    form.appendChild(textarea);
+    form.appendChild(actions);
+
+    // ＋ボタン
+    var addBtn = document.createElement("button");
+    addBtn.className = "kulms-memo-btn";
+    addBtn.textContent = "\uFF0B"; // ＋
+    addBtn.title = "メモを追加";
+    addBtn.addEventListener("click", function () {
+      addBtn.style.display = "none";
+      form.style.display = "block";
+      textarea.focus();
+    });
+
+    wrapper.appendChild(form);
+    wrapper.appendChild(addBtn);
+    contentEl.appendChild(wrapper);
   }
 
   // --- 設定ビュー ---
 
-  const FEATURES = [
+  var FEATURES = [
     { key: "theme", label: "テーマ切り替え", desc: "ダーク・セピア・ブルーテーマ" },
     { key: "assignments", label: "課題一覧", desc: "全科目の課題を一覧表示" },
     { key: "textbooks", label: "教科書パネル", desc: "シラバスから教科書情報を取得" },
@@ -756,30 +967,60 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     { key: "courseRowClick", label: "コース行クリック展開", desc: "サイドバーの科目行全体をクリック可能に" },
     { key: "toolVisibility", label: "ツール表示管理", desc: "不要なツールを「その他」に折りたたみ" },
     { key: "sidebarResize", label: "サイドバーリサイズ", desc: "サイドバー幅のドラッグ調整" },
+    { key: "tabColoring", label: "科目タブ色分け", desc: "サイドバーの科目を締切の緊急度で色分け" },
+    { key: "notificationBadge", label: "新着課題バッジ", desc: "新しい課題が追加されたコースにバッジ表示" },
   ];
 
-  let currentView = "assignments"; // "assignments" | "settings"
+  var currentView = "assignments";
 
   function showSettingsView() {
     if (currentView === "settings") return;
     currentView = "settings";
 
-    // ヘッダータイトルを変更
-    var titleEl = panelEl.querySelector(".kulms-assign-header-title");
-    if (titleEl) {
-      titleEl.textContent = "\u2190 \u8A2D\u5B9A"; // ← 設定
-      titleEl.style.cursor = "pointer";
-      titleEl.onclick = showAssignmentsView;
-    }
-
-    // キャッシュ情報非表示
     if (cacheInfoEl) cacheInfoEl.style.display = "none";
 
-    // 設定UIを構築
     contentEl.innerHTML = "";
     var settingsView = document.createElement("div");
     settingsView.className = "kulms-settings-view";
 
+    // テーマセレクター
+    var themeAPI = window.__kulmsThemeAPI;
+    if (themeAPI) {
+      var themeSection = document.createElement("div");
+      themeSection.className = "kulms-settings-theme-section";
+
+      var themeLabel = document.createElement("div");
+      themeLabel.className = "kulms-settings-row-label";
+      themeLabel.textContent = "テーマ";
+      themeSection.appendChild(themeLabel);
+
+      var themeRow = document.createElement("div");
+      themeRow.className = "kulms-theme-picker";
+
+      var currentTheme = themeAPI.getCurrent();
+
+      themeAPI.themes.forEach(function (theme) {
+        var dot = document.createElement("button");
+        dot.className = "kulms-theme-dot";
+        if (theme.id === currentTheme) dot.classList.add("active");
+        dot.style.backgroundColor = theme.color;
+        dot.title = theme.label;
+        dot.addEventListener("click", function () {
+          themeAPI.apply(theme.id);
+          themeAPI.save(theme.id);
+          themeRow.querySelectorAll(".kulms-theme-dot").forEach(function (d) {
+            d.classList.remove("active");
+          });
+          dot.classList.add("active");
+        });
+        themeRow.appendChild(dot);
+      });
+
+      themeSection.appendChild(themeRow);
+      settingsView.appendChild(themeSection);
+    }
+
+    // 機能トグル
     var currentSettings = window.__kulmsSettings || {};
 
     FEATURES.forEach(function (feat) {
@@ -800,7 +1041,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       labelArea.appendChild(labelEl);
       labelArea.appendChild(descEl);
 
-      // トグルスイッチ
       var toggle = document.createElement("label");
       toggle.className = "kulms-toggle";
 
@@ -824,32 +1064,122 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       settingsView.appendChild(row);
     });
 
-    // フッター
     var footer = document.createElement("div");
     footer.className = "kulms-settings-footer";
-    footer.textContent = "\u5909\u66F4\u306F\u30DA\u30FC\u30B8\u518D\u8AAD\u307F\u8FBC\u307F\u5F8C\u306B\u53CD\u6620"; // 変更はページ再読み込み後に反映
+    footer.textContent = "変更はページ再読み込み後に反映";
 
     settingsView.appendChild(footer);
     contentEl.appendChild(settingsView);
+  }
+
+  function showTextbooksView() {
+    if (currentView === "textbooks") return;
+    currentView = "textbooks";
+
+    if (cacheInfoEl) cacheInfoEl.style.display = "none";
+
+    contentEl.innerHTML = "";
+    if (window.__kulmsTextbookAPI) {
+      window.__kulmsTextbookAPI.loadInto(contentEl, false);
+    } else {
+      var msg = document.createElement("div");
+      msg.className = "kulms-assign-empty";
+      msg.textContent = "教科書機能が無効です";
+      contentEl.appendChild(msg);
+    }
   }
 
   function showAssignmentsView() {
     if (currentView === "assignments") return;
     currentView = "assignments";
 
-    // ヘッダータイトルを復元
-    var titleEl = panelEl.querySelector(".kulms-assign-header-title");
-    if (titleEl) {
-      titleEl.textContent = "\u8AB2\u984C\u4E00\u89A7"; // 課題一覧
-      titleEl.style.cursor = "";
-      titleEl.onclick = null;
-    }
-
-    // キャッシュ情報表示
     if (cacheInfoEl) cacheInfoEl.style.display = "";
-
-    // 課題を再読み込み
     loadAssignments(false);
+  }
+
+  // --- サイドバー機能 ---
+
+  function colorSidebarTabs(assignments) {
+    if (window.__kulmsSettings && window.__kulmsSettings.tabColoring === false) return;
+
+    var courseUrgency = {};
+    var priority = {
+      "urgency-overdue": 0, "urgency-danger": 1,
+      "urgency-warning": 2, "urgency-success": 3, "urgency-other": 4
+    };
+
+    assignments.forEach(function (a) {
+      if (isSubmitted(a.status) || isAssignmentChecked(a)) return;
+      var u = getUrgencyClass(a.deadline);
+      var existing = courseUrgency[a.courseId];
+      if (!existing || (priority[u] || 99) < (priority[existing] || 99)) {
+        courseUrgency[a.courseId] = u;
+      }
+    });
+
+    var urgencyToTab = {
+      "urgency-overdue": "cs-tab-danger",
+      "urgency-danger": "cs-tab-danger",
+      "urgency-warning": "cs-tab-warning",
+      "urgency-success": "cs-tab-success",
+      "urgency-other": "cs-tab-other"
+    };
+
+    document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
+      li.classList.remove("cs-tab-danger", "cs-tab-warning", "cs-tab-success", "cs-tab-other");
+      var link = li.querySelector('a[href*="/portal/site/"]');
+      if (!link) return;
+      var match = link.href.match(/\/portal\/site\/([^\/?#]+)/);
+      if (!match) return;
+      var siteId = match[1];
+      var u = courseUrgency[siteId];
+      if (u && urgencyToTab[u]) {
+        li.classList.add(urgencyToTab[u]);
+      }
+    });
+  }
+
+  function checkNotificationBadges(assignments) {
+    if (window.__kulmsSettings && window.__kulmsSettings.notificationBadge === false) return;
+
+    chrome.storage.local.get(PREV_ASSIGNMENTS_KEY, function (result) {
+      var prevIds = result[PREV_ASSIGNMENTS_KEY] || {};
+      var currentIds = {};
+      var newByCourse = {};
+
+      assignments.forEach(function (a) {
+        var key = a.courseId + ":" + a.name;
+        currentIds[key] = true;
+        if (!prevIds[key]) {
+          if (!newByCourse[a.courseId]) newByCourse[a.courseId] = 0;
+          newByCourse[a.courseId]++;
+        }
+      });
+
+      chrome.storage.local.set({ [PREV_ASSIGNMENTS_KEY]: currentIds });
+
+      // 初回実行時はバッジ表示しない
+      if (Object.keys(prevIds).length === 0) return;
+
+      document.querySelectorAll(".kulms-notification-badge").forEach(function (el) {
+        el.remove();
+      });
+
+      document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
+        var link = li.querySelector('a[href*="/portal/site/"]');
+        if (!link) return;
+        var match = link.href.match(/\/portal\/site\/([^\/?#]+)/);
+        if (!match) return;
+        var siteId = match[1];
+        if (newByCourse[siteId]) {
+          var head = li.querySelector(".site-list-item-head") || li;
+          head.style.position = "relative";
+          var badge = document.createElement("span");
+          badge.className = "kulms-notification-badge";
+          head.appendChild(badge);
+        }
+      });
+    });
   }
 
   // --- メインロジック ---
@@ -866,6 +1196,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
         if (cached) {
           updateCacheInfo(cached.timestamp);
           renderAssignments(cached.assignments);
+          colorSidebarTabs(cached.assignments);
+          checkNotificationBadges(cached.assignments);
           isLoading = false;
           return;
         }
@@ -881,6 +1213,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       saveCache(assignments);
       updateCacheInfo(Date.now());
       renderAssignments(assignments);
+      colorSidebarTabs(assignments);
+      checkNotificationBadges(assignments);
     } catch (e) {
       console.error("[KULMS Extension] assignment fetch error:", e);
       showError(e.message || "課題の取得に失敗しました");
@@ -891,11 +1225,12 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   // --- 初期化 ---
 
-  function init() {
+  async function init() {
     if (window !== window.top) return;
+    await loadCheckedState();
+    await loadMemos();
     createFloatingButton();
     createPanel();
-    // ページ遷移前にパネルが開いていたら自動復元
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }
@@ -903,6 +1238,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   init();
 })();
+
 
 // === 授業資料ツリービュー ===
 
@@ -1413,7 +1749,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   const AMAZON_AFFILIATE_TAG = "rrddrd-22";
   const TEXTBOOK_CACHE_KEY = "kulms-textbooks";
-  const TEXTBOOK_CACHE_TTL = 24 * 60 * 60 * 1000; // 24時間
+  // キャッシュは無期限 (更新ボタンで手動リフレッシュ)
   const BASE_URL = window.location.origin;
 
   // --- コース一覧取得 ---
@@ -1473,11 +1809,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     return new Promise((resolve) => {
       chrome.storage.local.get(TEXTBOOK_CACHE_KEY, (result) => {
         const cached = result[TEXTBOOK_CACHE_KEY];
-        if (
-          cached &&
-          cached.timestamp &&
-          Date.now() - cached.timestamp < TEXTBOOK_CACHE_TTL
-        ) {
+        if (cached && cached.data) {
           resolve(cached.data);
         } else {
           resolve(null);
@@ -1518,94 +1850,10 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     return "https://www.amazon.co.jp/s?k=" + encodeURIComponent(query) + "&i=stripbooks&tag=" + AMAZON_AFFILIATE_TAG;
   }
 
-  // --- UI ---
+  // --- UI (課題パネル内に統合) ---
 
-  var panelEl = null;
   var contentEl = null;
   var isLoading = false;
-
-  function createToggleButton() {
-    var btn = document.createElement("button");
-    btn.id = "kulms-textbook-toggle";
-    btn.title = "\u6559\u79D1\u66F8\u30FB\u53C2\u8003\u66F8"; // 教科書・参考書
-    btn.addEventListener("click", togglePanel);
-
-    btn.className = "kulms-toolbar-btn";
-    btn.innerHTML = '<span class="kulms-toolbar-icon">\uD83D\uDCDA</span><span class="kulms-toolbar-label">教科書</span>';
-    if (window.__kulmsToolbar) {
-      window.__kulmsToolbar.appendChild(btn);
-    } else {
-      window.addEventListener("kulms-toolbar-ready", function () {
-        window.__kulmsToolbar.appendChild(btn);
-      }, { once: true });
-    }
-  }
-
-  function createPanel() {
-    panelEl = document.createElement("div");
-    panelEl.id = "kulms-textbook-panel";
-
-    // ヘッダー
-    var header = document.createElement("div");
-    header.className = "kulms-textbook-panel-header";
-
-    var title = document.createElement("span");
-    title.className = "kulms-textbook-panel-title";
-    title.textContent = "\u6559\u79D1\u66F8\u30FB\u53C2\u8003\u66F8"; // 教科書・参考書
-
-    var refreshBtn = document.createElement("button");
-    refreshBtn.textContent = "\uD83D\uDD04"; // 🔄
-    refreshBtn.title = "\u66F4\u65B0"; // 更新
-    refreshBtn.addEventListener("click", function () {
-      loadTextbooks(true);
-    });
-
-    var closeBtn = document.createElement("button");
-    closeBtn.textContent = "\u2715"; // ✕
-    closeBtn.title = "\u9589\u3058\u308B"; // 閉じる
-    closeBtn.addEventListener("click", closePanel);
-
-    header.appendChild(title);
-    header.appendChild(refreshBtn);
-    header.appendChild(closeBtn);
-
-    // コンテンツ
-    contentEl = document.createElement("div");
-    contentEl.className = "kulms-textbook-panel-content";
-
-    panelEl.appendChild(header);
-    panelEl.appendChild(contentEl);
-    document.body.appendChild(panelEl);
-  }
-
-  function togglePanel() {
-    if (!panelEl) return;
-    if (panelEl.classList.contains("open")) {
-      closePanel();
-    } else {
-      openPanel();
-    }
-  }
-
-  function openPanel() {
-    if (!panelEl) return;
-    // 課題パネルが開いていれば閉じる
-    var assignPanel = document.getElementById("kulms-assign-panel");
-    if (assignPanel && assignPanel.classList.contains("open")) {
-      assignPanel.classList.remove("open");
-      document.body.classList.remove("kulms-panel-open");
-      sessionStorage.removeItem("kulms-panel-open");
-    }
-    panelEl.classList.add("open");
-    document.body.classList.add("kulms-textbook-panel-open");
-    loadTextbooks(false);
-  }
-
-  function closePanel() {
-    if (!panelEl) return;
-    panelEl.classList.remove("open");
-    document.body.classList.remove("kulms-textbook-panel-open");
-  }
 
   function showLoading(text) {
     if (!contentEl) return;
@@ -1816,13 +2064,14 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     }
   }
 
-  // --- 初期化 ---
+  // --- API公開 (課題パネルから呼び出される) ---
 
-  window.__kulmsSettingsReady.then(function (s) {
-    if (s.textbooks === false) return;
-    createToggleButton();
-    createPanel();
-  });
+  window.__kulmsTextbookAPI = {
+    loadInto: function (targetEl, forceRefresh) {
+      contentEl = targetEl;
+      loadTextbooks(forceRefresh);
+    },
+  };
 })();
 
 // === サイドバーリサイズ ===

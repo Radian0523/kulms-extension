@@ -259,190 +259,93 @@ body[data-kulms-theme="dark"] .alert {
   color: var(--kulms-text) !important;
 }
 
-/* === サイドバーツールバー === */
-
-/* テーマ・教科書ボタンを非表示 */
-#kulms-theme-toggle,
-#kulms-textbook-toggle {
-  display: none !important;
-}
-
-#kulms-toolbar {
-  display: flex !important;
-  align-items: center !important;
-}
-
-/* Sakai ヘッダーに合わせたボタンスタイル */
-.kulms-toolbar-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 4px !important;
-  padding: 0.5rem !important;
-  border: none !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  cursor: pointer !important;
-  color: #fff !important;
-  font-size: 14px !important;
-  white-space: nowrap !important;
-  transition: background 0.15s ease !important;
-}
-
-.kulms-toolbar-btn:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-}
-
-.kulms-toolbar-icon {
-  font-size: 16px !important;
-  line-height: 1 !important;
-}
-
-.kulms-toolbar-label {
-  font-size: 13px !important;
-  font-weight: 400 !important;
-  color: inherit !important;
-}
-
-/* ヘッダー内ボタンはテーマ不問（ヘッダー自体の色を継承） */
-
-/* === テーマ切り替えUI スタイル === */
-
-#kulms-theme-panel {
-  position: fixed !important;
-  bottom: 192px !important;
-  right: 24px !important;
-  z-index: 99999 !important;
-  background: #fff !important;
-  border: 1px solid #ccc !important;
-  border-radius: 12px !important;
-  padding: 12px !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
-  min-width: 180px !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-}
-
-#kulms-theme-panel .kulms-panel-title {
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: #333 !important;
-  margin: 0 0 8px 0 !important;
-  padding-bottom: 6px !important;
-  border-bottom: 1px solid #eee !important;
-}
-
-#kulms-theme-panel .kulms-theme-option {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-  padding: 8px 10px !important;
-  border-radius: 8px !important;
-  cursor: pointer !important;
-  border: none !important;
-  background: transparent !important;
-  width: 100% !important;
-  text-align: left !important;
-  font-size: 14px !important;
-  color: #333 !important;
-  transition: background 0.15s ease !important;
-}
-
-#kulms-theme-panel .kulms-theme-option:hover {
-  background: #f0f0f0 !important;
-}
-
-#kulms-theme-panel .kulms-theme-option.active {
-  background: #e3f0ff !important;
-  font-weight: 600 !important;
-}
-
-#kulms-theme-panel .kulms-color-dot {
-  width: 18px !important;
-  height: 18px !important;
-  border-radius: 50% !important;
-  border: 2px solid #ccc !important;
-  flex-shrink: 0 !important;
-}
-
-/* ダークテーマ時のパネル */
-body[data-kulms-theme="dark"] #kulms-theme-panel {
-  background: #1a1a2e !important;
-  border-color: #2a2a4a !important;
-}
-
-body[data-kulms-theme="dark"] #kulms-theme-panel .kulms-panel-title {
-  color: #e0e0e0 !important;
-  border-bottom-color: #2a2a4a !important;
-}
-
-body[data-kulms-theme="dark"] #kulms-theme-panel .kulms-theme-option {
-  color: #e0e0e0 !important;
-}
-
-body[data-kulms-theme="dark"] #kulms-theme-panel .kulms-theme-option:hover {
-  background: #16213e !important;
-}
-
-body[data-kulms-theme="dark"] #kulms-theme-panel .kulms-theme-option.active {
-  background: #0f3460 !important;
-}
-
-/* === 課題パネル開閉時の押し出し === */
+/* === パネル制御 === */
 
 body {
   transition: margin-right 0.3s ease !important;
 }
 
-body.kulms-panel-open {
-  margin-right: 380px !important;
-}
+/* === クリック外閉じオーバーレイ === */
 
-body.kulms-textbook-panel-open {
-  margin-right: 360px !important;
-}
-
-/* === 課題一覧パネル スタイル === */
-
-/* サイドパネル */
-#kulms-assign-panel {
+#kulms-cover {
   position: fixed !important;
   top: 0 !important;
-  right: -400px !important;
-  width: 380px !important;
+  left: 0 !important;
+  width: 100vw !important;
   height: 100vh !important;
+  z-index: 99999 !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+#kulms-cover.visible {
+  display: block !important;
+}
+
+/* === ハンバーガーボタン === */
+
+.kulms-hamburger-btn {
+  border: none !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  line-height: 1 !important;
+}
+
+.kulms-hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* === 課題一覧パネル (CPandA風) === */
+
+#kulms-assign-panel {
+  position: fixed !important;
+  top: 2.5vh !important;
+  right: 0 !important;
+  width: 0 !important;
+  height: 95vh !important;
   z-index: 100000 !important;
-  background: #fff !important;
-  border-left: 1px solid #ccc !important;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
+  background: var(--cs-bg, #cacaca) !important;
+  border-radius: 8px !important;
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.2) !important;
   display: flex !important;
   flex-direction: column !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  transition: right 0.3s ease !important;
+  transition: width 0.5s ease !important;
+  overflow: hidden !important;
 }
 
 #kulms-assign-panel.open {
-  right: 0 !important;
+  width: 300px !important;
 }
 
 /* パネルヘッダー */
 .kulms-assign-header {
   display: flex !important;
   align-items: center !important;
-  padding: 14px 16px !important;
-  border-bottom: 1px solid #e0e0e0 !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
   flex-shrink: 0 !important;
 }
 
-.kulms-assign-header-title {
-  font-size: 16px !important;
+.kulms-assign-logo {
+  font-size: 14px !important;
   font-weight: 700 !important;
-  color: #333 !important;
-  flex: 1 !important;
+  color: #464646 !important;
 }
 
-.kulms-assign-header button {
-  width: 32px !important;
-  height: 32px !important;
+.kulms-assign-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.kulms-assign-header-btn,
+.kulms-assign-close {
+  width: 30px !important;
+  height: 30px !important;
   border: none !important;
   background: transparent !important;
   cursor: pointer !important;
@@ -455,16 +358,50 @@ body.kulms-textbook-panel-open {
   transition: background 0.15s ease !important;
 }
 
-.kulms-assign-header button:hover {
-  background: #f0f0f0 !important;
+.kulms-assign-close {
+  font-size: 22px !important;
+}
+
+.kulms-assign-header-btn:hover,
+.kulms-assign-close:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* タブバー */
+.kulms-panel-tab-bar {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  padding: 0 8px !important;
+}
+
+.kulms-panel-tab {
+  flex: 1 !important;
+  text-align: center !important;
+  padding: 8px 0 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  color: #666 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px 6px 0 0 !important;
+  transition: background 0.2s, color 0.2s !important;
+}
+
+.kulms-panel-tab input[type="radio"] {
+  display: none !important;
+}
+
+.kulms-panel-tab.active {
+  background: #6483d3 !important;
+  color: #fff !important;
 }
 
 /* キャッシュ情報 */
 .kulms-assign-cache-info {
-  padding: 6px 16px !important;
+  padding: 4px 12px !important;
   font-size: 11px !important;
-  color: #999 !important;
-  border-bottom: 1px solid #f0f0f0 !important;
+  color: #777 !important;
   flex-shrink: 0 !important;
 }
 
@@ -472,12 +409,12 @@ body.kulms-textbook-panel-open {
 .kulms-assign-content {
   flex: 1 !important;
   overflow-y: auto !important;
-  padding: 12px !important;
+  padding: 8px !important;
 }
 
-/* セクション */
+/* セクションヘッダー (CPandA風) */
 .kulms-assign-section {
-  margin-bottom: 16px !important;
+  margin-bottom: 10px !important;
 }
 
 .kulms-assign-section-header {
@@ -486,14 +423,47 @@ body.kulms-textbook-panel-open {
   gap: 6px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
-  color: #555 !important;
-  padding: 6px 4px !important;
+  padding: 6px 8px !important;
   cursor: pointer !important;
   user-select: none !important;
+  border-radius: 5px !important;
+  margin-bottom: 6px !important;
 }
 
-.kulms-assign-section-header:hover {
-  color: #333 !important;
+.kulms-section-danger {
+  border-left: 6px solid #e85555 !important;
+  background: #f1cdcd !important;
+  color: #8b2020 !important;
+}
+
+.kulms-section-warning {
+  border-left: 6px solid #d7aa57 !important;
+  background: #e2d4bf !important;
+  color: #6b4f1a !important;
+}
+
+.kulms-section-success {
+  border-left: 6px solid #62b665 !important;
+  background: #cce6cf !important;
+  color: #1e5e20 !important;
+}
+
+.kulms-section-other {
+  border-left: 6px solid #777 !important;
+  background: #e0e0e0 !important;
+  color: #444 !important;
+}
+
+.kulms-section-checked {
+  border-left: 6px solid #6582ff !important;
+  background: #c6d1fc !important;
+  color: #2a3d8f !important;
+}
+
+.kulms-section-memo {
+  border-left: 6px solid #26a69a !important;
+  background: #c8ece9 !important;
+  color: #1a5d56 !important;
 }
 
 .kulms-assign-section-toggle {
@@ -507,7 +477,7 @@ body.kulms-textbook-panel-open {
 
 .kulms-assign-section-count {
   font-weight: 400 !important;
-  color: #999 !important;
+  opacity: 0.7 !important;
 }
 
 .kulms-assign-section-items {
@@ -518,50 +488,110 @@ body.kulms-textbook-panel-open {
   display: none !important;
 }
 
-/* 課題カード */
+/* 課題カード (CPandA風) */
 .kulms-assign-card {
-  background: #f9f9f9 !important;
-  border: 1px solid #e8e8e8 !important;
-  border-radius: 8px !important;
-  padding: 10px 12px !important;
-  margin-bottom: 8px !important;
-  border-left: 4px solid #ccc !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  background: #fff !important;
+  border: 2px solid #777 !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  margin-bottom: 6px !important;
+  position: relative !important;
   transition: box-shadow 0.15s ease !important;
 }
 
 .kulms-assign-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
+.kulms-assign-card.urgency-danger,
 .kulms-assign-card.urgency-overdue {
-  border-left-color: #e53935 !important;
+  border-color: #e85555 !important;
 }
 
-.kulms-assign-card.urgency-24h {
-  border-left-color: #f57c00 !important;
+.kulms-assign-card.urgency-warning {
+  border-color: #d7aa57 !important;
 }
 
-.kulms-assign-card.urgency-72h {
-  border-left-color: #fbc02d !important;
+.kulms-assign-card.urgency-success {
+  border-color: #62b665 !important;
 }
 
-.kulms-assign-card.urgency-ok {
-  border-left-color: #66bb6a !important;
+.kulms-assign-card.urgency-other {
+  border-color: #777 !important;
 }
 
-.kulms-assign-card-course {
-  font-size: 11px !important;
-  color: #888 !important;
-  margin-bottom: 2px !important;
+.kulms-assign-card.kulms-checked {
+  border-color: #6582ff !important;
+  opacity: 0.7 !important;
+}
+
+.kulms-assign-card-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* チェックボックス */
+.kulms-checkbox {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  border: 2px solid #aaa !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  margin-top: 2px !important;
+  transition: background 0.2s, border-color 0.2s !important;
+  flex-shrink: 0 !important;
+}
+
+.kulms-checkbox:hover {
+  border-color: #0064cd !important;
+}
+
+.kulms-checkbox.checked {
+  background: #0064cd !important;
+  border-color: #0064cd !important;
+}
+
+/* コース名ピルバッジ */
+.kulms-course-pill {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  margin-bottom: 3px !important;
+  max-width: 100% !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
+.kulms-course-pill.urgency-danger,
+.kulms-course-pill.urgency-overdue {
+  background: #e85555 !important;
+}
+
+.kulms-course-pill.urgency-warning {
+  background: #d7aa57 !important;
+}
+
+.kulms-course-pill.urgency-success {
+  background: #62b665 !important;
+}
+
+.kulms-course-pill.urgency-other {
+  background: #777 !important;
+}
+
+/* カード内テキスト */
 .kulms-assign-card-name {
-  font-size: 14px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
-  margin-bottom: 4px !important;
+  margin-bottom: 2px !important;
 }
 
 .kulms-assign-card-name a {
@@ -576,11 +606,23 @@ body.kulms-textbook-panel-open {
 .kulms-assign-card-meta {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
   font-size: 12px !important;
   color: #777 !important;
 }
 
+/* 残り時間 */
+.kulms-time-remain {
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  color: #333 !important;
+}
+
+.kulms-time-remain.overdue {
+  color: #e85555 !important;
+}
+
+/* ステータスバッジ */
 .kulms-assign-badge {
   display: inline-block !important;
   padding: 2px 8px !important;
@@ -667,62 +709,199 @@ body.kulms-textbook-panel-open {
   color: #999 !important;
 }
 
+/* === メモ UI === */
+
+.kulms-memo-area {
+  padding: 8px 0 !important;
+}
+
+.kulms-memo-btn {
+  display: block !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #26a69a !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+  margin: 8px auto !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  transition: background 0.2s !important;
+  line-height: 1 !important;
+}
+
+.kulms-memo-btn:hover {
+  background: #1f8d82 !important;
+}
+
+.kulms-memo-form {
+  background: #fff !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.kulms-memo-input {
+  width: 100% !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  resize: vertical !important;
+  box-sizing: border-box !important;
+}
+
+.kulms-memo-form-actions {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 6px !important;
+  justify-content: flex-end !important;
+}
+
+.kulms-memo-save,
+.kulms-memo-cancel {
+  padding: 4px 12px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+
+.kulms-memo-save {
+  background: #26a69a !important;
+  color: #fff !important;
+  border-color: #26a69a !important;
+}
+
+.kulms-memo-cancel {
+  background: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.kulms-memo-card {
+  border-color: #26a69a !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.kulms-badge-memo {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #26a69a !important;
+  color: #fff !important;
+  align-self: flex-start !important;
+}
+
+.kulms-memo-text {
+  font-size: 12px !important;
+  color: #333 !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.kulms-memo-delete {
+  position: absolute !important;
+  top: 4px !important;
+  right: 6px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #999 !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+}
+
+.kulms-memo-delete:hover {
+  color: #e85555 !important;
+}
+
 /* === 課題パネル テーマ対応 === */
 
 /* ダークテーマ */
 body[data-kulms-theme="dark"] #kulms-assign-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
+  --cs-bg: #555;
+  background: #555 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-header {
-  border-bottom-color: var(--kulms-border) !important;
+body[data-kulms-theme="dark"] .kulms-assign-logo {
+  color: #d4d4d4 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-header-title {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="dark"] .kulms-assign-header-btn,
+body[data-kulms-theme="dark"] .kulms-assign-close {
+  color: #aaa !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-header button {
-  color: var(--kulms-text-muted) !important;
+body[data-kulms-theme="dark"] .kulms-assign-header-btn:hover,
+body[data-kulms-theme="dark"] .kulms-assign-close:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
+body[data-kulms-theme="dark"] .kulms-panel-tab {
+  color: #aaa !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-panel-tab.active {
+  background: #6483d3 !important;
+  color: #fff !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-cache-info {
-  color: var(--kulms-text-muted) !important;
-  border-bottom-color: var(--kulms-border) !important;
+  color: #999 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-section-header {
-  color: var(--kulms-text-muted) !important;
+body[data-kulms-theme="dark"] .kulms-section-danger {
+  background: #5c2020 !important;
+  color: #f1a0a0 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-section-header:hover {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="dark"] .kulms-section-warning {
+  background: #5c4a1a !important;
+  color: #f0d080 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-assign-section-count {
-  color: var(--kulms-text-muted) !important;
+body[data-kulms-theme="dark"] .kulms-section-success {
+  background: #1a4a1e !important;
+  color: #90d894 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-section-other {
+  background: #3a3a3a !important;
+  color: #bbb !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-section-checked {
+  background: #2a3260 !important;
+  color: #a0b0f0 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-section-memo {
+  background: #1a4a45 !important;
+  color: #80d0c8 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-card {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-assign-card-course {
-  color: var(--kulms-text-muted) !important;
+  background: #444 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-card-name a {
-  color: var(--kulms-link) !important;
+  color: #64b5f6 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-card-meta {
-  color: var(--kulms-text-muted) !important;
+  color: #aaa !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-time-remain {
+  color: #d4d4d4 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-checkbox {
+  border-color: #888 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-badge.not-submitted {
@@ -741,12 +920,12 @@ body[data-kulms-theme="dark"] .kulms-assign-badge.graded {
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-spinner {
-  border-color: var(--kulms-border) !important;
-  border-top-color: var(--kulms-accent) !important;
+  border-color: #555 !important;
+  border-top-color: #4fc3f7 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-loading-text {
-  color: var(--kulms-text-muted) !important;
+  color: #aaa !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-error-msg {
@@ -754,225 +933,177 @@ body[data-kulms-theme="dark"] .kulms-assign-error-msg {
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-retry-btn {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-  color: var(--kulms-text) !important;
+  background: #444 !important;
+  border-color: #666 !important;
+  color: #d4d4d4 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-retry-btn:hover {
-  background: var(--kulms-bg-tertiary) !important;
+  background: #555 !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-empty {
-  color: var(--kulms-text-muted) !important;
+  color: #aaa !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-memo-text {
+  color: #d4d4d4 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-memo-form {
+  background: #444 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-memo-input {
+  background: #555 !important;
+  color: #d4d4d4 !important;
+  border-color: #666 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-memo-delete {
+  color: #888 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-memo-delete:hover {
+  color: #ef9a9a !important;
 }
 
 /* セピアテーマ */
 body[data-kulms-theme="sepia"] #kulms-assign-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
+  background: #d4c4a0 !important;
 }
 
-body[data-kulms-theme="sepia"] .kulms-assign-header {
-  border-bottom-color: var(--kulms-border) !important;
+body[data-kulms-theme="sepia"] .kulms-assign-logo {
+  color: #5b4636 !important;
 }
 
-body[data-kulms-theme="sepia"] .kulms-assign-header-title {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="sepia"] .kulms-assign-header-btn,
+body[data-kulms-theme="sepia"] .kulms-assign-close {
+  color: #8b7355 !important;
 }
 
-body[data-kulms-theme="sepia"] .kulms-assign-header button {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-assign-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-assign-cache-info {
-  color: var(--kulms-text-muted) !important;
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-assign-section-header {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-assign-section-header:hover {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="sepia"] .kulms-panel-tab {
+  color: #8b7355 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-card {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-assign-card-course {
-  color: var(--kulms-text-muted) !important;
+  background: #e8dcc8 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-card-name a {
-  color: var(--kulms-link) !important;
+  color: #7b5b3a !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-card-meta {
-  color: var(--kulms-text-muted) !important;
+  color: #8b7355 !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-time-remain {
+  color: #5b4636 !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-memo-text {
+  color: #5b4636 !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-memo-form {
+  background: #e8dcc8 !important;
+}
+
+body[data-kulms-theme="sepia"] .kulms-memo-input {
+  background: #f4ecd8 !important;
+  color: #5b4636 !important;
+  border-color: #c8b896 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-spinner {
-  border-color: var(--kulms-border) !important;
-  border-top-color: var(--kulms-accent) !important;
+  border-color: #c8b896 !important;
+  border-top-color: #8b6914 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-loading-text {
-  color: var(--kulms-text-muted) !important;
+  color: #8b7355 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-retry-btn {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-  color: var(--kulms-text) !important;
+  background: #e8dcc8 !important;
+  border-color: #c8b896 !important;
+  color: #5b4636 !important;
 }
 
 body[data-kulms-theme="sepia"] .kulms-assign-empty {
-  color: var(--kulms-text-muted) !important;
+  color: #8b7355 !important;
 }
 
 /* ブルーテーマ */
 body[data-kulms-theme="blue"] #kulms-assign-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
+  background: #b8cce7 !important;
 }
 
-body[data-kulms-theme="blue"] .kulms-assign-header {
-  border-bottom-color: var(--kulms-border) !important;
+body[data-kulms-theme="blue"] .kulms-assign-logo {
+  color: #1a2a4a !important;
 }
 
-body[data-kulms-theme="blue"] .kulms-assign-header-title {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="blue"] .kulms-assign-header-btn,
+body[data-kulms-theme="blue"] .kulms-assign-close {
+  color: #4a5a7a !important;
 }
 
-body[data-kulms-theme="blue"] .kulms-assign-header button {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-assign-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-assign-cache-info {
-  color: var(--kulms-text-muted) !important;
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-assign-section-header {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-assign-section-header:hover {
-  color: var(--kulms-text) !important;
+body[data-kulms-theme="blue"] .kulms-panel-tab {
+  color: #4a5a7a !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-card {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-assign-card-course {
-  color: var(--kulms-text-muted) !important;
+  background: #d0ddef !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-card-name a {
-  color: var(--kulms-link) !important;
+  color: #1565c0 !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-card-meta {
-  color: var(--kulms-text-muted) !important;
+  color: #4a5a7a !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-time-remain {
+  color: #1a2a4a !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-memo-text {
+  color: #1a2a4a !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-memo-form {
+  background: #d0ddef !important;
+}
+
+body[data-kulms-theme="blue"] .kulms-memo-input {
+  background: #e8eef7 !important;
+  color: #1a2a4a !important;
+  border-color: #a0b8d8 !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-spinner {
-  border-color: var(--kulms-border) !important;
-  border-top-color: var(--kulms-accent) !important;
+  border-color: #a0b8d8 !important;
+  border-top-color: #1565c0 !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-loading-text {
-  color: var(--kulms-text-muted) !important;
+  color: #4a5a7a !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-retry-btn {
-  background: var(--kulms-bg-secondary) !important;
-  border-color: var(--kulms-border) !important;
-  color: var(--kulms-text) !important;
+  background: #d0ddef !important;
+  border-color: #a0b8d8 !important;
+  color: #1a2a4a !important;
 }
 
 body[data-kulms-theme="blue"] .kulms-assign-empty {
-  color: var(--kulms-text-muted) !important;
+  color: #4a5a7a !important;
 }
 
-/* === 教科書パネル === */
 
-/* サイドパネル */
-#kulms-textbook-panel {
-  position: fixed !important;
-  top: 0 !important;
-  right: -380px !important;
-  width: 360px !important;
-  height: 100vh !important;
-  z-index: 100000 !important;
-  background: #fff !important;
-  border-left: 1px solid #ccc !important;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-  transition: right 0.3s ease !important;
-}
-
-#kulms-textbook-panel.open {
-  right: 0 !important;
-}
-
-/* パネルヘッダー */
-.kulms-textbook-panel-header {
-  display: flex !important;
-  align-items: center !important;
-  padding: 14px 16px !important;
-  border-bottom: 1px solid #e0e0e0 !important;
-  flex-shrink: 0 !important;
-}
-
-.kulms-textbook-panel-title {
-  font-size: 16px !important;
-  font-weight: 700 !important;
-  color: #333 !important;
-  flex: 1 !important;
-}
-
-.kulms-textbook-panel-header button {
-  width: 32px !important;
-  height: 32px !important;
-  border: none !important;
-  background: transparent !important;
-  cursor: pointer !important;
-  border-radius: 6px !important;
-  font-size: 16px !important;
-  color: #666 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: background 0.15s ease !important;
-}
-
-.kulms-textbook-panel-header button:hover {
-  background: #f0f0f0 !important;
-}
-
-/* コンテンツエリア */
-.kulms-textbook-panel-content {
-  flex: 1 !important;
-  overflow-y: auto !important;
-  padding: 12px !important;
-}
+/* === 教科書コンテンツ === */
 
 /* ローディング */
 .kulms-textbook-loading {
@@ -1125,53 +1256,32 @@ body[data-kulms-theme="blue"] .kulms-assign-empty {
   color: #fff !important;
 }
 
-/* === 教科書パネル テーマ対応 === */
+/* === 教科書コンテンツ テーマ対応 === */
 
-/* ダークテーマ */
-body[data-kulms-theme="dark"] #kulms-textbook-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-panel-header {
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-panel-title {
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-panel-header button {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-panel-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-course-header {
+body[data-kulms-theme] .kulms-textbook-course-header {
   background: var(--kulms-bg-secondary) !important;
   color: var(--kulms-text) !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-textbook-course-header:hover {
+body[data-kulms-theme] .kulms-textbook-course-header:hover {
   background: var(--kulms-bg-tertiary) !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-textbook-course-count {
+body[data-kulms-theme] .kulms-textbook-course-count,
+body[data-kulms-theme] .kulms-textbook-meta,
+body[data-kulms-theme] .kulms-textbook-group-label,
+body[data-kulms-theme] .kulms-textbook-loading-text,
+body[data-kulms-theme] .kulms-textbook-empty,
+body[data-kulms-theme] .kulms-textbook-note {
   color: var(--kulms-text-muted) !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-textbook-item {
+body[data-kulms-theme] .kulms-textbook-item {
   border-bottom-color: var(--kulms-border) !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-textbook-title {
+body[data-kulms-theme] .kulms-textbook-title {
   color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-meta {
-  color: var(--kulms-text-muted) !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-textbook-amazon {
@@ -1182,124 +1292,7 @@ body[data-kulms-theme="dark"] .kulms-textbook-amazon:hover {
   background: #ff9900 !important;
 }
 
-body[data-kulms-theme="dark"] .kulms-textbook-group-label,
-body[data-kulms-theme="dark"] .kulms-textbook-loading-text,
-body[data-kulms-theme="dark"] .kulms-textbook-empty,
-body[data-kulms-theme="dark"] .kulms-textbook-note {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="dark"] .kulms-textbook-course-badge {
-  color: var(--kulms-text-muted) !important;
-  background: var(--kulms-bg-tertiary) !important;
-}
-
-/* セピアテーマ */
-body[data-kulms-theme="sepia"] #kulms-textbook-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-panel-header {
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-panel-title {
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-panel-header button {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-panel-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-course-header {
-  background: var(--kulms-bg-secondary) !important;
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-course-header:hover {
-  background: var(--kulms-bg-tertiary) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-item {
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-title {
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-meta {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-group-label,
-body[data-kulms-theme="sepia"] .kulms-textbook-loading-text,
-body[data-kulms-theme="sepia"] .kulms-textbook-empty,
-body[data-kulms-theme="sepia"] .kulms-textbook-note {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="sepia"] .kulms-textbook-course-badge {
-  color: var(--kulms-text-muted) !important;
-  background: var(--kulms-bg-tertiary) !important;
-}
-
-/* ブルーテーマ */
-body[data-kulms-theme="blue"] #kulms-textbook-panel {
-  background: var(--kulms-bg) !important;
-  border-left-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-panel-header {
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-panel-title {
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-panel-header button {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-panel-header button:hover {
-  background: var(--kulms-bg-secondary) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-course-header {
-  background: var(--kulms-bg-secondary) !important;
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-course-header:hover {
-  background: var(--kulms-bg-tertiary) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-item {
-  border-bottom-color: var(--kulms-border) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-title {
-  color: var(--kulms-text) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-meta {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-group-label,
-body[data-kulms-theme="blue"] .kulms-textbook-loading-text,
-body[data-kulms-theme="blue"] .kulms-textbook-empty,
-body[data-kulms-theme="blue"] .kulms-textbook-note {
-  color: var(--kulms-text-muted) !important;
-}
-
-body[data-kulms-theme="blue"] .kulms-textbook-course-badge {
+body[data-kulms-theme] .kulms-textbook-course-badge {
   color: var(--kulms-text-muted) !important;
   background: var(--kulms-bg-tertiary) !important;
 }
@@ -1389,6 +1382,50 @@ body[data-kulms-theme="blue"] .kulms-textbook-course-badge {
   font-size: 11px !important;
   color: #aaa !important;
   text-align: center !important;
+}
+
+/* テーマピッカー */
+.kulms-settings-theme-section {
+  padding: 8px 12px 12px !important;
+  border-bottom: 1px solid #ddd !important;
+  margin-bottom: 4px !important;
+}
+
+.kulms-theme-picker {
+  display: flex !important;
+  gap: 10px !important;
+  margin-top: 6px !important;
+}
+
+.kulms-theme-dot {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  border: 2px solid #ccc !important;
+  cursor: pointer !important;
+  transition: border-color 0.2s, transform 0.15s !important;
+  padding: 0 !important;
+}
+
+.kulms-theme-dot:hover {
+  transform: scale(1.15) !important;
+}
+
+.kulms-theme-dot.active {
+  border-color: #6483d3 !important;
+  box-shadow: 0 0 0 2px rgba(100, 131, 211, 0.3) !important;
+}
+
+body[data-kulms-theme] .kulms-settings-theme-section {
+  border-bottom-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme] .kulms-theme-dot {
+  border-color: var(--kulms-border) !important;
+}
+
+body[data-kulms-theme] .kulms-theme-dot.active {
+  border-color: #6483d3 !important;
 }
 
 /* 設定ビュー テーマ対応 */
@@ -1694,4 +1731,51 @@ body[data-kulms-theme="sepia"] .kulms-sidebar-handle:hover {
 /* ブルーテーマ */
 body[data-kulms-theme="blue"] .kulms-sidebar-handle:hover {
   background-color: rgba(80, 120, 180, 0.35);
+}
+
+/* === サイドバー科目タブ色分け === */
+
+.cs-tab-danger {
+  background-color: #f78989 !important;
+}
+
+.cs-tab-warning {
+  background-color: #fdd783 !important;
+}
+
+.cs-tab-success {
+  background-color: #8bd48d !important;
+}
+
+.cs-tab-other {
+  background-color: #adadad !important;
+}
+
+body[data-kulms-theme="dark"] .cs-tab-danger {
+  background-color: #8b3030 !important;
+}
+
+body[data-kulms-theme="dark"] .cs-tab-warning {
+  background-color: #8b6a20 !important;
+}
+
+body[data-kulms-theme="dark"] .cs-tab-success {
+  background-color: #2d6b30 !important;
+}
+
+body[data-kulms-theme="dark"] .cs-tab-other {
+  background-color: #5a5a5a !important;
+}
+
+/* === 新着課題通知バッジ === */
+
+.kulms-notification-badge {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 8px !important;
+  height: 8px !important;
+  background: #e85555 !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
 }

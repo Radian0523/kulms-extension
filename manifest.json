@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "KULMS Extension",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "京都大学LMS (KULMS) にダークテーマ切替、課題一覧パネル、シラバス教科書情報の表示機能を追加します。",
   "icons": {
     "16": "icons/icon16.png",
