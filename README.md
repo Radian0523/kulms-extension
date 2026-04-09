@@ -1,4 +1,4 @@
-# KULMS Extension
+# KULMS+
 
 京都大学LMS ([KULMS](https://lms.gakusei.kyoto-u.ac.jp/)) のUIをカスタマイズするChrome拡張機能です。
 
