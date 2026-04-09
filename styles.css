@@ -302,10 +302,10 @@ body {
 
 #kulms-assign-panel {
   position: fixed !important;
-  top: 2.5vh !important;
+  top: 0 !important;
   right: 0 !important;
   width: 0 !important;
-  height: 95vh !important;
+  height: 100vh !important;
   z-index: 100000 !important;
   background: var(--cs-bg, #cacaca) !important;
   border-radius: 8px !important;
