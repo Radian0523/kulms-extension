@@ -324,6 +324,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           name: a.title || "",
           url: courseAssignUrl,
           deadline: deadline,
+          closeTime: extractTimestamp(a.closeTime) || deadline,
           deadlineText: deadline ? formatDeadline(deadline) : "",
           status: status,
           grade: grade || a.gradeDisplay || a.grade || "",
@@ -716,11 +717,20 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       return;
     }
 
+    var now = Date.now();
+
+    // 期限切れ + 完了済みの課題を除外
+    var visible = assignments.filter(function (a) {
+      var isCompleted = isAssignmentChecked(a) || isSubmitted(a.status);
+      var isClosed = a.closeTime && a.closeTime < now;
+      return !(isCompleted && isClosed);
+    });
+
     // 振り分け: completed (checked or submitted) / active
     var completed = [];
     var active = [];
 
-    assignments.forEach(function (a) {
+    visible.forEach(function (a) {
       if (isAssignmentChecked(a) || isSubmitted(a.status)) {
         completed.push(a);
       } else {
