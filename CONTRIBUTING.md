@@ -41,4 +41,4 @@ KULMS+ への貢献を歓迎します。
 ## Issue
 
 - バグ報告・機能リクエストは [Issue テンプレート](https://github.com/Radian0523/kulms-extension/issues/new/choose) を使用してください
-- フィードバックフォーム: [Google Forms](https://docs.google.com/forms/d/e/1FAIpQLSdFa9VASkP0ea8uHK9GEPS3r3VnoOcIpKO0dsIeCACElvCH-Q/viewform)
+- フィードバックフォーム: [Google Forms](https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform)

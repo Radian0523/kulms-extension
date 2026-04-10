@@ -85,7 +85,7 @@
 
 ## フィードバック
 
-ご意見・要望は [こちらのフォーム](https://docs.google.com/forms/d/e/1FAIpQLSdFa9VASkP0ea8uHK9GEPS3r3VnoOcIpKO0dsIeCACElvCH-Q/viewform) からお送りください。設定タブからもアクセスできます。
+ご意見・要望は [こちらのフォーム](https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform) からお送りください。設定タブからもアクセスできます。
 
 ## インストール方法
 
@@ -119,6 +119,8 @@ kulms-extension/
 │   ├── ja/messages.json   # 日本語メッセージ
 │   └── en/messages.json   # 英語メッセージ
 ├── icons/                 # 拡張機能アイコン
+├── gas/
+│   └── form-to-issue.js   # Google Form → GitHub Issue 連携スクリプト
 ├── DEVELOPMENT.md         # 技術詳細・設計判断・開発記録
 └── README.md              # このファイル
 ```
