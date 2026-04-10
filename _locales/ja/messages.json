@@ -1,0 +1,374 @@
+{
+  "extName": {
+    "message": "KULMS+"
+  },
+  "extDescription": {
+    "message": "京都大学LMS (KULMS) を強化するChrome拡張。全科目の課題一覧・締切管理、教科書情報取得、テーマ切替、サイドバーカスタマイズなど。"
+  },
+
+  "panelTitle": {
+    "message": "KULMS+"
+  },
+  "tabAssignments": {
+    "message": "課題"
+  },
+  "tabTextbooks": {
+    "message": "教科書"
+  },
+  "tabSettings": {
+    "message": "設定"
+  },
+
+  "sectionOverdue": {
+    "message": "遅延提出"
+  },
+  "sectionDanger": {
+    "message": "$HOURS$時間以内",
+    "placeholders": {
+      "hours": { "content": "$1" }
+    }
+  },
+  "sectionWarning": {
+    "message": "$DAYS$日以内",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "sectionSuccess": {
+    "message": "$DAYS$日以内",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "sectionOther": {
+    "message": "その他"
+  },
+  "sectionCompleted": {
+    "message": "完了済み"
+  },
+  "sectionMemo": {
+    "message": "メモ"
+  },
+
+  "remainDaysHoursMins": {
+    "message": "残り$DAYS$日$HOURS$時間$MINS$分",
+    "placeholders": {
+      "days": { "content": "$1" },
+      "hours": { "content": "$2" },
+      "mins": { "content": "$3" }
+    }
+  },
+  "remainHoursMins": {
+    "message": "残り$HOURS$時間$MINS$分",
+    "placeholders": {
+      "hours": { "content": "$1" },
+      "mins": { "content": "$2" }
+    }
+  },
+  "remainMins": {
+    "message": "残り$MINS$分",
+    "placeholders": {
+      "mins": { "content": "$1" }
+    }
+  },
+  "expired": {
+    "message": "期限切れ"
+  },
+
+  "statusSubmitted": {
+    "message": "提出済"
+  },
+  "statusGraded": {
+    "message": "評定済"
+  },
+  "statusNotSubmitted": {
+    "message": "未提出"
+  },
+
+  "refresh": {
+    "message": "更新"
+  },
+  "close": {
+    "message": "閉じる"
+  },
+  "retry": {
+    "message": "再試行"
+  },
+
+  "loadingCourses": {
+    "message": "コース情報を取得中..."
+  },
+  "loadingAssignments": {
+    "message": "課題を取得中... ($DONE$/$TOTAL$)",
+    "placeholders": {
+      "done": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "noAssignments": {
+    "message": "課題が見つかりませんでした"
+  },
+  "fetchError": {
+    "message": "課題の取得に失敗しました"
+  },
+  "noCourses": {
+    "message": "登録コースが見つかりませんでした"
+  },
+
+  "lastUpdatedNow": {
+    "message": "最終更新: たった今"
+  },
+  "lastUpdatedMins": {
+    "message": "最終更新: $MINS$分前",
+    "placeholders": {
+      "mins": { "content": "$1" }
+    }
+  },
+
+  "settingsTheme": {
+    "message": "テーマ"
+  },
+  "themeDefault": {
+    "message": "デフォルト"
+  },
+  "themeDark": {
+    "message": "ダーク"
+  },
+  "themeSepia": {
+    "message": "セピア"
+  },
+  "themeBlue": {
+    "message": "ブルー"
+  },
+
+  "featTextbooks": {
+    "message": "教科書パネル"
+  },
+  "featTextbooksDesc": {
+    "message": "シラバスから教科書情報を取得"
+  },
+  "featTreeView": {
+    "message": "ツリービュー"
+  },
+  "featTreeViewDesc": {
+    "message": "授業資料をツリー形式で表示"
+  },
+  "featCourseNameCleanup": {
+    "message": "科目名の整理"
+  },
+  "featCourseNameCleanupDesc": {
+    "message": "年度・学期を省略して短縮表示"
+  },
+  "featPinSort": {
+    "message": "ピン留めソート"
+  },
+  "featPinSortDesc": {
+    "message": "曜日・時限順に自動ソート"
+  },
+  "featCourseRowClick": {
+    "message": "コース行クリック展開"
+  },
+  "featCourseRowClickDesc": {
+    "message": "サイドバーの科目行全体をクリック可能に"
+  },
+  "featToolVisibility": {
+    "message": "ツール表示管理"
+  },
+  "featToolVisibilityDesc": {
+    "message": "不要なツールを「その他」に折りたたみ"
+  },
+  "featSidebarResize": {
+    "message": "サイドバーリサイズ"
+  },
+  "featSidebarResizeDesc": {
+    "message": "サイドバー幅のドラッグ調整"
+  },
+  "featTabColoring": {
+    "message": "科目タブ色分け"
+  },
+  "featTabColoringDesc": {
+    "message": "サイドバーの科目を締切の緊急度で色分け"
+  },
+  "featNotificationBadge": {
+    "message": "新着課題バッジ"
+  },
+  "featNotificationBadgeDesc": {
+    "message": "新しい課題が追加されたコースにバッジ表示"
+  },
+  "featSidebarStyle": {
+    "message": "サイドバースタイル変更"
+  },
+  "featSidebarStyleDesc": {
+    "message": "選択中科目の青背景を除去し左ボーダー表示に変更"
+  },
+  "featMemos": {
+    "message": "メモ機能"
+  },
+  "featMemosDesc": {
+    "message": "課題タブにメモを追加・保存できる機能"
+  },
+  "featPanelPush": {
+    "message": "パネル押し出し表示"
+  },
+  "featPanelPushDesc": {
+    "message": "パネルを開くとページを横に押す（OFFで重ねて表示）"
+  },
+  "featPreviewMode": {
+    "message": "プレビューモード"
+  },
+  "featPreviewModeDesc": {
+    "message": "ダミー課題を表示してUIを確認（開発用）"
+  },
+
+  "settingsAutoRefresh": {
+    "message": "自動更新間隔"
+  },
+  "settingsAutoRefreshDesc": {
+    "message": "課題一覧を自動取得する間隔（秒）"
+  },
+  "settingsDangerHours": {
+    "message": "緊急（時間）"
+  },
+  "settingsDangerHoursDesc": {
+    "message": "この時間以内の課題を「緊急」表示"
+  },
+  "settingsWarningDays": {
+    "message": "注意（日）"
+  },
+  "settingsWarningDaysDesc": {
+    "message": "この日数以内の課題を「注意」表示"
+  },
+  "settingsSuccessDays": {
+    "message": "余裕（日）"
+  },
+  "settingsSuccessDaysDesc": {
+    "message": "この日数以内の課題を「余裕」表示"
+  },
+  "settingsColorDanger": {
+    "message": "緊急カラー"
+  },
+  "settingsColorWarning": {
+    "message": "注意カラー"
+  },
+  "settingsColorSuccess": {
+    "message": "余裕カラー"
+  },
+  "settingsColorOther": {
+    "message": "その他カラー"
+  },
+
+  "btnDefaults": {
+    "message": "デフォルトに戻す"
+  },
+  "btnAllOn": {
+    "message": "全てON"
+  },
+  "btnAllOff": {
+    "message": "全てOFF"
+  },
+  "settingsFooter": {
+    "message": "変更はページ再読み込み後に反映"
+  },
+  "feedbackLink": {
+    "message": "\uD83D\uDCEC ご意見・要望を送る"
+  },
+
+  "textbooksDisabled": {
+    "message": "教科書機能が無効です"
+  },
+
+  "memoPlaceholder": {
+    "message": "メモを入力..."
+  },
+  "memoCourseSelect": {
+    "message": "コースを選択（任意）"
+  },
+  "memoSave": {
+    "message": "保存"
+  },
+  "memoCancel": {
+    "message": "キャンセル"
+  },
+  "memoAdd": {
+    "message": "メモを追加"
+  },
+  "memoDelete": {
+    "message": "削除"
+  },
+  "memoLabel": {
+    "message": "メモ"
+  },
+  "deleteConfirm": {
+    "message": "削除しますか？"
+  },
+  "dismissAssignment": {
+    "message": "非表示"
+  },
+  "sectionDeleted": {
+    "message": "削除済み"
+  },
+  "restoreItem": {
+    "message": "元に戻す"
+  },
+  "deletedDaysAgo": {
+    "message": "$DAYS$日前に削除",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "deletedToday": {
+    "message": "今日削除"
+  },
+  "autoDeleteNotice": {
+    "message": "30日後に自動的に完全削除されます"
+  },
+
+  "badgeQuiz": {
+    "message": "テスト"
+  },
+
+  "sectionAppearance": {
+    "message": "外観"
+  },
+  "sectionPanel": {
+    "message": "パネル"
+  },
+  "sectionAssignmentUpdates": {
+    "message": "課題更新"
+  },
+  "sectionUrgency": {
+    "message": "緊急度カスタマイズ"
+  },
+  "sectionSidebar": {
+    "message": "サイドバー"
+  },
+  "sectionCoursePage": {
+    "message": "コースページ"
+  },
+  "sectionDeveloper": {
+    "message": "開発者"
+  },
+
+  "settingsLanguage": {
+    "message": "言語"
+  },
+  "settingsLanguageDesc": {
+    "message": "UIの表示言語（変更後はページ再読み込み）"
+  },
+  "langAuto": {
+    "message": "自動（ブラウザ設定）"
+  },
+
+  "toolMoveToOther": {
+    "message": "その他に移動"
+  },
+  "toolMoveToMain": {
+    "message": "メインに表示"
+  },
+  "toolOtherExpanded": {
+    "message": "その他 \u25BC"
+  },
+  "toolOtherCollapsed": {
+    "message": "その他 \u25B6"
+  }
+}

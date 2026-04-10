@@ -1,0 +1,374 @@
+{
+  "extName": {
+    "message": "KULMS+"
+  },
+  "extDescription": {
+    "message": "Chrome extension to enhance Kyoto University LMS (KULMS). Assignment list, deadline management, textbook info, theme switching, sidebar customization and more."
+  },
+
+  "panelTitle": {
+    "message": "KULMS+"
+  },
+  "tabAssignments": {
+    "message": "Tasks"
+  },
+  "tabTextbooks": {
+    "message": "Textbooks"
+  },
+  "tabSettings": {
+    "message": "Settings"
+  },
+
+  "sectionOverdue": {
+    "message": "Overdue"
+  },
+  "sectionDanger": {
+    "message": "Within $HOURS$h",
+    "placeholders": {
+      "hours": { "content": "$1" }
+    }
+  },
+  "sectionWarning": {
+    "message": "Within $DAYS$d",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "sectionSuccess": {
+    "message": "Within $DAYS$d",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "sectionOther": {
+    "message": "Other"
+  },
+  "sectionCompleted": {
+    "message": "Completed"
+  },
+  "sectionMemo": {
+    "message": "Memos"
+  },
+
+  "remainDaysHoursMins": {
+    "message": "$DAYS$d $HOURS$h $MINS$m left",
+    "placeholders": {
+      "days": { "content": "$1" },
+      "hours": { "content": "$2" },
+      "mins": { "content": "$3" }
+    }
+  },
+  "remainHoursMins": {
+    "message": "$HOURS$h $MINS$m left",
+    "placeholders": {
+      "hours": { "content": "$1" },
+      "mins": { "content": "$2" }
+    }
+  },
+  "remainMins": {
+    "message": "$MINS$m left",
+    "placeholders": {
+      "mins": { "content": "$1" }
+    }
+  },
+  "expired": {
+    "message": "Expired"
+  },
+
+  "statusSubmitted": {
+    "message": "Submitted"
+  },
+  "statusGraded": {
+    "message": "Graded"
+  },
+  "statusNotSubmitted": {
+    "message": "Not submitted"
+  },
+
+  "refresh": {
+    "message": "Refresh"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "retry": {
+    "message": "Retry"
+  },
+
+  "loadingCourses": {
+    "message": "Loading courses..."
+  },
+  "loadingAssignments": {
+    "message": "Loading assignments... ($DONE$/$TOTAL$)",
+    "placeholders": {
+      "done": { "content": "$1" },
+      "total": { "content": "$2" }
+    }
+  },
+  "noAssignments": {
+    "message": "No assignments found"
+  },
+  "fetchError": {
+    "message": "Failed to fetch assignments"
+  },
+  "noCourses": {
+    "message": "No enrolled courses found"
+  },
+
+  "lastUpdatedNow": {
+    "message": "Last updated: just now"
+  },
+  "lastUpdatedMins": {
+    "message": "Last updated: $MINS$m ago",
+    "placeholders": {
+      "mins": { "content": "$1" }
+    }
+  },
+
+  "settingsTheme": {
+    "message": "Theme"
+  },
+  "themeDefault": {
+    "message": "Default"
+  },
+  "themeDark": {
+    "message": "Dark"
+  },
+  "themeSepia": {
+    "message": "Sepia"
+  },
+  "themeBlue": {
+    "message": "Blue"
+  },
+
+  "featTextbooks": {
+    "message": "Textbook Panel"
+  },
+  "featTextbooksDesc": {
+    "message": "Fetch textbook info from syllabus"
+  },
+  "featTreeView": {
+    "message": "Tree View"
+  },
+  "featTreeViewDesc": {
+    "message": "Display resources in tree format"
+  },
+  "featCourseNameCleanup": {
+    "message": "Course Name Cleanup"
+  },
+  "featCourseNameCleanupDesc": {
+    "message": "Shorten course names by omitting year/semester"
+  },
+  "featPinSort": {
+    "message": "Pin Sort"
+  },
+  "featPinSortDesc": {
+    "message": "Auto-sort by day/period"
+  },
+  "featCourseRowClick": {
+    "message": "Course Row Click"
+  },
+  "featCourseRowClickDesc": {
+    "message": "Make entire sidebar course row clickable"
+  },
+  "featToolVisibility": {
+    "message": "Tool Visibility"
+  },
+  "featToolVisibilityDesc": {
+    "message": "Collapse unused tools into \"More\""
+  },
+  "featSidebarResize": {
+    "message": "Sidebar Resize"
+  },
+  "featSidebarResizeDesc": {
+    "message": "Drag to adjust sidebar width"
+  },
+  "featTabColoring": {
+    "message": "Tab Coloring"
+  },
+  "featTabColoringDesc": {
+    "message": "Color-code courses by deadline urgency"
+  },
+  "featNotificationBadge": {
+    "message": "New Assignment Badge"
+  },
+  "featNotificationBadgeDesc": {
+    "message": "Show badge on courses with new assignments"
+  },
+  "featSidebarStyle": {
+    "message": "Sidebar Style"
+  },
+  "featSidebarStyleDesc": {
+    "message": "Replace blue selection background with left border"
+  },
+  "featMemos": {
+    "message": "Memos"
+  },
+  "featMemosDesc": {
+    "message": "Add and save memos in the task tab"
+  },
+  "featPanelPush": {
+    "message": "Panel Push"
+  },
+  "featPanelPushDesc": {
+    "message": "Push page aside when panel opens (OFF for overlay)"
+  },
+  "featPreviewMode": {
+    "message": "Preview Mode"
+  },
+  "featPreviewModeDesc": {
+    "message": "Show dummy assignments to preview UI (dev)"
+  },
+
+  "settingsAutoRefresh": {
+    "message": "Auto-refresh Interval"
+  },
+  "settingsAutoRefreshDesc": {
+    "message": "Interval to auto-fetch assignments (seconds)"
+  },
+  "settingsDangerHours": {
+    "message": "Urgent (hours)"
+  },
+  "settingsDangerHoursDesc": {
+    "message": "Show assignments within this many hours as urgent"
+  },
+  "settingsWarningDays": {
+    "message": "Warning (days)"
+  },
+  "settingsWarningDaysDesc": {
+    "message": "Show assignments within this many days as warning"
+  },
+  "settingsSuccessDays": {
+    "message": "Comfortable (days)"
+  },
+  "settingsSuccessDaysDesc": {
+    "message": "Show assignments within this many days as comfortable"
+  },
+  "settingsColorDanger": {
+    "message": "Urgent Color"
+  },
+  "settingsColorWarning": {
+    "message": "Warning Color"
+  },
+  "settingsColorSuccess": {
+    "message": "Comfortable Color"
+  },
+  "settingsColorOther": {
+    "message": "Other Color"
+  },
+
+  "btnDefaults": {
+    "message": "Reset to Defaults"
+  },
+  "btnAllOn": {
+    "message": "All ON"
+  },
+  "btnAllOff": {
+    "message": "All OFF"
+  },
+  "settingsFooter": {
+    "message": "Changes apply after page reload"
+  },
+  "feedbackLink": {
+    "message": "\uD83D\uDCEC Send Feedback"
+  },
+
+  "textbooksDisabled": {
+    "message": "Textbook feature is disabled"
+  },
+
+  "memoPlaceholder": {
+    "message": "Enter a memo..."
+  },
+  "memoCourseSelect": {
+    "message": "Select course (optional)"
+  },
+  "memoSave": {
+    "message": "Save"
+  },
+  "memoCancel": {
+    "message": "Cancel"
+  },
+  "memoAdd": {
+    "message": "Add Memo"
+  },
+  "memoDelete": {
+    "message": "Delete"
+  },
+  "memoLabel": {
+    "message": "Memo"
+  },
+  "deleteConfirm": {
+    "message": "Delete?"
+  },
+  "dismissAssignment": {
+    "message": "Hide"
+  },
+  "sectionDeleted": {
+    "message": "Deleted"
+  },
+  "restoreItem": {
+    "message": "Restore"
+  },
+  "deletedDaysAgo": {
+    "message": "Deleted $DAYS$d ago",
+    "placeholders": {
+      "days": { "content": "$1" }
+    }
+  },
+  "deletedToday": {
+    "message": "Deleted today"
+  },
+  "autoDeleteNotice": {
+    "message": "Auto-deleted after 30 days"
+  },
+
+  "badgeQuiz": {
+    "message": "Quiz"
+  },
+
+  "sectionAppearance": {
+    "message": "Appearance"
+  },
+  "sectionPanel": {
+    "message": "Panel"
+  },
+  "sectionAssignmentUpdates": {
+    "message": "Assignment Updates"
+  },
+  "sectionUrgency": {
+    "message": "Urgency Customization"
+  },
+  "sectionSidebar": {
+    "message": "Sidebar"
+  },
+  "sectionCoursePage": {
+    "message": "Course Page"
+  },
+  "sectionDeveloper": {
+    "message": "Developer"
+  },
+
+  "settingsLanguage": {
+    "message": "Language"
+  },
+  "settingsLanguageDesc": {
+    "message": "UI display language (reload page after change)"
+  },
+  "langAuto": {
+    "message": "Auto (browser setting)"
+  },
+
+  "toolMoveToOther": {
+    "message": "Move to Other"
+  },
+  "toolMoveToMain": {
+    "message": "Show in Main"
+  },
+  "toolOtherExpanded": {
+    "message": "Other \u25BC"
+  },
+  "toolOtherCollapsed": {
+    "message": "Other \u25B6"
+  }
+}
