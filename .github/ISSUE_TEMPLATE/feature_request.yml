@@ -1,0 +1,27 @@
+name: Feature Request
+description: 新機能・改善の提案
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 機能の概要
+      description: どんな機能が欲しいかを教えてください。
+      placeholder: "例: 課題の締切をカレンダー形式で表示したい"
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景・動機
+      description: なぜその機能が必要ですか？どんな問題を解決しますか？
+      placeholder: "例: リスト表示だと週間の課題の分布が把握しにくい"
+    validations:
+      required: false
+  - type: textarea
+    id: solution
+    attributes:
+      label: 実装イメージ（任意）
+      description: 具体的な実装案やUIイメージがあれば教えてください。
+    validations:
+      required: false

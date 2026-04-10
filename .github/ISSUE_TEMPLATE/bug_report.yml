@@ -1,0 +1,53 @@
+name: Bug Report
+description: バグの報告
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: バグの内容
+      description: 何が起きたかを具体的に教えてください。
+      placeholder: "例: 課題パネルを開くと「取得中...」のまま課題が表示されない"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+      description: 本来どう動くべきかを教えてください。
+      placeholder: "例: 全科目の課題一覧が表示される"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+      description: バグを再現する手順を教えてください。
+      placeholder: |
+        1. KULMSにログイン
+        2. パネルを開く
+        3. 課題タブを確認
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: バージョン
+      description: "拡張機能のバージョン（chrome://extensions で確認）"
+      placeholder: "例: 1.5.0"
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: ブラウザ / OS
+      placeholder: "例: Chrome 124 / macOS 15"
+    validations:
+      required: false
+  - type: textarea
+    id: additional
+    attributes:
+      label: その他
+      description: スクリーンショットやコンソールログなど、参考になる情報があれば添付してください。
+    validations:
+      required: false
