@@ -342,14 +342,25 @@ function loadOverrideMessages(lang) {
           || BASE_URL + "/portal/site/" + course.id;
       }
 
-      return list.map((a) => {
+      // 個別APIで正確な提出状態を取得（一覧APIは提出状態が不正確）
+      var itemResults = await Promise.allSettled(
+        list.map(function (a) {
+          return sakaiGet("/direct/assignment/item/" + (a.entityId || a.id) + ".json");
+        })
+      );
+
+      return list.map(function (a, idx) {
         const deadline =
           extractTimestamp(a.dueTime) ||
           extractTimestamp(a.dueDate) ||
           extractTimestamp(a.closeTime);
 
-        // 提出状態は submissions[0] から取得
-        var sub = a.submissions && a.submissions[0];
+        // 個別APIのレスポンスから正確な提出状態を取得
+        var itemData = itemResults[idx].status === "fulfilled" ? itemResults[idx].value : null;
+        var sub = itemData && itemData.submissions && itemData.submissions[0];
+        // フォールバック: 個別APIが失敗した場合は一覧APIのデータを使用
+        if (!sub) sub = a.submissions && a.submissions[0];
+
         let status = "";
         let grade = "";
         if (sub) {
@@ -1209,14 +1220,16 @@ function loadOverrideMessages(lang) {
   function createCard(assignment) {
     var urgency = getUrgencyClass(assignment.deadline);
     var checked = isAssignmentChecked(assignment);
+    var submitted = isSubmitted(assignment.status);
+    var isCompleted = checked || submitted;
 
     var card = document.createElement("div");
     card.className = "kulms-assign-card " + urgency;
-    if (checked) card.classList.add("kulms-checked");
+    if (isCompleted) card.classList.add("kulms-checked");
 
     // チェックボックス
     var checkbox = document.createElement("div");
-    checkbox.className = "kulms-checkbox" + (checked ? " checked" : "");
+    checkbox.className = "kulms-checkbox" + (isCompleted ? " checked" : "");
     checkbox.addEventListener("click", function (e) {
       e.stopPropagation();
       toggleChecked(assignment);

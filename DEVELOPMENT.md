@@ -196,7 +196,22 @@ function buildAssignmentToolMap() {
 
 **解決策**: Sakai APIの `entityId` をプライマリキーとして使用し、`courseId:name` はフォールバックとして維持。既存データは `migrateCheckedKeys()` で自動移行。
 
-### 7. i18n関数名の衝突
+### 7. 一覧APIの提出状態が不正確
+
+**問題**: `/direct/assignment/site/{siteId}.json`（一覧API）から取得した `submissions[0]` の提出状態が、実際に提出済みの課題でも `userSubmission: false`、`dateSubmittedEpochSeconds: 0`、`status: "未開始"` を返す。一方 `submitted: true` は全課題で常に `true` であり、提出判定に使えない。
+
+**調査**: 個別API `/direct/assignment/item/{assignmentId}.json` で同じ課題を取得したところ、正確な提出状態が返ることを確認:
+
+| フィールド | 一覧API (site) | 個別API (item) |
+|---|---|---|
+| `userSubmission` | `false` | `true` |
+| `dateSubmittedEpochSeconds` | `0` | `1775813377` |
+| `submittedAttachments` | `[]` | `[課題1.pdf.pdf]` |
+| `status` | `"未開始"` | `"提出済み 2026/04/10 18:29"` |
+
+**解決策**: 一覧APIで課題ID一覧を取得後、各課題の個別APIを `Promise.allSettled` で並列取得し、正確な提出状態を使用。個別APIが失敗した場合は一覧APIのデータにフォールバック。
+
+### 8. i18n関数名の衝突
 
 **問題**: ツール表示管理IIFEの `forEach` コールバックパラメータ名 `t` がグローバルの `t()` i18n関数をシャドウイングし、翻訳が機能しなかった。
 
