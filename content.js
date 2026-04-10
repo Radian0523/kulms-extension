@@ -1095,6 +1095,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
     // 機能トグル
     var currentSettings = window.__kulmsSettings || {};
+    var toggleInputs = [];
 
     FEATURES.forEach(function (feat) {
       var row = document.createElement("div");
@@ -1135,7 +1136,55 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       row.appendChild(labelArea);
       row.appendChild(toggle);
       settingsView.appendChild(row);
+      toggleInputs.push({ key: feat.key, input: input });
     });
+
+    // 一括操作ボタン
+    var DEFAULTS_COPY = {
+      textbooks: true, tabColoring: true,
+      treeView: false, courseNameCleanup: false, pinSort: false,
+      courseRowClick: false, toolVisibility: false, sidebarResize: false,
+      notificationBadge: false, sidebarStyle: false, memos: false,
+      panelPush: false, previewMode: false
+    };
+
+    function applyAll(valueFn) {
+      toggleInputs.forEach(function (t) {
+        var val = valueFn(t.key);
+        t.input.checked = val;
+        currentSettings[t.key] = val;
+      });
+      chrome.storage.local.set({ "kulms-settings": currentSettings });
+    }
+
+    var btnRow = document.createElement("div");
+    btnRow.className = "kulms-settings-btn-row";
+
+    var btnDefault = document.createElement("button");
+    btnDefault.className = "kulms-settings-btn";
+    btnDefault.textContent = "デフォルトに戻す";
+    btnDefault.addEventListener("click", function () {
+      applyAll(function (key) { return DEFAULTS_COPY[key] !== false; });
+    });
+
+    var btnAllOn = document.createElement("button");
+    btnAllOn.className = "kulms-settings-btn";
+    btnAllOn.textContent = "全てON";
+    btnAllOn.addEventListener("click", function () {
+      applyAll(function () { return true; });
+    });
+
+    var btnAllOff = document.createElement("button");
+    btnAllOff.className = "kulms-settings-btn";
+    btnAllOff.textContent = "全てOFF";
+    btnAllOff.addEventListener("click", function () {
+      applyAll(function () { return false; });
+    });
+
+    btnRow.appendChild(btnDefault);
+    btnRow.appendChild(btnAllOn);
+    btnRow.appendChild(btnAllOff);
+    settingsView.appendChild(btnRow);
 
     // ご意見箱リンク
     var feedbackRow = document.createElement("div");
