@@ -7,7 +7,7 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
 
 window.__kulmsSettingsReady = new Promise(function (resolve) {
   var DEFAULTS = {
-    theme: true, textbooks: true,
+    textbooks: true,
     treeView: true, courseNameCleanup: true, pinSort: true,
     courseRowClick: true, toolVisibility: true, sidebarResize: true,
     tabColoring: true, notificationBadge: true, sidebarStyle: true, memos: true,
@@ -75,8 +75,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     loadSavedTheme();
   }
 
-  window.__kulmsSettingsReady.then(function (s) {
-    if (s.theme === false) return;
+  window.__kulmsSettingsReady.then(function () {
     init();
   });
 })();
@@ -992,7 +991,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   // --- 設定ビュー ---
 
   var FEATURES = [
-    { key: "theme", label: "テーマ切り替え", desc: "ダーク・セピア・ブルーテーマ" },
     { key: "textbooks", label: "教科書パネル", desc: "シラバスから教科書情報を取得" },
     { key: "treeView", label: "ツリービュー", desc: "授業資料をツリー形式で表示" },
     { key: "courseNameCleanup", label: "科目名の整理", desc: "年度・学期を省略して短縮表示" },
