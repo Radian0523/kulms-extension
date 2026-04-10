@@ -708,16 +708,13 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       return;
     }
 
-    // 振り分け: checked / submitted / active
-    var checked = [];
-    var submitted = [];
+    // 振り分け: completed (checked or submitted) / active
+    var completed = [];
     var active = [];
 
     assignments.forEach(function (a) {
-      if (isAssignmentChecked(a)) {
-        checked.push(a);
-      } else if (isSubmitted(a.status)) {
-        submitted.push(a);
+      if (isAssignmentChecked(a) || isSubmitted(a.status)) {
+        completed.push(a);
       } else {
         active.push(a);
       }
@@ -758,17 +755,14 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     if (other.length > 0) {
       contentEl.appendChild(createSection("その他", other, "other", false));
     }
-    if (submitted.length > 0) {
-      submitted.sort(function (a, b) {
+    if (completed.length > 0) {
+      completed.sort(function (a, b) {
         if (a.deadline && b.deadline) return b.deadline - a.deadline;
         if (a.deadline) return -1;
         if (b.deadline) return 1;
         return 0;
       });
-      contentEl.appendChild(createSection("提出済み", submitted, "other", true));
-    }
-    if (checked.length > 0) {
-      contentEl.appendChild(createSection("完了済み", checked, "checked", true));
+      contentEl.appendChild(createSection("完了済み", completed, "checked", true));
     }
 
     // メモ
@@ -1391,6 +1385,13 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }
+
+    // タブがアクティブに戻った時に課題を自動更新
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && panelEl && panelEl.classList.contains("open") && currentView === "assignments") {
+        loadAssignments(true);
+      }
+    });
   }
 
   init();
