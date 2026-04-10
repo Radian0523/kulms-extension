@@ -11,7 +11,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     treeView: false, courseNameCleanup: false, pinSort: false,
     courseRowClick: false, toolVisibility: false, sidebarResize: false,
     notificationBadge: false, sidebarStyle: false, memos: false,
-    panelPush: false, previewMode: false
+    panelPush: false, previewMode: false,
+    fetchInterval: 30
   };
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
@@ -86,7 +87,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   "use strict";
 
   const CACHE_KEY = "kulms-assignments";
-  const CACHE_TTL = 30 * 60 * 1000; // 30分
   const CONCURRENT_LIMIT = 4;
   const BASE_URL = window.location.origin;
   const CHECKED_KEY = "kulms-checked-assignments";
@@ -403,6 +403,12 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   // --- キャッシュ ---
 
+  function getFetchIntervalMs() {
+    var s = window.__kulmsSettings || {};
+    var min = typeof s.fetchInterval === "number" ? s.fetchInterval : 30;
+    return min * 60 * 1000;
+  }
+
   async function loadCache() {
     return new Promise((resolve) => {
       chrome.storage.local.get(CACHE_KEY, (result) => {
@@ -410,7 +416,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
         if (
           cached &&
           cached.timestamp &&
-          Date.now() - cached.timestamp < CACHE_TTL
+          Date.now() - cached.timestamp < getFetchIntervalMs()
         ) {
           resolve(cached);
         } else {
@@ -1139,6 +1145,41 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       toggleInputs.push({ key: feat.key, input: input });
     });
 
+    // 自動更新間隔
+    var intervalRow = document.createElement("div");
+    intervalRow.className = "kulms-settings-row";
+
+    var intervalLabelArea = document.createElement("div");
+    intervalLabelArea.className = "kulms-settings-row-text";
+    var intervalLabel = document.createElement("div");
+    intervalLabel.className = "kulms-settings-row-label";
+    intervalLabel.textContent = "自動更新間隔";
+    var intervalDesc = document.createElement("div");
+    intervalDesc.className = "kulms-settings-row-desc";
+    intervalDesc.textContent = "課題一覧を自動取得する間隔（分）";
+    intervalLabelArea.appendChild(intervalLabel);
+    intervalLabelArea.appendChild(intervalDesc);
+
+    var intervalInput = document.createElement("input");
+    intervalInput.type = "number";
+    intervalInput.min = "1";
+    intervalInput.max = "180";
+    intervalInput.value = currentSettings.fetchInterval || 30;
+    intervalInput.className = "kulms-settings-number";
+
+    intervalInput.addEventListener("change", function () {
+      var val = parseInt(intervalInput.value, 10);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 180) val = 180;
+      intervalInput.value = val;
+      currentSettings.fetchInterval = val;
+      chrome.storage.local.set({ "kulms-settings": currentSettings });
+    });
+
+    intervalRow.appendChild(intervalLabelArea);
+    intervalRow.appendChild(intervalInput);
+    settingsView.appendChild(intervalRow);
+
     // 一括操作ボタン
     var DEFAULTS_COPY = {
       textbooks: true, tabColoring: true,
@@ -1471,6 +1512,16 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
         loadAssignments(true);
       }
     });
+
+    // 自動フェッチ
+    var intervalMs = getFetchIntervalMs();
+    if (intervalMs > 0) {
+      setInterval(function () {
+        // バックグラウンドでfetchしてキャッシュ・サイドバーを更新
+        if (document.visibilityState !== "visible") return;
+        loadAssignments(true);
+      }, intervalMs);
+    }
   }
 
   init();

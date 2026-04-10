@@ -1408,6 +1408,25 @@ body[data-kulms-theme="dark"] .kulms-feedback-link:hover {
   background: #253550 !important;
 }
 
+/* 数値入力 */
+.kulms-settings-number {
+  width: 56px !important;
+  padding: 4px 6px !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: #333 !important;
+  flex-shrink: 0 !important;
+}
+
+body[data-kulms-theme] .kulms-settings-number {
+  background: var(--kulms-bg-secondary, #2a2a3e) !important;
+  color: var(--kulms-text) !important;
+  border-color: var(--kulms-border) !important;
+}
+
 /* 一括操作ボタン */
 .kulms-settings-btn-row {
   display: flex !important;
