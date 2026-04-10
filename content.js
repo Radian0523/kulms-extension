@@ -7,10 +7,10 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
 
 window.__kulmsSettingsReady = new Promise(function (resolve) {
   var DEFAULTS = {
-    textbooks: true,
-    treeView: true, courseNameCleanup: true, pinSort: true,
-    courseRowClick: true, toolVisibility: true, sidebarResize: true,
-    tabColoring: true, notificationBadge: true, sidebarStyle: true, memos: true,
+    textbooks: true, tabColoring: true,
+    treeView: false, courseNameCleanup: false, pinSort: false,
+    courseRowClick: false, toolVisibility: false, sidebarResize: false,
+    notificationBadge: false, sidebarStyle: false, memos: false,
     panelPush: false, previewMode: false
   };
   chrome.storage.local.get("kulms-settings", function (result) {
