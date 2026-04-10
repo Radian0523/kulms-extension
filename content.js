@@ -7,7 +7,7 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
 
 window.__kulmsSettingsReady = new Promise(function (resolve) {
   var DEFAULTS = {
-    theme: true, assignments: true, textbooks: true,
+    theme: true, textbooks: true,
     treeView: true, courseNameCleanup: true, pinSort: true,
     courseRowClick: true, toolVisibility: true, sidebarResize: true,
     tabColoring: true, notificationBadge: true, sidebarStyle: true, memos: true,
@@ -95,7 +95,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
 
   // --- State ---
-  var assignEnabled = true;
   var textbooksEnabled = true;
   let checkedState = {};
   let memos = [];
@@ -543,15 +542,13 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       activeTab.classList.add("active");
     }
 
-    if (assignEnabled) tabBar.appendChild(tabAssign);
+    tabBar.appendChild(tabAssign);
     if (textbooksEnabled) {
       tabBar.appendChild(tabTextbook);
     }
     tabBar.appendChild(tabSettings);
 
-    // デフォルトのアクティブタブ
-    var defaultTab = assignEnabled ? tabAssign : textbooksEnabled ? tabTextbook : tabSettings;
-    defaultTab.classList.add("active");
+    tabAssign.classList.add("active");
 
     tabAssign.addEventListener("click", function () {
       setActiveTab(tabAssign);
@@ -996,7 +993,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   var FEATURES = [
     { key: "theme", label: "テーマ切り替え", desc: "ダーク・セピア・ブルーテーマ" },
-    { key: "assignments", label: "課題一覧", desc: "全科目の課題を一覧表示" },
     { key: "textbooks", label: "教科書パネル", desc: "シラバスから教科書情報を取得" },
     { key: "treeView", label: "ツリービュー", desc: "授業資料をツリー形式で表示" },
     { key: "courseNameCleanup", label: "科目名の整理", desc: "年度・学期を省略して短縮表示" },
@@ -1012,7 +1008,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     { key: "previewMode", label: "プレビューモード", desc: "ダミー課題を表示してUIを確認（開発用）" },
   ];
 
-  var currentView = assignEnabled ? "assignments" : textbooksEnabled ? "textbooks" : "settings";
+  var currentView = "assignments";
 
   function showSettingsView() {
     if (currentView === "settings") return;
@@ -1347,9 +1343,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   async function init() {
     if (window !== window.top) return;
     await window.__kulmsSettingsReady;
-    var s = window.__kulmsSettings || {};
-    assignEnabled = s.assignments !== false;
-    textbooksEnabled = s.textbooks !== false;
+    textbooksEnabled = (window.__kulmsSettings || {}).textbooks !== false;
     await loadCheckedState();
     await loadMemos();
     createFloatingButton();
