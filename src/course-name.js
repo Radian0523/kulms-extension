@@ -1,0 +1,114 @@
+// === サイドバー科目名の整理 + ピン留めソート ===
+
+(function () {
+  "use strict";
+
+  // iframe内では実行しない
+  if (window !== window.top) return;
+
+  // [2026前期水２]固体電子工学 → [水２]固体電子工学
+  var COURSE_RE =
+    /^\s*\[\d{4}[^\]]*?([月火水木金土日]\s*[０-９0-9]+)\s*\]/;
+
+  // ソート用
+  var DAY_ORDER = { 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6, 日: 7 };
+  var SORT_RE = /\[(?:\d{4}[^\]]*?)?([月火水木金土日])\s*([０-９0-9]+)\s*\]/;
+
+  function toHalfWidth(s) {
+    return parseInt(
+      s.replace(/[０-９]/g, function (ch) {
+        return String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 48);
+      }),
+      10
+    );
+  }
+
+  function getSortKey(text) {
+    var m = text.match(SORT_RE);
+    if (!m) return Infinity;
+    var day = DAY_ORDER[m[1]] || 99;
+    var period = toHalfWidth(m[2]);
+    return day * 100 + period;
+  }
+
+  function isCourseLink(a) {
+    return (
+      /\/portal\/site\//.test(a.href) &&
+      !/\/tool\//.test(a.href) &&
+      !/\/portal\/site\/~/.test(a.href)
+    );
+  }
+
+  function cleanLink(a) {
+    if (a.dataset.kulmsNameCleaned) return;
+    var walker = document.createTreeWalker(a, NodeFilter.SHOW_TEXT);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (COURSE_RE.test(node.textContent)) {
+        node.textContent = node.textContent.replace(COURSE_RE, "[$1]");
+        a.dataset.kulmsNameCleaned = "1";
+      }
+    }
+  }
+
+  function cleanAll() {
+    document
+      .querySelectorAll('a[href*="/portal/site/"]')
+      .forEach(function (a) {
+        if (a.dataset.kulmsNameCleaned) return;
+        if (COURSE_RE.test(a.textContent)) cleanLink(a);
+      });
+  }
+
+  // --- ピン留めソート ---
+  var sorting = false;
+  var sortTimer = null;
+  var lastSortSignature = "";
+
+  function sortPinned() {
+    var list = document.querySelector("#pinned-site-list");
+    if (!list) return;
+
+    var items = Array.from(list.children);
+    var entries = [];
+    items.forEach(function (li) {
+      var link = li.querySelector('a[href*="/portal/site/"]');
+      if (!link || !isCourseLink(link)) return;
+      entries.push({ el: li, key: getSortKey(link.textContent) });
+    });
+
+    if (entries.length < 2) return;
+
+    var sig = entries.map(function (e) { return e.key; }).join(",");
+    if (sig === lastSortSignature) return;
+
+    entries.sort(function (a, b) { return a.key - b.key; });
+
+    sorting = true;
+    entries.forEach(function (e) {
+      list.appendChild(e.el);
+    });
+    sorting = false;
+
+    lastSortSignature = sig;
+  }
+
+  function scheduleSortPinned() {
+    if (sorting || sortTimer) return;
+    sortTimer = setTimeout(function () {
+      sortTimer = null;
+      sortPinned();
+    }, 300);
+  }
+
+  window.__kulmsSettingsReady.then(function (s) {
+    if (s.courseNameCleanup !== false) cleanAll();
+    if (s.pinSort !== false) setTimeout(sortPinned, 600);
+
+    new MutationObserver(function () {
+      if (sorting) return;
+      if (s.courseNameCleanup !== false) cleanAll();
+      if (s.pinSort !== false) scheduleSortPinned();
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+})();
