@@ -1770,7 +1770,7 @@
     var feedbackRow = document.createElement("div");
     feedbackRow.className = "kulms-settings-row kulms-settings-feedback";
     var feedbackLink = document.createElement("a");
-    feedbackLink.href = "https://docs.google.com/forms/d/e/1FAIpQLSdFa9VASkP0ea8uHK9GEPS3r3VnoOcIpKO0dsIeCACElvCH-Q/viewform";
+    feedbackLink.href = "https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform";
     feedbackLink.target = "_blank";
     feedbackLink.rel = "noopener";
     feedbackLink.className = "kulms-feedback-link";
