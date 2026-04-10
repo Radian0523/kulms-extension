@@ -95,6 +95,8 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
 
   // --- State ---
+  var assignEnabled = true;
+  var textbooksEnabled = true;
   let checkedState = {};
   let memos = [];
   let lastAssignments = [];
@@ -540,9 +542,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       tabs.forEach(function (t) { t.classList.remove("active"); });
       activeTab.classList.add("active");
     }
-
-    var assignEnabled = !window.__kulmsSettings || window.__kulmsSettings.assignments !== false;
-    var textbooksEnabled = !window.__kulmsSettings || window.__kulmsSettings.textbooks !== false;
 
     if (assignEnabled) tabBar.appendChild(tabAssign);
     if (textbooksEnabled) {
@@ -1347,6 +1346,10 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   async function init() {
     if (window !== window.top) return;
+    await window.__kulmsSettingsReady;
+    var s = window.__kulmsSettings || {};
+    assignEnabled = s.assignments !== false;
+    textbooksEnabled = s.textbooks !== false;
     await loadCheckedState();
     await loadMemos();
     createFloatingButton();
