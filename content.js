@@ -252,8 +252,10 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     return null;
   }
 
-  // サイドバーDOMから各コースの「課題」ツールURLを抽出
-  function buildAssignmentToolMap() {
+  // 各コースの「課題」ツールURLを取得
+  // 1. サイドバーDOMから抽出（展開中の科目のみ）
+  // 2. Sakai APIから取得（DOM未展開の科目をカバー）
+  function buildAssignmentToolMapFromDOM() {
     var map = {};
     document.querySelectorAll(".nav-item a").forEach(function (a) {
       if (!a.textContent.trim().match(/^課題/)) return;
@@ -261,6 +263,24 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       if (match) map[match[1]] = a.href;
     });
     return map;
+  }
+
+  async function fetchAssignmentToolUrl(siteId) {
+    try {
+      var data = await sakaiGet("/direct/site/" + siteId + "/pages.json");
+      var pages = Array.isArray(data) ? data : [];
+      for (var i = 0; i < pages.length; i++) {
+        var tools = pages[i].tools || [];
+        for (var j = 0; j < tools.length; j++) {
+          if (tools[j].toolId === "sakai.assignment.grades") {
+            return BASE_URL + "/portal/site/" + siteId + "/tool/" + tools[j].id;
+          }
+        }
+      }
+    } catch (e) {
+      // API失敗時はnull
+    }
+    return null;
   }
 
   async function fetchAssignmentsForCourse(course, toolMap) {
@@ -271,8 +291,11 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       const list = data.assignment_collection || [];
 
       // コースの課題ツールURL（ポータル内遷移）
-      var courseAssignUrl = toolMap[course.id]
-        || BASE_URL + "/portal/site/" + course.id;
+      var courseAssignUrl = toolMap[course.id];
+      if (!courseAssignUrl) {
+        courseAssignUrl = await fetchAssignmentToolUrl(course.id)
+          || BASE_URL + "/portal/site/" + course.id;
+      }
 
       return list.map((a) => {
         const deadline =
@@ -315,7 +338,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     }
 
     // サイドバーから課題ツールURLを取得（この時点では描画済み）
-    var toolMap = buildAssignmentToolMap();
+    var toolMap = buildAssignmentToolMapFromDOM();
 
     const allAssignments = [];
     let completed = 0;
@@ -1303,10 +1326,16 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
         const cached = await loadCache();
         if (cached) {
           // キャッシュのURLをポータル内URLに修正
-          var toolMap = buildAssignmentToolMap();
-          cached.assignments.forEach(function (a) {
-            if (toolMap[a.courseId]) a.url = toolMap[a.courseId];
-          });
+          var toolMap = buildAssignmentToolMapFromDOM();
+          for (var ci = 0; ci < cached.assignments.length; ci++) {
+            var ca = cached.assignments[ci];
+            if (toolMap[ca.courseId]) {
+              ca.url = toolMap[ca.courseId];
+            } else if (!ca.url || ca.url.indexOf("/tool/") === -1) {
+              var apiUrl = await fetchAssignmentToolUrl(ca.courseId);
+              if (apiUrl) ca.url = apiUrl;
+            }
+          }
           updateCacheInfo(cached.timestamp);
           renderAssignments(cached.assignments);
           colorSidebarTabs(cached.assignments);
