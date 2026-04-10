@@ -2,7 +2,7 @@
 
 ## 概要
 
-KULMS+は、京都大学のSakai LMS (KULMS) のUIを拡張するChrome拡張機能。公式APIが限定的な環境で、DOM操作・非公開API・CSSオーバーライドを組み合わせて15の機能を実現している。
+KULMS+は、京都大学のSakai LMS (KULMS) のUIを拡張するChrome拡張機能。公式APIが限定的な環境で、DOM操作・非公開API・CSSオーバーライドを組み合わせて15の機能（うち13機能を個別設定可能）を実現している。
 
 ## 技術スタック
 
@@ -221,12 +221,12 @@ for (let i = 0; i < courses.length; i += CONCURRENT_LIMIT) {
 
 ## 設定システム
 
-全15機能を個別にオン/オフ可能な設定システム:
+15機能のうち13機能を個別にオン/オフ可能な設定システム（課題一覧・テーマは常時有効）:
 
 ```javascript
 // 起動時にPromiseで設定を読み込み、全IIFEが参照可能に
 window.__kulmsSettingsReady = new Promise(function (resolve) {
-  var DEFAULTS = { theme: true, assignments: true, /* ... */ };
+  var DEFAULTS = { textbooks: true, tabColoring: true, /* 他はfalse */ };
   chrome.storage.local.get("kulms-settings", function (result) {
     window.__kulmsSettings = Object.assign({}, DEFAULTS, saved);
     resolve(window.__kulmsSettings);
@@ -240,7 +240,7 @@ window.__kulmsSettingsReady.then(function (s) {
 });
 ```
 
-IIFE間で直接の依存関係を持たず、`window.__kulmsSettingsReady` Promiseのみを共有インターフェースとすることで、機能の追加・削除が容易なアーキテクチャになっている。
+デフォルトONは教科書パネルと科目タブ色分けのみ。IIFE間で直接の依存関係を持たず、`window.__kulmsSettingsReady` Promiseのみを共有インターフェースとすることで、機能の追加・削除が容易なアーキテクチャになっている。
 
 ## 対応環境
 
