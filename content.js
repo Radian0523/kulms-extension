@@ -1412,19 +1412,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     var depth = getDepth(td);
     var folder = isFolder(tr, td);
 
-    tr.classList.add("kulms-tree-row");
-    tr.classList.add(folder ? "kulms-tree-folder" : "kulms-tree-file");
     tr.dataset.kulmsDepth = String(depth);
-
-    // 祖先レベルのガイドラインを追加
-    for (var d = 0; d < depth; d++) {
-      var ancestorPx = paddingByDepth.get(d);
-      if (ancestorPx === undefined) continue;
-      var guide = document.createElement("span");
-      guide.className = "kulms-tree-guide";
-      guide.style.left = (ancestorPx + 6) + "px";
-      td.appendChild(guide);
-    }
   }
 
   // --- フォルダ操作の共通処理 ---
