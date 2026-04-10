@@ -303,11 +303,19 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           extractTimestamp(a.dueDate) ||
           extractTimestamp(a.closeTime);
 
+        // 提出状態は submissions[0] から取得
+        var sub = a.submissions && a.submissions[0];
         let status = "";
-        if (a.submitted === true) {
-          status = "提出済";
-        } else if (a.submissionStatus) {
-          status = a.submissionStatus;
+        let grade = "";
+        if (sub) {
+          if (sub.graded) {
+            status = "評定済";
+            grade = sub.grade || "";
+          } else if (sub.userSubmission || sub.dateSubmittedEpochSeconds > 0) {
+            status = "提出済";
+          } else if (sub.status && sub.status !== "未開始") {
+            status = sub.status;
+          }
         }
 
         return {
@@ -318,7 +326,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
           deadline: deadline,
           deadlineText: deadline ? formatDeadline(deadline) : "",
           status: status,
-          grade: a.gradeDisplay || a.grade || "",
+          grade: grade || a.gradeDisplay || a.grade || "",
         };
       });
     } catch (e) {
