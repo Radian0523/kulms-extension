@@ -1557,7 +1557,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   // ソート用
   var DAY_ORDER = { 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6, 日: 7 };
-  var SORT_RE = /\[([月火水木金土日])\s*([０-９0-9]+)\]/;
+  var SORT_RE = /\[(?:\d{4}[^\]]*?)?([月火水木金土日])\s*([０-９0-9]+)\s*\]/;
 
   function toHalfWidth(s) {
     return parseInt(
