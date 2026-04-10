@@ -140,6 +140,7 @@ function loadOverrideMessages(lang) {
   // --- State ---
   var textbooksEnabled = true;
   let checkedState = {};
+  var sectionCollapsedState = {};
   let dismissedState = {};
   let memos = [];
   let lastAssignments = [];
@@ -386,6 +387,7 @@ function loadOverrideMessages(lang) {
           grade: grade || a.gradeDisplay || a.grade || "",
           entityId: a.entityId || a.id || "",
           type: "assignment",
+          allowResubmission: !!(a.allowResubmission || (itemData && itemData.allowResubmission)),
         };
       });
     } catch (e) {
@@ -556,13 +558,20 @@ function loadOverrideMessages(lang) {
 
   function isAssignmentChecked(assignment) {
     var key = getCheckedKey(assignment);
-    if (checkedState[key]) return true;
+    var val = checkedState[key];
+    if (val && val !== "active") return true;
     // Fallback: check legacy key (courseId:name) if entityId is primary key
     if (assignment.entityId) {
       var legacyKey = assignment.courseId + ":" + assignment.name;
-      if (checkedState[legacyKey]) return true;
+      var legacyVal = checkedState[legacyKey];
+      if (legacyVal && legacyVal !== "active") return true;
     }
     return false;
+  }
+
+  function isExplicitlyActive(assignment) {
+    var key = getCheckedKey(assignment);
+    return checkedState[key] === "active";
   }
 
   function migrateCheckedKeys(assignments) {
@@ -588,10 +597,21 @@ function loadOverrideMessages(lang) {
         delete checkedState[legacyKey];
       }
     }
-    if (checkedState[key]) {
-      delete checkedState[key];
+
+    if (isSubmitted(assignment.status) && assignment.allowResubmission) {
+      // 再提出可能 + 提出済み: "active" をトグル
+      if (checkedState[key] === "active") {
+        delete checkedState[key]; // → 完了済みに戻る
+      } else {
+        checkedState[key] = "active"; // → アクティブに戻す
+      }
     } else {
-      checkedState[key] = Date.now();
+      // 既存動作
+      if (checkedState[key]) {
+        delete checkedState[key];
+      } else {
+        checkedState[key] = Date.now();
+      }
     }
     saveCheckedState();
   }
@@ -929,8 +949,9 @@ function loadOverrideMessages(lang) {
       return !isAssignmentDismissed(a);
     });
 
-    // 期限切れ + 完了済みの課題を除外
+    // 期限切れ + 完了済みの課題を除外（再提出アクティブは除外しない）
     var visible = notDismissed.filter(function (a) {
+      if (isExplicitlyActive(a)) return true;
       var isCompleted = isAssignmentChecked(a) || isSubmitted(a.status);
       var isClosed = a.closeTime && a.closeTime < now;
       return !(isCompleted && isClosed);
@@ -941,7 +962,9 @@ function loadOverrideMessages(lang) {
     var active = [];
 
     visible.forEach(function (a) {
-      if (isAssignmentChecked(a) || isSubmitted(a.status)) {
+      if (isExplicitlyActive(a)) {
+        active.push(a);
+      } else if (isAssignmentChecked(a) || isSubmitted(a.status)) {
         completed.push(a);
       } else {
         active.push(a);
@@ -1073,6 +1096,10 @@ function loadOverrideMessages(lang) {
       return (b.data.dismissedAt || 0) - (a.data.dismissedAt || 0);
     });
 
+    var deletedCollapsed = "deleted" in sectionCollapsedState
+      ? sectionCollapsedState["deleted"]
+      : true;
+
     var section = document.createElement("div");
     section.className = "kulms-assign-section";
 
@@ -1080,7 +1107,7 @@ function loadOverrideMessages(lang) {
     header.className = "kulms-assign-section-header kulms-section-deleted";
 
     var toggle = document.createElement("span");
-    toggle.className = "kulms-assign-section-toggle collapsed";
+    toggle.className = "kulms-assign-section-toggle" + (deletedCollapsed ? " collapsed" : "");
     toggle.textContent = "\u25BC";
 
     var titleSpan = document.createElement("span");
@@ -1095,7 +1122,7 @@ function loadOverrideMessages(lang) {
     header.appendChild(count);
 
     var itemsContainer = document.createElement("div");
-    itemsContainer.className = "kulms-assign-section-items collapsed";
+    itemsContainer.className = "kulms-assign-section-items" + (deletedCollapsed ? " collapsed" : "");
 
     // 自動削除の注意書き
     var notice = document.createElement("div");
@@ -1110,6 +1137,7 @@ function loadOverrideMessages(lang) {
     header.addEventListener("click", function () {
       toggle.classList.toggle("collapsed");
       itemsContainer.classList.toggle("collapsed");
+      sectionCollapsedState["deleted"] = toggle.classList.contains("collapsed");
     });
 
     section.appendChild(header);
@@ -1176,7 +1204,12 @@ function loadOverrideMessages(lang) {
     return card;
   }
 
-  function createSection(label, items, type, collapsed) {
+  function createSection(label, items, type, defaultCollapsed) {
+    // 保存済みの開閉状態があればそちらを優先
+    var collapsed = type in sectionCollapsedState
+      ? sectionCollapsedState[type]
+      : defaultCollapsed;
+
     var section = document.createElement("div");
     section.className = "kulms-assign-section";
 
@@ -1210,6 +1243,7 @@ function loadOverrideMessages(lang) {
     header.addEventListener("click", function () {
       toggle.classList.toggle("collapsed");
       itemsContainer.classList.toggle("collapsed");
+      sectionCollapsedState[type] = toggle.classList.contains("collapsed");
     });
 
     section.appendChild(header);
@@ -1221,7 +1255,8 @@ function loadOverrideMessages(lang) {
     var urgency = getUrgencyClass(assignment.deadline);
     var checked = isAssignmentChecked(assignment);
     var submitted = isSubmitted(assignment.status);
-    var isCompleted = checked || submitted;
+    var isResubmitActive = isExplicitlyActive(assignment);
+    var isCompleted = !isResubmitActive && (checked || submitted);
 
     var card = document.createElement("div");
     card.className = "kulms-assign-card " + urgency;
@@ -1230,11 +1265,17 @@ function loadOverrideMessages(lang) {
     // チェックボックス
     var checkbox = document.createElement("div");
     checkbox.className = "kulms-checkbox" + (isCompleted ? " checked" : "");
-    checkbox.addEventListener("click", function (e) {
-      e.stopPropagation();
-      toggleChecked(assignment);
-      renderAssignments(lastAssignments);
-    });
+    if (submitted && !assignment.allowResubmission && !checked) {
+      // 再提出不可の提出済み → クリック無効
+      checkbox.style.pointerEvents = "none";
+      checkbox.style.opacity = "0.5";
+    } else {
+      checkbox.addEventListener("click", function (e) {
+        e.stopPropagation();
+        toggleChecked(assignment);
+        renderAssignments(lastAssignments);
+      });
+    }
 
     // カード本体
     var body = document.createElement("div");
@@ -1275,18 +1316,27 @@ function loadOverrideMessages(lang) {
       meta.appendChild(remainEl);
     }
 
-    body.appendChild(pill);
+    var badgeRow = document.createElement("div");
+    badgeRow.className = "kulms-badge-row";
+    badgeRow.appendChild(pill);
     if (assignment.type === "quiz") {
       var typeBadge = document.createElement("span");
       typeBadge.className = "kulms-assign-badge kulms-badge-quiz";
       typeBadge.textContent = t("badgeQuiz");
-      body.appendChild(typeBadge);
+      badgeRow.appendChild(typeBadge);
     } else if (assignment.type === "memo") {
       var memoBadge = document.createElement("span");
       memoBadge.className = "kulms-badge-memo";
       memoBadge.textContent = t("memoLabel");
-      body.appendChild(memoBadge);
+      badgeRow.appendChild(memoBadge);
     }
+    if (isResubmitActive) {
+      var rBadge = document.createElement("span");
+      rBadge.className = "kulms-badge-resubmit";
+      rBadge.textContent = t("badgeResubmit");
+      badgeRow.appendChild(rBadge);
+    }
+    body.appendChild(badgeRow);
     body.appendChild(nameDiv);
     body.appendChild(meta);
 
@@ -1352,8 +1402,12 @@ function loadOverrideMessages(lang) {
     var header = document.createElement("div");
     header.className = "kulms-assign-section-header kulms-section-memo";
 
+    var memoCollapsed = "memo" in sectionCollapsedState
+      ? sectionCollapsedState["memo"]
+      : false;
+
     var toggle = document.createElement("span");
-    toggle.className = "kulms-assign-section-toggle";
+    toggle.className = "kulms-assign-section-toggle" + (memoCollapsed ? " collapsed" : "");
     toggle.textContent = "\u25BC";
 
     var titleSpan = document.createElement("span");
@@ -1368,7 +1422,7 @@ function loadOverrideMessages(lang) {
     header.appendChild(count);
 
     var itemsContainer = document.createElement("div");
-    itemsContainer.className = "kulms-assign-section-items";
+    itemsContainer.className = "kulms-assign-section-items" + (memoCollapsed ? " collapsed" : "");
 
     plainMemos.forEach(function (memo) {
       itemsContainer.appendChild(createMemoCard(memo));
@@ -1377,6 +1431,7 @@ function loadOverrideMessages(lang) {
     header.addEventListener("click", function () {
       toggle.classList.toggle("collapsed");
       itemsContainer.classList.toggle("collapsed");
+      sectionCollapsedState["memo"] = toggle.classList.contains("collapsed");
     });
 
     section.appendChild(header);
@@ -1968,7 +2023,8 @@ function loadOverrideMessages(lang) {
     };
 
     assignments.forEach(function (a) {
-      if (isSubmitted(a.status) || isAssignmentChecked(a)) return;
+      if (isExplicitlyActive(a)) { /* 再提出可能: 色付け対象 */ }
+      else if (isSubmitted(a.status) || isAssignmentChecked(a)) return;
       var u = getUrgencyClass(a.deadline);
       var existing = courseUrgency[a.courseId];
       if (!existing || (priority[u] || 99) < (priority[existing] || 99)) {

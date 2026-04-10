@@ -619,6 +619,15 @@ body {
   border-color: #0064cd !important;
 }
 
+/* バッジ行（ピル + タグを横並び） */
+.kulms-badge-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-bottom: 3px !important;
+}
+
 /* コース名ピルバッジ */
 .kulms-course-pill {
   display: inline-block !important;
@@ -627,7 +636,7 @@ body {
   font-size: 10px !important;
   font-weight: 600 !important;
   color: #fff !important;
-  margin-bottom: 3px !important;
+  margin-bottom: 0 !important;
   max-width: 100% !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
@@ -715,7 +724,16 @@ body {
   color: #7b1fa2 !important;
   font-size: 10px !important;
   padding: 1px 6px !important;
-  margin-bottom: 2px !important;
+}
+
+.kulms-badge-resubmit {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #fff3e0 !important;
+  color: #e65100 !important;
 }
 
 /* ローディング */
@@ -1063,6 +1081,11 @@ body[data-kulms-theme="dark"] .kulms-assign-badge.submitted {
 body[data-kulms-theme="dark"] .kulms-assign-badge.graded {
   background: #1a2a4a !important;
   color: #90caf9 !important;
+}
+
+body[data-kulms-theme="dark"] .kulms-badge-resubmit {
+  background: #4a3010 !important;
+  color: #ffb74d !important;
 }
 
 body[data-kulms-theme="dark"] .kulms-assign-spinner {

@@ -326,6 +326,9 @@
   "badgeQuiz": {
     "message": "テスト"
   },
+  "badgeResubmit": {
+    "message": "再提出可能"
+  },
 
   "sectionAppearance": {
     "message": "外観"

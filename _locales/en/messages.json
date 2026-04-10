@@ -326,6 +326,9 @@
   "badgeQuiz": {
     "message": "Quiz"
   },
+  "badgeResubmit": {
+    "message": "Resubmit"
+  },
 
   "sectionAppearance": {
     "message": "Appearance"
