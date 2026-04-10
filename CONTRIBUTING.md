@@ -29,7 +29,7 @@ KULMS+ への貢献を歓迎します。
 - 各機能は IIFE で独立させ、グローバル汚染を避ける
 - 設定キーは `src/settings.js` の `DEFAULT_SETTINGS` に定義
 - UI テキストは `t('key')` ヘルパーで i18n 対応（`_locales/` にメッセージ定義）
-- CSS 変数はテーマ・緊急度色に使用（`styles.css` の `:root` セクション参照）
+- CSS 変数は緊急度色に使用（`styles.css` の `:root` セクション参照）
 
 ## Pull Request の流れ
 

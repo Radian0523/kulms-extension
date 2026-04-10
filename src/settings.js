@@ -61,5 +61,5 @@ function loadOverrideMessages(lang) {
   var url = chrome.runtime.getURL("_locales/" + lang + "/messages.json");
   return fetch(url).then(function (res) { return res.json(); })
     .then(function (data) { __kulmsOverrideMessages = data; })
-    .catch(function () { __kulmsOverrideMessages = null; });
+    .catch(function (e) { console.warn("[KULMS] loadOverrideMessages failed:", e); __kulmsOverrideMessages = null; });
 }

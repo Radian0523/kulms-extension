@@ -3,7 +3,7 @@
     "message": "KULMS+"
   },
   "extDescription": {
-    "message": "Chrome extension to enhance Kyoto University LMS (KULMS). Assignment list, deadline management, textbook info, theme switching, sidebar customization and more."
+    "message": "Chrome extension to enhance Kyoto University LMS (KULMS). Assignment list, deadline management, textbook info, sidebar customization and more."
   },
 
   "panelTitle": {
@@ -123,22 +123,6 @@
     "placeholders": {
       "mins": { "content": "$1" }
     }
-  },
-
-  "settingsTheme": {
-    "message": "Theme"
-  },
-  "themeDefault": {
-    "message": "Default"
-  },
-  "themeDark": {
-    "message": "Dark"
-  },
-  "themeSepia": {
-    "message": "Sepia"
-  },
-  "themeBlue": {
-    "message": "Blue"
   },
 
   "featTextbooks": {

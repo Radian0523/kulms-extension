@@ -33,7 +33,6 @@ Content Scriptとしてページに注入される性質上、React/Vueなどの
 ```
 src/
 ├── settings.js          # 設定読み込み (共有Promise: window.__kulmsSettingsReady) + i18nヘルパー
-├── theme.js             # IIFE: テーマ切り替え
 ├── assignments.js       # IIFE: 課題一覧パネル ★メイン機能
 │   ├── Sakai API通信層 (sakaiGet, getCourses, fetchAssignments, fetchQuizzes)
 │   ├── キャッシュ層 (chrome.storage, TTL 30分)
@@ -275,7 +274,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
 | セクション | 内容 |
 |------------|------|
-| 外観 | テーマ、言語 |
+| 外観 | 言語 |
 | パネル | 教科書パネル、メモ機能、パネル押し出し |
 | サイドバー | タブ色分け、新着バッジ、科目名整理、ピンソート、行クリック、ツール管理、リサイズ、スタイル |
 | コースページ | ツリービュー |

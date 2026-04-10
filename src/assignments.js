@@ -1635,40 +1635,9 @@
     }
 
     // ========================================
-    // 1. 外観 (Appearance): Theme + Language
+    // 1. 外観 (Appearance): Language
     // ========================================
     addSectionHeader(t("sectionAppearance"));
-
-    var themeAPI = window.__kulmsThemeAPI;
-    if (themeAPI) {
-      var themeSection = document.createElement("div");
-      themeSection.className = "kulms-settings-theme-section";
-      var themeLabel = document.createElement("div");
-      themeLabel.className = "kulms-settings-row-label";
-      themeLabel.textContent = t("settingsTheme");
-      themeSection.appendChild(themeLabel);
-      var themeRow = document.createElement("div");
-      themeRow.className = "kulms-theme-picker";
-      var currentTheme = themeAPI.getCurrent();
-      themeAPI.themes.forEach(function (theme) {
-        var dot = document.createElement("button");
-        dot.className = "kulms-theme-dot";
-        if (theme.id === currentTheme) dot.classList.add("active");
-        dot.style.backgroundColor = theme.color;
-        dot.title = t(theme.labelKey);
-        dot.addEventListener("click", function () {
-          themeAPI.apply(theme.id);
-          themeAPI.save(theme.id);
-          themeRow.querySelectorAll(".kulms-theme-dot").forEach(function (d) {
-            d.classList.remove("active");
-          });
-          dot.classList.add("active");
-        });
-        themeRow.appendChild(dot);
-      });
-      themeSection.appendChild(themeRow);
-      settingsView.appendChild(themeSection);
-    }
 
     // 言語
     var langRow = document.createElement("div");

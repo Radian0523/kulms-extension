@@ -3,7 +3,7 @@
     "message": "KULMS+"
   },
   "extDescription": {
-    "message": "京都大学LMS (KULMS) を強化するChrome拡張。全科目の課題一覧・締切管理、教科書情報取得、テーマ切替、サイドバーカスタマイズなど。"
+    "message": "京都大学LMS (KULMS) を強化するChrome拡張。全科目の課題一覧・締切管理、教科書情報取得、サイドバーカスタマイズなど。"
   },
 
   "panelTitle": {
@@ -123,22 +123,6 @@
     "placeholders": {
       "mins": { "content": "$1" }
     }
-  },
-
-  "settingsTheme": {
-    "message": "テーマ"
-  },
-  "themeDefault": {
-    "message": "デフォルト"
-  },
-  "themeDark": {
-    "message": "ダーク"
-  },
-  "themeSepia": {
-    "message": "セピア"
-  },
-  "themeBlue": {
-    "message": "ブルー"
   },
 
   "featTextbooks": {

@@ -17,7 +17,6 @@
       "css": ["styles.css"],
       "js": [
         "src/settings.js",
-        "src/theme.js",
         "src/assignments.js",
         "src/submit-detect.js",
         "src/tree-view.js",
@@ -29,6 +28,12 @@
       ],
       "run_at": "document_idle",
       "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["_locales/*/messages.json"],
+      "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"]
     }
   ],
   "background": {
