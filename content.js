@@ -12,7 +12,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     courseRowClick: false, toolVisibility: false, sidebarResize: false,
     notificationBadge: false, sidebarStyle: false, memos: false,
     panelPush: false, previewMode: false,
-    fetchInterval: 30
+    fetchInterval: 2
   };
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
@@ -405,7 +405,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
   function getFetchIntervalMs() {
     var s = window.__kulmsSettings || {};
-    var min = typeof s.fetchInterval === "number" ? s.fetchInterval : 30;
+    var min = typeof s.fetchInterval === "number" ? s.fetchInterval : 2;
     return min * 60 * 1000;
   }
 
@@ -1164,7 +1164,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     intervalInput.type = "number";
     intervalInput.min = "1";
     intervalInput.max = "180";
-    intervalInput.value = currentSettings.fetchInterval || 30;
+    intervalInput.value = currentSettings.fetchInterval || 2;
     intervalInput.className = "kulms-settings-number";
 
     intervalInput.addEventListener("change", function () {
