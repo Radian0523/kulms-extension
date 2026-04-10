@@ -272,6 +272,9 @@
   "feedbackLink": {
     "message": "\uD83D\uDCEC Send Feedback"
   },
+  "supportLink": {
+    "message": "\u2615 Support Development"
+  },
 
   "textbooksDisabled": {
     "message": "Textbook feature is disabled"

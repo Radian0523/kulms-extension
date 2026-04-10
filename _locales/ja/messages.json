@@ -272,6 +272,9 @@
   "feedbackLink": {
     "message": "\uD83D\uDCEC ご意見・要望を送る"
   },
+  "supportLink": {
+    "message": "\u2615 開発を応援する"
+  },
 
   "textbooksDisabled": {
     "message": "教科書機能が無効です"

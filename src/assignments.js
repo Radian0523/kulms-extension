@@ -1809,6 +1809,17 @@
     feedbackRow.appendChild(feedbackLink);
     settingsView.appendChild(feedbackRow);
 
+    var supportRow = document.createElement("div");
+    supportRow.className = "kulms-settings-row kulms-settings-feedback";
+    var supportLink = document.createElement("a");
+    supportLink.href = "https://ko-fi.com/radian0523";
+    supportLink.target = "_blank";
+    supportLink.rel = "noopener";
+    supportLink.className = "kulms-feedback-link";
+    supportLink.textContent = t("supportLink");
+    supportRow.appendChild(supportLink);
+    settingsView.appendChild(supportRow);
+
     var footer = document.createElement("div");
     footer.className = "kulms-settings-footer";
     footer.textContent = t("settingsFooter");
