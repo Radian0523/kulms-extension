@@ -506,7 +506,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     var tabs = [];
 
     var tabAssign = document.createElement("label");
-    tabAssign.className = "kulms-panel-tab active";
+    tabAssign.className = "kulms-panel-tab";
     var radioAssign = document.createElement("input");
     radioAssign.type = "radio";
     radioAssign.name = "kulms-tab";
@@ -541,11 +541,18 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
       activeTab.classList.add("active");
     }
 
-    tabBar.appendChild(tabAssign);
-    if (!window.__kulmsSettings || window.__kulmsSettings.textbooks !== false) {
+    var assignEnabled = !window.__kulmsSettings || window.__kulmsSettings.assignments !== false;
+    var textbooksEnabled = !window.__kulmsSettings || window.__kulmsSettings.textbooks !== false;
+
+    if (assignEnabled) tabBar.appendChild(tabAssign);
+    if (textbooksEnabled) {
       tabBar.appendChild(tabTextbook);
     }
     tabBar.appendChild(tabSettings);
+
+    // デフォルトのアクティブタブ
+    var defaultTab = assignEnabled ? tabAssign : textbooksEnabled ? tabTextbook : tabSettings;
+    defaultTab.classList.add("active");
 
     tabAssign.addEventListener("click", function () {
       setActiveTab(tabAssign);
@@ -1006,7 +1013,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     { key: "previewMode", label: "プレビューモード", desc: "ダミー課題を表示してUIを確認（開発用）" },
   ];
 
-  var currentView = "assignments";
+  var currentView = assignEnabled ? "assignments" : textbooksEnabled ? "textbooks" : "settings";
 
   function showSettingsView() {
     if (currentView === "settings") return;
