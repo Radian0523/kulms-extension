@@ -31,25 +31,26 @@ Content Scriptとしてページに注入される性質上、React/Vueなどの
 ### Content Script構成
 
 ```
-content.js
-├── 設定読み込み (共有Promise: window.__kulmsSettingsReady)
-├── i18nヘルパー (t() 関数、言語上書きサポート)
-├── IIFE: テーマ切り替え
-├── IIFE: 課題一覧パネル ★メイン機能
+src/
+├── settings.js          # 設定読み込み (共有Promise: window.__kulmsSettingsReady) + i18nヘルパー
+├── theme.js             # IIFE: テーマ切り替え
+├── assignments.js       # IIFE: 課題一覧パネル ★メイン機能
 │   ├── Sakai API通信層 (sakaiGet, getCourses, fetchAssignments, fetchQuizzes)
 │   ├── キャッシュ層 (chrome.storage, TTL 30分)
 │   ├── 状態管理層 (checked, dismissed, memos)
 │   ├── UI層 (パネル, カード, セクション, メモ, 削除済み)
 │   ├── 設定UI (グループ化セクション、閾値、カラーピッカー)
 │   └── サイドバー連携 (色分け, バッジ, スタイル注入)
-├── IIFE: 提出ボタン検出
-├── IIFE: 授業資料ツリービュー
-├── IIFE: 科目名整理 + ピン留めソート
-├── IIFE: コース行クリック
-├── IIFE: ツール表示管理
-├── IIFE: サイドバーリサイズ
-└── IIFE: 教科書パネル (background.jsと連携)
+├── submit-detect.js     # IIFE: 提出ボタン検出
+├── tree-view.js         # IIFE: 授業資料ツリービュー
+├── course-name.js       # IIFE: 科目名整理 + ピン留めソート
+├── course-click.js      # IIFE: コース行クリック
+├── tool-visibility.js   # IIFE: ツール表示管理
+├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携)
+└── sidebar-resize.js    # IIFE: サイドバーリサイズ
 ```
+
+Manifest V3の `content_scripts.js` 配列で上記の順序通り注入される。各ファイルはIIFE（即時実行関数式）で機能を分離しており、`settings.js` で定義されるグローバル変数（`window.__kulmsSettingsReady`, `t()` 関数）を共有インターフェースとして疎結合を実現している。
 
 ### データフロー
 

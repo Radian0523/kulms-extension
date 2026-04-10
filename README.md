@@ -109,16 +109,26 @@
 
 ```
 kulms-extension/
-├── manifest.json       # Chrome拡張マニフェスト (Manifest V3)
-├── content.js          # メインのコンテンツスクリプト（全機能のIIFE）
-├── styles.css          # テーマ・各機能のスタイル
-├── background.js       # サービスワーカー（シラバス取得）
+├── manifest.json          # Chrome拡張マニフェスト (Manifest V3)
+├── src/                   # コンテンツスクリプト（IIFE単位で分割）
+│   ├── settings.js        #   設定初期化 + i18nヘルパー
+│   ├── theme.js           #   テーマ切り替え
+│   ├── assignments.js     #   課題パネル（メイン機能）
+│   ├── submit-detect.js   #   提出ボタン検出
+│   ├── tree-view.js       #   授業資料ツリービュー
+│   ├── course-name.js     #   科目名整理 + ピンソート
+│   ├── course-click.js    #   コース行クリック
+│   ├── tool-visibility.js #   ツール表示管理
+│   ├── textbooks.js       #   教科書パネル
+│   └── sidebar-resize.js  #   サイドバーリサイズ
+├── styles.css             # テーマ・各機能のスタイル
+├── background.js          # サービスワーカー（シラバス取得）
 ├── _locales/
-│   ├── ja/messages.json  # 日本語メッセージ
-│   └── en/messages.json  # 英語メッセージ
-├── icons/              # 拡張機能アイコン
-├── DEVELOPMENT.md      # 技術詳細・設計判断・開発記録
-└── README.md           # このファイル
+│   ├── ja/messages.json   # 日本語メッセージ
+│   └── en/messages.json   # 英語メッセージ
+├── icons/                 # 拡張機能アイコン
+├── DEVELOPMENT.md         # 技術詳細・設計判断・開発記録
+└── README.md              # このファイル
 ```
 
 ## 対応環境
