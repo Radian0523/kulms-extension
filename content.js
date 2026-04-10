@@ -542,7 +542,9 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
     }
 
     tabBar.appendChild(tabAssign);
-    tabBar.appendChild(tabTextbook);
+    if (!window.__kulmsSettings || window.__kulmsSettings.textbooks !== false) {
+      tabBar.appendChild(tabTextbook);
+    }
     tabBar.appendChild(tabSettings);
 
     tabAssign.addEventListener("click", function () {
@@ -1858,6 +1860,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
   "use strict";
 
   if (window !== window.top) return;
+  if (window.__kulmsSettings && window.__kulmsSettings.textbooks === false) return;
 
   // アフィリエイトタグなし
   const TEXTBOOK_CACHE_KEY = "kulms-textbooks";
