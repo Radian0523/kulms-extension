@@ -6,10 +6,10 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
 // === 設定読み込み ===
 
 window.__kulmsDefaults = {
-  textbooks: true, tabColoring: true, tabColorStyle: "border",
+  textbooks: true, tabColoring: true, tabColorStyle: "bold",
   folderExpand: false, autoExpandAll: false, hideResourceColumns: false, courseNameCleanup: false, pinSort: false,
   courseRowClick: false, toolVisibility: false, sidebarResize: false,
-  notificationBadge: false, sidebarStyle: false, memos: false,
+  notificationBadge: false, sidebarStyle: false, memos: true,
   panelPush: false, previewMode: false,
   fetchInterval: 120,
   dangerHours: 24,

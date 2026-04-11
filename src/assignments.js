@@ -1541,6 +1541,7 @@
     settingsView.className = "kulms-settings-view";
     var currentSettings = window.__kulmsSettings || {};
     var toggleInputs = [];
+    var otherInputs = [];
 
     // --- ヘルパー ---
     var currentCardBody = null;
@@ -1662,6 +1663,7 @@
       row.appendChild(labelArea);
       row.appendChild(input);
       currentCardBody.appendChild(row);
+      otherInputs.push({ key: settingKey, input: input, type: "number", defaultVal: defaultVal });
     }
 
     function createSelectRow(labelText, descText, settingKey, defaultVal, options) {
@@ -1706,6 +1708,7 @@
       row.appendChild(labelArea);
       row.appendChild(select);
       currentCardBody.appendChild(row);
+      otherInputs.push({ key: settingKey, input: select, type: "select", defaultVal: defaultVal });
     }
 
     function createColorRow(labelText, settingKey, defaultColor) {
@@ -1729,6 +1732,7 @@
       row.appendChild(labelArea);
       row.appendChild(input);
       currentCardBody.appendChild(row);
+      otherInputs.push({ key: settingKey, input: input, type: "color", defaultVal: defaultColor });
     }
 
     // ========================================
@@ -1770,6 +1774,7 @@
     langRow.appendChild(langLabelArea);
     langRow.appendChild(langSelect);
     currentCardBody.appendChild(langRow);
+    otherInputs.push({ key: "language", input: langSelect, type: "select", defaultVal: "auto" });
 
     // ========================================
     // 2. パネル (Panel): textbooks, memos, panelPush
@@ -1842,6 +1847,21 @@
     btnDefault.textContent = t("btnDefaults");
     btnDefault.addEventListener("click", function () {
       applyAll(function (key) { return DEFAULTS_COPY[key] !== false; });
+      otherInputs.forEach(function (item) {
+        var def = DEFAULTS_COPY[item.key] !== undefined ? DEFAULTS_COPY[item.key] : item.defaultVal;
+        if (item.type === "color") {
+          item.input.value = def;
+          currentSettings[item.key] = def;
+          injectUrgencyColors(currentSettings);
+        } else if (item.type === "number") {
+          item.input.value = def;
+          currentSettings[item.key] = def;
+        } else if (item.type === "select") {
+          item.input.value = def;
+          currentSettings[item.key] = def;
+        }
+      });
+      chrome.storage.local.set({ "kulms-settings": currentSettings });
     });
 
     var btnAllOn = document.createElement("button");
@@ -1863,8 +1883,13 @@
     btnRow.appendChild(btnAllOff);
     settingsView.appendChild(btnRow);
 
+    var footer = document.createElement("div");
+    footer.className = "kulms-settings-footer";
+    footer.textContent = t("settingsFooter");
+    settingsView.appendChild(footer);
+
     // ========================================
-    // 8. フィードバック + フッター
+    // 8. フィードバック
     // ========================================
     var feedbackMsg = document.createElement("div");
     feedbackMsg.className = "kulms-settings-footer";
@@ -1900,11 +1925,6 @@
     supportRow.appendChild(supportLink);
     settingsView.appendChild(supportRow);
 
-    var footer = document.createElement("div");
-    footer.className = "kulms-settings-footer";
-    footer.textContent = t("settingsFooter");
-
-    settingsView.appendChild(footer);
     contentEl.appendChild(settingsView);
   }
 
