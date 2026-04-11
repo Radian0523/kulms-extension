@@ -93,7 +93,7 @@
             resolve([]);
             return;
           }
-          resolve(response && response.books ? response.books : []);
+          resolve(response ? { books: response.books || [], syllabusUrl: response.syllabusUrl || "" } : { books: [], syllabusUrl: "" });
         }
       );
     });
@@ -189,6 +189,17 @@
             ? "\u6559\u79D1\u66F8\u306A\u3057" // 教科書なし
             : "\u30B7\u30E9\u30D0\u30B9\u672A\u767B\u9332"; // シラバス未登録
         header.appendChild(badge);
+      }
+
+      if (entry.syllabusUrl) {
+        var syllabusLink = document.createElement("a");
+        syllabusLink.href = entry.syllabusUrl;
+        syllabusLink.target = "_blank";
+        syllabusLink.rel = "noopener";
+        syllabusLink.className = "kulms-textbook-syllabus";
+        syllabusLink.textContent = "\u30B7\u30E9\u30D0\u30B9"; // シラバス
+        syllabusLink.addEventListener("click", function (e) { e.stopPropagation(); });
+        header.appendChild(syllabusLink);
       }
 
       var itemsEl = document.createElement("div");
@@ -302,13 +313,13 @@
         );
         try {
           var result = await fetchTextbooksForCourse(name);
-          if (result.length > 0) {
-            allTextbooks[name] = { books: result, status: "found" };
+          if (result.books.length > 0) {
+            allTextbooks[name] = { books: result.books, syllabusUrl: result.syllabusUrl, status: "found" };
           } else {
-            allTextbooks[name] = { books: [], status: "not_found" };
+            allTextbooks[name] = { books: [], syllabusUrl: result.syllabusUrl, status: result.syllabusUrl ? "no_textbook" : "not_found" };
           }
         } catch (e) {
-          allTextbooks[name] = { books: [], status: "not_found" };
+          allTextbooks[name] = { books: [], syllabusUrl: "", status: "not_found" };
         }
       }
 

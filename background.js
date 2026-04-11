@@ -226,6 +226,8 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
 
   // HTMLタグを除去してプレーンテキスト化（セクション区切りを保持）
   const text = html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(?:div|p|tr|td|th|li|h[1-6])>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
@@ -360,8 +362,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ books: [] });
         return;
       }
+      const syllabusUrl = result.departmentNo
+        ? `${SYLLABUS_BASE}/department_syllabus?lectureNo=${result.lectureNo}&departmentNo=${result.departmentNo}`
+        : `${SYLLABUS_BASE}/la_syllabus?lectureNo=${result.lectureNo}`;
       const books = await fetchSyllabusDetail(result.lectureNo, result.departmentNo);
-      sendResponse({ books });
+      sendResponse({ books, syllabusUrl });
     } catch (e) {
       console.warn("[KULMS] textbook fetch error:", e.message);
       sendResponse({ books: [], error: e.message });

@@ -826,6 +826,24 @@ body {
   margin-top: 1px !important;
 }
 
+.kulms-textbook-syllabus {
+  flex-shrink: 0 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #4a6fa5 !important;
+  background: #e8eef7 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  margin-left: auto !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-syllabus:hover {
+  background: #d0ddef !important;
+  color: #3a5a8a !important;
+}
+
 .kulms-textbook-amazon {
   flex-shrink: 0 !important;
   font-size: 11px !important;
