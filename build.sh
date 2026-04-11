@@ -38,12 +38,29 @@ build_firefox() {
   echo "Created $out"
 }
 
+sync_safari() {
+  local dest="safari/KULMS+ Extension/Resources"
+  if [ ! -d "$dest" ]; then
+    echo "Error: $dest not found" >&2
+    return 1
+  fi
+
+  # 拡張機能リソースを Safari プロジェクトに同期
+  local resources=(manifest.json background.js styles.css src icons _locales)
+  for item in "${resources[@]}"; do
+    rm -rf "$dest/$item"
+    cp -R "$item" "$dest/$item"
+  done
+  echo "Synced resources to $dest"
+}
+
 case "${1:-all}" in
   chrome)  build_chrome ;;
   firefox) build_firefox ;;
-  all)     build_chrome; build_firefox ;;
+  safari)  sync_safari ;;
+  all)     build_chrome; build_firefox; sync_safari ;;
   *)
-    echo "Usage: $0 {chrome|firefox|all}" >&2
+    echo "Usage: $0 {chrome|firefox|safari|all}" >&2
     exit 1
     ;;
 esac
