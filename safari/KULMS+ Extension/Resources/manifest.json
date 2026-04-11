@@ -1,0 +1,42 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extName__",
+  "version": "1.7.0",
+  "description": "__MSG_extDescription__",
+  "default_locale": "ja",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.k.kyoto-u.ac.jp/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"],
+      "css": ["styles.css"],
+      "js": [
+        "src/settings.js",
+        "src/assignments.js",
+        "src/submit-detect.js",
+        "src/tree-view.js",
+        "src/course-name.js",
+        "src/course-click.js",
+        "src/tool-visibility.js",
+        "src/textbooks.js",
+        "src/sidebar-resize.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["_locales/*/messages.json"],
+      "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

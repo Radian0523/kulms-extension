@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 共通除外パターン
-EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*")
+EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*" "hot-reload.sh")
 
 build_chrome() {
   local out="kulms-extension-chrome.zip"
@@ -20,7 +20,16 @@ build_firefox() {
 
   # manifest.json をバックアップし、Firefox 用に差し替え
   cp manifest.json manifest.json.bak
-  jq '. + { browser_specific_settings: { gecko: { id: "{kulms-plus@extension}", strict_min_version: "109.0" } } }' manifest.json.bak > manifest.json
+  jq '
+    .browser_specific_settings = {
+      gecko: {
+        id: "kulms-plus@extension",
+        strict_min_version: "109.0",
+        data_collection_permissions: { required: ["none"], private_browsing_allowed: false }
+      }
+    }
+    | .background.scripts = ["background.js"]
+  ' manifest.json.bak > manifest.json
 
   zip -r "$out" . "${EXCLUDE[@]}" -x "manifest.json.bak" -q
 

@@ -1,0 +1,1289 @@
+/* KULMS Extension Styles */
+
+/* === 緊急度カラー CSS変数 === */
+:root {
+  --kulms-color-danger: #e85555;
+  --kulms-color-warning: #d7aa57;
+  --kulms-color-success: #62b665;
+  --kulms-color-other: #777777;
+}
+
+/* === パネル制御 === */
+
+body {
+  transition: margin-right 0.3s ease !important;
+}
+
+/* === クリック外閉じオーバーレイ === */
+
+#kulms-cover {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 99999 !important;
+  background: transparent !important;
+  display: none !important;
+}
+
+#kulms-cover.visible {
+  display: block !important;
+}
+
+/* === ハンバーガーボタン === */
+
+.kulms-hamburger-btn {
+  border: none !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  padding: 4px 8px !important;
+  line-height: 1 !important;
+}
+
+.kulms-hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* === 課題一覧パネル (CPandA風) === */
+
+#kulms-assign-panel {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 0 !important;
+  height: 100vh !important;
+  z-index: 100000 !important;
+  background: var(--cs-bg, #cacaca) !important;
+  border-radius: 8px !important;
+  box-shadow: -2px 0 15px rgba(0, 0, 0, 0.2) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  transition: width 0.5s ease !important;
+  overflow: hidden !important;
+}
+
+#kulms-assign-panel.open {
+  width: 300px !important;
+}
+
+/* パネルヘッダー */
+.kulms-assign-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.kulms-assign-logo {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #464646 !important;
+}
+
+.kulms-assign-header-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.kulms-assign-header-btn,
+.kulms-assign-close {
+  width: 30px !important;
+  height: 30px !important;
+  border: none !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  font-size: 16px !important;
+  color: #666 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-assign-close {
+  font-size: 22px !important;
+}
+
+.kulms-assign-header-btn:hover,
+.kulms-assign-close:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* タブバー */
+.kulms-panel-tab-bar {
+  display: flex !important;
+  flex-shrink: 0 !important;
+  padding: 0 8px !important;
+}
+
+.kulms-panel-tab {
+  flex: 1 !important;
+  text-align: center !important;
+  padding: 8px 0 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  color: #666 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px 6px 0 0 !important;
+  transition: background 0.2s, color 0.2s !important;
+}
+
+.kulms-panel-tab input[type="radio"] {
+  display: none !important;
+}
+
+.kulms-panel-tab.active {
+  background: #6483d3 !important;
+  color: #fff !important;
+}
+
+/* キャッシュ情報 */
+.kulms-assign-cache-info {
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  color: #777 !important;
+  flex-shrink: 0 !important;
+}
+
+/* コンテンツエリア */
+.kulms-assign-content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 8px !important;
+}
+
+/* セクションヘッダー (CPandA風) */
+.kulms-assign-section {
+  margin-bottom: 10px !important;
+}
+
+.kulms-assign-section-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 6px 8px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  border-radius: 5px !important;
+  margin-bottom: 6px !important;
+}
+
+.kulms-section-overdue {
+  border-left: 6px solid #b71c1c !important;
+  background: #e8b0b0 !important;
+  color: #5c0e0e !important;
+}
+
+.kulms-section-danger {
+  border-left: 6px solid var(--kulms-color-danger) !important;
+  background: #f1cdcd !important;
+  color: #8b2020 !important;
+}
+
+.kulms-section-warning {
+  border-left: 6px solid var(--kulms-color-warning) !important;
+  background: #e2d4bf !important;
+  color: #6b4f1a !important;
+}
+
+.kulms-section-success {
+  border-left: 6px solid var(--kulms-color-success) !important;
+  background: #cce6cf !important;
+  color: #1e5e20 !important;
+}
+
+.kulms-section-other {
+  border-left: 6px solid var(--kulms-color-other) !important;
+  background: #e0e0e0 !important;
+  color: #444 !important;
+}
+
+.kulms-section-checked {
+  border-left: 6px solid #6582ff !important;
+  background: #c6d1fc !important;
+  color: #2a3d8f !important;
+}
+
+.kulms-section-memo {
+  border-left: 6px solid #26a69a !important;
+  background: #c8ece9 !important;
+  color: #1a5d56 !important;
+}
+
+.kulms-section-deleted {
+  border-left: 6px solid #aaa !important;
+  background: #e8e8e8 !important;
+  color: #777 !important;
+}
+
+/* 削除済みカード */
+.kulms-deleted-card {
+  opacity: 0.7 !important;
+  border-color: #ccc !important;
+}
+
+.kulms-deleted-card .kulms-assign-card-name {
+  text-decoration: line-through !important;
+  color: #999 !important;
+}
+
+.kulms-pill-deleted {
+  background: #aaa !important;
+  color: #fff !important;
+}
+
+.kulms-deleted-notice {
+  font-size: 11px !important;
+  color: #999 !important;
+  padding: 4px 8px !important;
+  font-style: italic !important;
+}
+
+.kulms-deleted-restore {
+  position: absolute !important;
+  top: 50% !important;
+  right: 8px !important;
+  transform: translateY(-50%) !important;
+  border: 1px solid #aaa !important;
+  background: #fff !important;
+  color: #555 !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+}
+
+.kulms-deleted-restore:hover {
+  background: #4caf50 !important;
+  color: #fff !important;
+  border-color: #4caf50 !important;
+}
+
+.kulms-assign-section-toggle {
+  font-size: 10px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-assign-section-toggle.collapsed {
+  transform: rotate(-90deg) !important;
+}
+
+.kulms-assign-section-count {
+  font-weight: 400 !important;
+  opacity: 0.7 !important;
+}
+
+.kulms-assign-section-items {
+  display: block !important;
+}
+
+.kulms-assign-section-items.collapsed {
+  display: none !important;
+}
+
+/* 課題カード (CPandA風) */
+.kulms-assign-card {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  background: #fff !important;
+  border: 2px solid #777 !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  margin-bottom: 6px !important;
+  position: relative !important;
+  transition: box-shadow 0.15s ease !important;
+}
+
+.kulms-assign-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.kulms-assign-card.urgency-danger,
+.kulms-assign-card.urgency-overdue {
+  border-color: var(--kulms-color-danger) !important;
+}
+
+.kulms-assign-card.urgency-warning {
+  border-color: var(--kulms-color-warning) !important;
+}
+
+.kulms-assign-card.urgency-success {
+  border-color: var(--kulms-color-success) !important;
+}
+
+.kulms-assign-card.urgency-other {
+  border-color: var(--kulms-color-other) !important;
+}
+
+.kulms-assign-card.kulms-checked {
+  border-color: #6582ff !important;
+  opacity: 0.7 !important;
+}
+
+.kulms-assign-card-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* チェックボックス */
+.kulms-checkbox {
+  width: 15px !important;
+  height: 15px !important;
+  min-width: 15px !important;
+  border: 2px solid #aaa !important;
+  border-radius: 50% !important;
+  cursor: pointer !important;
+  margin-top: 2px !important;
+  transition: background 0.2s, border-color 0.2s !important;
+  flex-shrink: 0 !important;
+}
+
+.kulms-checkbox:hover {
+  border-color: #0064cd !important;
+}
+
+.kulms-checkbox.checked {
+  background: #0064cd !important;
+  border-color: #0064cd !important;
+}
+
+/* バッジ行（ピル + タグを横並び） */
+.kulms-badge-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-bottom: 3px !important;
+}
+
+/* コース名ピルバッジ */
+.kulms-course-pill {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  margin-bottom: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.kulms-course-pill.urgency-danger,
+.kulms-course-pill.urgency-overdue {
+  background: var(--kulms-color-danger) !important;
+}
+
+.kulms-course-pill.urgency-warning {
+  background: var(--kulms-color-warning) !important;
+}
+
+.kulms-course-pill.urgency-success {
+  background: var(--kulms-color-success) !important;
+}
+
+.kulms-course-pill.urgency-other {
+  background: var(--kulms-color-other) !important;
+}
+
+/* カード内テキスト */
+.kulms-assign-card-name {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  margin-bottom: 2px !important;
+}
+
+.kulms-assign-card-name a {
+  color: #1565c0 !important;
+  text-decoration: none !important;
+}
+
+.kulms-assign-card-name a:hover {
+  text-decoration: underline !important;
+}
+
+.kulms-assign-card-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: #777 !important;
+}
+
+/* 残り時間 */
+.kulms-time-remain {
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  color: #333 !important;
+}
+
+.kulms-time-remain.overdue {
+  color: #e85555 !important;
+}
+
+/* ステータスバッジ */
+.kulms-assign-badge {
+  display: inline-block !important;
+  padding: 2px 8px !important;
+  border-radius: 10px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+.kulms-assign-badge.not-submitted {
+  background: #ffebee !important;
+  color: #c62828 !important;
+}
+
+.kulms-assign-badge.submitted {
+  background: #e8f5e9 !important;
+  color: #2e7d32 !important;
+}
+
+.kulms-assign-badge.graded {
+  background: #e3f2fd !important;
+  color: #1565c0 !important;
+}
+
+.kulms-badge-quiz {
+  background: #f3e5f5 !important;
+  color: #7b1fa2 !important;
+  font-size: 10px !important;
+  padding: 1px 6px !important;
+}
+
+.kulms-badge-resubmit {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #fff3e0 !important;
+  color: #e65100 !important;
+}
+
+/* ローディング */
+.kulms-assign-loading {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 16px !important;
+  gap: 12px !important;
+}
+
+.kulms-assign-spinner {
+  width: 32px !important;
+  height: 32px !important;
+  border: 3px solid #e0e0e0 !important;
+  border-top-color: #4a6fa5 !important;
+  border-radius: 50% !important;
+  animation: kulms-spin 0.8s linear infinite !important;
+}
+
+@keyframes kulms-spin {
+  to { transform: rotate(360deg); }
+}
+
+.kulms-assign-loading-text {
+  font-size: 13px !important;
+  color: #888 !important;
+}
+
+/* エラー */
+.kulms-assign-error {
+  padding: 24px 16px !important;
+  text-align: center !important;
+}
+
+.kulms-assign-error-msg {
+  font-size: 13px !important;
+  color: #c62828 !important;
+  margin-bottom: 12px !important;
+}
+
+.kulms-assign-retry-btn {
+  padding: 6px 16px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  background: #f5f5f5 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-assign-retry-btn:hover {
+  background: #e8e8e8 !important;
+}
+
+/* 空状態 */
+.kulms-assign-empty {
+  padding: 40px 16px !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  color: #999 !important;
+}
+
+/* === メモ UI === */
+
+.kulms-memo-area {
+  padding: 8px 0 !important;
+}
+
+.kulms-memo-btn {
+  display: block !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: #26a69a !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  cursor: pointer !important;
+  margin: 8px auto !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+  transition: background 0.2s !important;
+  line-height: 1 !important;
+}
+
+.kulms-memo-btn:hover {
+  background: #1f8d82 !important;
+}
+
+.kulms-memo-form {
+  background: #fff !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  margin-bottom: 8px !important;
+}
+
+.kulms-memo-input {
+  width: 100% !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  resize: vertical !important;
+  box-sizing: border-box !important;
+}
+
+.kulms-memo-form-actions {
+  display: flex !important;
+  gap: 6px !important;
+  margin-top: 6px !important;
+  justify-content: flex-end !important;
+}
+
+.kulms-memo-save,
+.kulms-memo-cancel {
+  padding: 4px 12px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+
+.kulms-memo-save {
+  background: #26a69a !important;
+  color: #fff !important;
+  border-color: #26a69a !important;
+}
+
+.kulms-memo-cancel {
+  background: #f5f5f5 !important;
+  color: #666 !important;
+}
+
+.kulms-memo-card {
+  border-color: #26a69a !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.kulms-badge-memo {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #26a69a !important;
+  color: #fff !important;
+  align-self: flex-start !important;
+}
+
+.kulms-memo-text {
+  font-size: 12px !important;
+  color: #333 !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+}
+
+.kulms-memo-delete {
+  position: absolute !important;
+  top: 4px !important;
+  right: 6px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #999 !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+}
+
+.kulms-memo-delete:hover {
+  color: #e85555 !important;
+}
+
+/* カード削除ボタン */
+.kulms-card-delete {
+  position: absolute !important;
+  top: 4px !important;
+  right: 6px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #bbb !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  padding: 2px 4px !important;
+  border-radius: 4px !important;
+  opacity: 0 !important;
+  transition: opacity 0.15s ease, background 0.15s ease !important;
+}
+
+.kulms-assign-card:hover .kulms-card-delete {
+  opacity: 1 !important;
+}
+
+.kulms-card-delete:hover {
+  color: #e85555 !important;
+  background: rgba(232, 85, 85, 0.1) !important;
+}
+
+.kulms-card-delete-confirm {
+  opacity: 1 !important;
+  font-size: 11px !important;
+  color: #fff !important;
+  background: #e85555 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+}
+
+.kulms-card-delete-confirm:hover {
+  background: #d32f2f !important;
+  color: #fff !important;
+}
+
+/* === 教科書コンテンツ === */
+
+/* ローディング */
+.kulms-textbook-loading {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 40px 16px !important;
+  gap: 12px !important;
+}
+
+.kulms-textbook-loading-text {
+  font-size: 13px !important;
+  color: #888 !important;
+}
+
+/* 空状態 */
+.kulms-textbook-empty {
+  padding: 40px 16px !important;
+  text-align: center !important;
+  font-size: 13px !important;
+  color: #999 !important;
+}
+
+/* 注記 */
+.kulms-textbook-note {
+  font-size: 11px !important;
+  color: #999 !important;
+  padding: 6px 8px 10px !important;
+  line-height: 1.4 !important;
+}
+
+/* 科目セクション */
+.kulms-textbook-course {
+  margin-bottom: 6px !important;
+}
+
+.kulms-textbook-course-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #444 !important;
+  padding: 8px 8px !important;
+  background: #f5f5f5 !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-course-header:hover {
+  background: #eee !important;
+}
+
+.kulms-textbook-course-toggle {
+  font-size: 10px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-textbook-course-toggle.collapsed {
+  transform: rotate(-90deg) !important;
+}
+
+.kulms-textbook-course-name {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.kulms-textbook-course-count {
+  font-weight: 400 !important;
+  color: #999 !important;
+  font-size: 12px !important;
+}
+
+.kulms-textbook-course-badge {
+  font-size: 10px !important;
+  font-weight: 400 !important;
+  color: #aaa !important;
+  background: #f0f0f0 !important;
+  padding: 1px 6px !important;
+  border-radius: 3px !important;
+  margin-left: auto !important;
+}
+
+.kulms-textbook-course-items {
+  display: block !important;
+}
+
+.kulms-textbook-course-items.collapsed {
+  display: none !important;
+}
+
+/* グループラベル（教科書 / 参考書） */
+.kulms-textbook-group-label {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #888 !important;
+  padding: 6px 10px 2px 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* 書籍行 */
+.kulms-textbook-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 8px 10px 8px 20px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.kulms-textbook-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.kulms-textbook-title {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.kulms-textbook-meta {
+  font-size: 11px !important;
+  color: #999 !important;
+  margin-top: 1px !important;
+}
+
+.kulms-textbook-syllabus {
+  flex-shrink: 0 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #4a6fa5 !important;
+  background: #e8eef7 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  margin-left: auto !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-syllabus:hover {
+  background: #d0ddef !important;
+  color: #3a5a8a !important;
+}
+
+.kulms-textbook-amazon {
+  flex-shrink: 0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  background: #ff9900 !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-textbook-amazon:hover {
+  background: #e68a00 !important;
+  color: #fff !important;
+}
+
+/* === 設定ビュー === */
+
+.kulms-settings-view {
+  padding: 4px 0 !important;
+}
+
+.kulms-settings-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 12px !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+}
+
+.kulms-settings-row-text {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.kulms-settings-row-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.kulms-settings-row-desc {
+  font-size: 11px !important;
+  color: #999 !important;
+  margin-top: 1px !important;
+}
+
+/* トグルスイッチ */
+.kulms-toggle {
+  position: relative !important;
+  display: inline-block !important;
+  width: 40px !important;
+  height: 22px !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+}
+
+.kulms-toggle input {
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+}
+
+.kulms-toggle-slider {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: #ccc !important;
+  border-radius: 11px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.kulms-toggle-slider::before {
+  content: "" !important;
+  position: absolute !important;
+  width: 18px !important;
+  height: 18px !important;
+  left: 2px !important;
+  bottom: 2px !important;
+  background-color: #fff !important;
+  border-radius: 50% !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-toggle input:checked + .kulms-toggle-slider {
+  background-color: #4a6fa5 !important;
+}
+
+.kulms-toggle input:checked + .kulms-toggle-slider::before {
+  transform: translateX(18px) !important;
+}
+
+/* ご意見箱 */
+.kulms-settings-feedback {
+  justify-content: center !important;
+  padding: 12px !important;
+}
+
+.kulms-feedback-link {
+  display: block !important;
+  text-align: center !important;
+  padding: 10px 16px !important;
+  background: #f0f4ff !important;
+  color: #4a6fa5 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: background 0.15s !important;
+}
+
+.kulms-feedback-link:hover {
+  background: #e0e8f5 !important;
+}
+
+/* 数値入力 */
+.kulms-settings-number {
+  width: 56px !important;
+  padding: 4px 6px !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: #333 !important;
+  flex-shrink: 0 !important;
+}
+
+/* 一括操作ボタン */
+.kulms-settings-btn-row {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  border-top: 1px solid #eee !important;
+}
+
+.kulms-settings-btn {
+  flex: 1 !important;
+  padding: 6px 4px !important;
+  font-size: 11px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: #f8f8f8 !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+
+.kulms-settings-btn:hover {
+  background: #eee !important;
+}
+
+/* 設定カード */
+.kulms-settings-card {
+  background: #f8f9fb !important;
+  border-radius: 8px !important;
+  margin: 6px 8px !important;
+  overflow: hidden !important;
+}
+
+.kulms-settings-card-body {
+  display: block !important;
+}
+
+.kulms-settings-card-body.collapsed {
+  display: none !important;
+}
+
+.kulms-settings-card-body .kulms-settings-row:last-child {
+  border-bottom: none !important;
+}
+
+/* アコーディオン */
+.kulms-settings-section-header {
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  user-select: none !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #888 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 12px 4px !important;
+  border-bottom: none !important;
+}
+
+.kulms-settings-section-header:hover {
+  background: rgba(0,0,0,0.03) !important;
+}
+
+.kulms-settings-chevron {
+  font-size: 10px !important;
+  transition: transform 0.2s ease !important;
+}
+
+.kulms-settings-chevron.collapsed {
+  transform: rotate(-90deg) !important;
+}
+
+/* ツールチップ */
+.kulms-settings-label-line {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.kulms-settings-info-wrap {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.kulms-settings-info-icon {
+  font-size: 13px !important;
+  color: #aaa !important;
+  cursor: help !important;
+}
+
+.kulms-settings-info-icon:hover {
+  color: #666 !important;
+}
+
+.kulms-settings-tooltip {
+  display: none !important;
+  position: absolute !important;
+  left: 50% !important;
+  bottom: calc(100% + 6px) !important;
+  transform: translateX(-50%) !important;
+  background: #333 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  width: 200px !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+.kulms-settings-tooltip::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 5px solid transparent !important;
+  border-top-color: #333 !important;
+}
+
+.kulms-settings-info-wrap:hover .kulms-settings-tooltip {
+  display: block !important;
+}
+
+/* 設定フッター */
+.kulms-settings-footer {
+  padding: 16px 12px !important;
+  font-size: 11px !important;
+  color: #aaa !important;
+  text-align: center !important;
+}
+
+/* === 授業資料 ツリービュー === */
+
+/* 不要な列を非表示 */
+table.resourcesList.kulms-hide-columns th.access,
+table.resourcesList.kulms-hide-columns td.access,
+table.resourcesList.kulms-hide-columns th.creator,
+table.resourcesList.kulms-hide-columns td.creator,
+table.resourcesList.kulms-hide-columns th.modified,
+table.resourcesList.kulms-hide-columns td.modified,
+table.resourcesList.kulms-hide-columns th.size,
+table.resourcesList.kulms-hide-columns td.size {
+  display: none !important;
+}
+
+/* テーブルのグリッド線を除去 */
+table.resourcesList.kulms-tree-view td,
+table.resourcesList.kulms-tree-view th {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+}
+
+/* === サイドバー: コース行のクリック領域拡大 === */
+
+#portal-nav-sidebar .site-list-item-head {
+  cursor: pointer !important;
+}
+
+/* === サイドバー: ツール表示管理 === */
+
+/* 非表示ツール */
+.kulms-hidden-tool {
+  display: none !important;
+}
+
+/* その他トグル */
+.kulms-other-btn {
+  color: #888 !important;
+  font-size: 0.82em !important;
+  padding: 3px 12px !important;
+  cursor: pointer !important;
+}
+
+.kulms-other-btn:hover {
+  color: #555 !important;
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* ツール切り替えボタン (ホバーで表示) */
+.kulms-tool-toggle {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.08);
+  color: #666;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.nav-item:hover .kulms-tool-toggle,
+.kulms-tool-toggle:focus {
+  opacity: 1;
+}
+
+.kulms-tool-toggle:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* ボタンの親 a を relative に */
+.site-page-list .nav-item a {
+  position: relative;
+}
+
+/* === サイドバーリサイズハンドル === */
+
+.kulms-sidebar-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 1000;
+  background: transparent;
+  transition: background-color 0.15s;
+}
+
+.kulms-sidebar-handle:hover {
+  background-color: rgba(100, 130, 180, 0.35);
+}
+
+.kulms-sidebar-handle:active {
+  background-color: rgba(70, 100, 160, 0.5);
+}
+
+/* ドラッグ中はテキスト選択を無効化 + カーソル固定 */
+body.kulms-sidebar-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+body.kulms-sidebar-resizing * {
+  cursor: col-resize !important;
+}
+
+body.kulms-sidebar-resizing iframe {
+  pointer-events: none !important;
+}
+
+/* === サイドバー科目タブ色分け（モード別） === */
+
+/* Mode: border */
+#portal-nav-sidebar.kulms-color-border .cs-tab-danger { border-left: 4px solid var(--kulms-color-danger) !important; }
+#portal-nav-sidebar.kulms-color-border .cs-tab-warning { border-left: 4px solid var(--kulms-color-warning) !important; }
+#portal-nav-sidebar.kulms-color-border .cs-tab-success { border-left: 4px solid var(--kulms-color-success) !important; }
+#portal-nav-sidebar.kulms-color-border .cs-tab-other { border-left: 4px solid var(--kulms-color-other) !important; }
+
+/* Mode: background */
+#portal-nav-sidebar.kulms-color-background .cs-tab-danger {
+  border-left: 3px solid var(--kulms-color-danger) !important;
+  background: color-mix(in srgb, var(--kulms-color-danger) 20%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-background .cs-tab-warning {
+  border-left: 3px solid var(--kulms-color-warning) !important;
+  background: color-mix(in srgb, var(--kulms-color-warning) 20%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-background .cs-tab-success {
+  border-left: 3px solid var(--kulms-color-success) !important;
+  background: color-mix(in srgb, var(--kulms-color-success) 20%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-background .cs-tab-other {
+  border-left: 3px solid var(--kulms-color-other) !important;
+  background: color-mix(in srgb, var(--kulms-color-other) 20%, transparent) !important;
+}
+
+/* Mode: bold */
+#portal-nav-sidebar.kulms-color-bold .cs-tab-danger {
+  border-left: 6px solid var(--kulms-color-danger) !important;
+  background: color-mix(in srgb, var(--kulms-color-danger) 8%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-bold .cs-tab-warning {
+  border-left: 6px solid var(--kulms-color-warning) !important;
+  background: color-mix(in srgb, var(--kulms-color-warning) 8%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-bold .cs-tab-success {
+  border-left: 6px solid var(--kulms-color-success) !important;
+  background: color-mix(in srgb, var(--kulms-color-success) 8%, transparent) !important;
+}
+#portal-nav-sidebar.kulms-color-bold .cs-tab-other {
+  border-left: 6px solid var(--kulms-color-other) !important;
+  background: color-mix(in srgb, var(--kulms-color-other) 8%, transparent) !important;
+}
+
+/* === 新着課題通知バッジ === */
+
+.kulms-notification-badge {
+  position: absolute !important;
+  top: 4px !important;
+  right: 4px !important;
+  width: 8px !important;
+  height: 8px !important;
+  background: #e85555 !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+}
