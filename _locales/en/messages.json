@@ -86,7 +86,7 @@
   },
 
   "refresh": {
-    "message": "Refresh"
+    "message": "Refresh assignments"
   },
   "close": {
     "message": "Close"
@@ -131,11 +131,23 @@
   "featTextbooksDesc": {
     "message": "Fetch textbook info from syllabus"
   },
-  "featTreeView": {
-    "message": "Tree View"
+  "featFolderExpand": {
+    "message": "Folder Expand"
   },
-  "featTreeViewDesc": {
-    "message": "Display resources in tree format"
+  "featFolderExpandDesc": {
+    "message": "Expand/collapse folders without page reload"
+  },
+  "featAutoExpandAll": {
+    "message": "Auto Expand All"
+  },
+  "featAutoExpandAllDesc": {
+    "message": "Automatically expand all folders when opening resources"
+  },
+  "featHideResourceColumns": {
+    "message": "Hide extra columns"
+  },
+  "featHideResourceColumnsDesc": {
+    "message": "Hide access, creator, modified date, and size columns in resources"
   },
   "featCourseNameCleanup": {
     "message": "Course Name Cleanup"
@@ -172,6 +184,21 @@
   },
   "featTabColoringDesc": {
     "message": "Color-code courses by deadline urgency"
+  },
+  "settingsTabColorStyle": {
+    "message": "Coloring Style"
+  },
+  "settingsTabColorStyleDesc": {
+    "message": "Choose how course tabs show urgency colors"
+  },
+  "tabColorStyleBorder": {
+    "message": "Border"
+  },
+  "tabColorStyleBackground": {
+    "message": "Background"
+  },
+  "tabColorStyleBold": {
+    "message": "Bold Bar + BG"
   },
   "featNotificationBadge": {
     "message": "New Assignment Badge"
@@ -253,11 +280,17 @@
   "settingsFooter": {
     "message": "Changes apply after page reload"
   },
+  "feedbackMessage": {
+    "message": "This extension is developed independently by a Kyoto University student. It's still a work in progress, so your feedback helps make it better!"
+  },
   "feedbackLink": {
     "message": "\uD83D\uDCEC Send Feedback"
   },
   "supportLink": {
     "message": "\u2615 Support Development"
+  },
+  "supportDesc": {
+    "message": "It really helps keep development going"
   },
 
   "textbooksDisabled": {

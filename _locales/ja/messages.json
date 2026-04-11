@@ -86,7 +86,7 @@
   },
 
   "refresh": {
-    "message": "更新"
+    "message": "課題情報更新"
   },
   "close": {
     "message": "閉じる"
@@ -131,11 +131,23 @@
   "featTextbooksDesc": {
     "message": "シラバスから教科書情報を取得"
   },
-  "featTreeView": {
-    "message": "ツリービュー"
+  "featFolderExpand": {
+    "message": "フォルダ展開"
   },
-  "featTreeViewDesc": {
-    "message": "授業資料をツリー形式で表示"
+  "featFolderExpandDesc": {
+    "message": "フォルダの開閉をページ遷移なしで実行"
+  },
+  "featAutoExpandAll": {
+    "message": "全フォルダ自動展開"
+  },
+  "featAutoExpandAllDesc": {
+    "message": "授業資料ページを開いたとき全フォルダを自動で展開"
+  },
+  "featHideResourceColumns": {
+    "message": "不要な列を非表示"
+  },
+  "featHideResourceColumnsDesc": {
+    "message": "授業資料のアクセス・作成者・最終修正日・サイズ列を非表示"
   },
   "featCourseNameCleanup": {
     "message": "科目名の整理"
@@ -172,6 +184,21 @@
   },
   "featTabColoringDesc": {
     "message": "サイドバーの科目を締切の緊急度で色分け"
+  },
+  "settingsTabColorStyle": {
+    "message": "色分けスタイル"
+  },
+  "settingsTabColorStyleDesc": {
+    "message": "サイドバー科目タブの色分け表示方法を選択"
+  },
+  "tabColorStyleBorder": {
+    "message": "ボーダー"
+  },
+  "tabColorStyleBackground": {
+    "message": "背景"
+  },
+  "tabColorStyleBold": {
+    "message": "太バー + 背景"
   },
   "featNotificationBadge": {
     "message": "新着課題バッジ"
@@ -253,11 +280,17 @@
   "settingsFooter": {
     "message": "変更はページ再読み込み後に反映"
   },
+  "feedbackMessage": {
+    "message": "この拡張機能は京大生が個人で開発しています。まだ開発中のため不具合があるかもしれませんが、皆さんのご意見・ご要望がより良い拡張機能につながります!"
+  },
   "feedbackLink": {
     "message": "\uD83D\uDCEC ご意見・要望を送る"
   },
   "supportLink": {
     "message": "\u2615 開発を応援する"
+  },
+  "supportDesc": {
+    "message": "開発の励みになります"
   },
 
   "textbooksDisabled": {

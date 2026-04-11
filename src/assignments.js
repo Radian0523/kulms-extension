@@ -15,6 +15,7 @@
   var textbooksEnabled = true;
   let checkedState = {};
   var sectionCollapsedState = {};
+  var settingsCollapsedState = {};
   let dismissedState = {};
   let memos = [];
   let lastAssignments = [];
@@ -36,13 +37,15 @@
     const courses = [];
     document.querySelectorAll('a[href*="/portal/site/"]').forEach((a) => {
       const match = a.href.match(/\/portal\/site\/([^\/?#]+)/);
-      if (match && !match[1].startsWith("~")) {
-        courses.push({
-          id: match[1],
-          name: a.textContent.trim(),
-          url: a.href,
-        });
-      }
+      if (!match || match[1].startsWith("~")) return;
+      // ツール/ページリンクを除外（科目名ではなくツール名が入るため）
+      var rest = a.href.substring(a.href.indexOf(match[1]) + match[1].length);
+      if (/^\/(tool|page|tool-reset|page-reset)/.test(rest)) return;
+      courses.push({
+        id: match[1],
+        name: a.textContent.trim(),
+        url: a.href,
+      });
     });
     return deduplicateCourses(courses);
   }
@@ -70,14 +73,15 @@
     doc.querySelectorAll('a[href*="/portal/site/"]').forEach((a) => {
       const href = a.getAttribute("href") || "";
       const match = href.match(/\/portal\/site\/([^\/?#]+)/);
-      if (match && !match[1].startsWith("~")) {
-        const fullUrl = href.startsWith("http") ? href : BASE_URL + href;
-        courses.push({
-          id: match[1],
-          name: a.textContent.trim(),
-          url: fullUrl,
-        });
-      }
+      if (!match || match[1].startsWith("~")) return;
+      var rest = href.substring(href.indexOf(match[1]) + match[1].length);
+      if (/^\/(tool|page|tool-reset|page-reset)/.test(rest)) return;
+      const fullUrl = href.startsWith("http") ? href : BASE_URL + href;
+      courses.push({
+        id: match[1],
+        name: a.textContent.trim(),
+        url: fullUrl,
+      });
     });
     return deduplicateCourses(courses);
   }
@@ -1510,10 +1514,9 @@
       { key: "sidebarStyle", labelKey: "featSidebarStyle", descKey: "featSidebarStyleDesc" },
     ]},
     { sectionKey: "sectionCoursePage", features: [
-      { key: "treeView", labelKey: "featTreeView", descKey: "featTreeViewDesc" },
-    ]},
-    { sectionKey: "sectionDeveloper", features: [
-      { key: "previewMode", labelKey: "featPreviewMode", descKey: "featPreviewModeDesc" },
+      { key: "folderExpand", labelKey: "featFolderExpand", descKey: "featFolderExpandDesc" },
+      { key: "autoExpandAll", labelKey: "featAutoExpandAll", descKey: "featAutoExpandAllDesc" },
+      { key: "hideResourceColumns", labelKey: "featHideResourceColumns", descKey: "featHideResourceColumnsDesc" },
     ]},
   ];
 
@@ -1540,11 +1543,36 @@
     var toggleInputs = [];
 
     // --- ヘルパー ---
-    function addSectionHeader(text) {
+    var currentCardBody = null;
+
+    function createSettingsSection(headerText, sectionId) {
+      var card = document.createElement("div");
+      card.className = "kulms-settings-card";
       var h = document.createElement("div");
       h.className = "kulms-settings-section-header";
-      h.textContent = text;
-      settingsView.appendChild(h);
+      var chevron = document.createElement("span");
+      chevron.className = "kulms-settings-chevron";
+      chevron.textContent = "\u25BC";
+      var titleSpan = document.createElement("span");
+      titleSpan.textContent = headerText;
+      h.appendChild(chevron);
+      h.appendChild(titleSpan);
+      card.appendChild(h);
+      var body = document.createElement("div");
+      body.className = "kulms-settings-card-body";
+      card.appendChild(body);
+      var isCollapsed = settingsCollapsedState[sectionId] === true;
+      if (isCollapsed) {
+        chevron.classList.add("collapsed");
+        body.classList.add("collapsed");
+      }
+      h.addEventListener("click", function () {
+        chevron.classList.toggle("collapsed");
+        body.classList.toggle("collapsed");
+        settingsCollapsedState[sectionId] = chevron.classList.contains("collapsed");
+      });
+      settingsView.appendChild(card);
+      currentCardBody = body;
     }
 
     function addFeatureToggle(feat) {
@@ -1555,11 +1583,24 @@
       var labelEl = document.createElement("div");
       labelEl.className = "kulms-settings-row-label";
       labelEl.textContent = t(feat.labelKey);
-      var descEl = document.createElement("div");
-      descEl.className = "kulms-settings-row-desc";
-      descEl.textContent = t(feat.descKey);
-      labelArea.appendChild(labelEl);
-      labelArea.appendChild(descEl);
+      var labelLine = document.createElement("div");
+      labelLine.className = "kulms-settings-label-line";
+      labelLine.appendChild(labelEl);
+      var descText = t(feat.descKey);
+      if (descText) {
+        var infoWrap = document.createElement("span");
+        infoWrap.className = "kulms-settings-info-wrap";
+        var infoIcon = document.createElement("span");
+        infoIcon.className = "kulms-settings-info-icon";
+        infoIcon.textContent = "\u24D8";
+        var tooltip = document.createElement("span");
+        tooltip.className = "kulms-settings-tooltip";
+        tooltip.textContent = descText;
+        infoWrap.appendChild(infoIcon);
+        infoWrap.appendChild(tooltip);
+        labelLine.appendChild(infoWrap);
+      }
+      labelArea.appendChild(labelLine);
       var toggle = document.createElement("label");
       toggle.className = "kulms-toggle";
       var input = document.createElement("input");
@@ -1575,7 +1616,7 @@
       });
       row.appendChild(labelArea);
       row.appendChild(toggle);
-      settingsView.appendChild(row);
+      currentCardBody.appendChild(row);
       toggleInputs.push({ key: feat.key, input: input });
     }
 
@@ -1587,11 +1628,23 @@
       var label = document.createElement("div");
       label.className = "kulms-settings-row-label";
       label.textContent = labelText;
-      var desc = document.createElement("div");
-      desc.className = "kulms-settings-row-desc";
-      desc.textContent = descText;
-      labelArea.appendChild(label);
-      labelArea.appendChild(desc);
+      var labelLine = document.createElement("div");
+      labelLine.className = "kulms-settings-label-line";
+      labelLine.appendChild(label);
+      if (descText) {
+        var infoWrap = document.createElement("span");
+        infoWrap.className = "kulms-settings-info-wrap";
+        var infoIcon = document.createElement("span");
+        infoIcon.className = "kulms-settings-info-icon";
+        infoIcon.textContent = "\u24D8";
+        var tooltip = document.createElement("span");
+        tooltip.className = "kulms-settings-tooltip";
+        tooltip.textContent = descText;
+        infoWrap.appendChild(infoIcon);
+        infoWrap.appendChild(tooltip);
+        labelLine.appendChild(infoWrap);
+      }
+      labelArea.appendChild(labelLine);
       var input = document.createElement("input");
       input.type = "number";
       input.min = String(min);
@@ -1608,7 +1661,51 @@
       });
       row.appendChild(labelArea);
       row.appendChild(input);
-      settingsView.appendChild(row);
+      currentCardBody.appendChild(row);
+    }
+
+    function createSelectRow(labelText, descText, settingKey, defaultVal, options) {
+      var row = document.createElement("div");
+      row.className = "kulms-settings-row";
+      var labelArea = document.createElement("div");
+      labelArea.className = "kulms-settings-row-text";
+      var label = document.createElement("div");
+      label.className = "kulms-settings-row-label";
+      label.textContent = labelText;
+      var labelLine = document.createElement("div");
+      labelLine.className = "kulms-settings-label-line";
+      labelLine.appendChild(label);
+      if (descText) {
+        var infoWrap = document.createElement("span");
+        infoWrap.className = "kulms-settings-info-wrap";
+        var infoIcon = document.createElement("span");
+        infoIcon.className = "kulms-settings-info-icon";
+        infoIcon.textContent = "\u24D8";
+        var tooltip = document.createElement("span");
+        tooltip.className = "kulms-settings-tooltip";
+        tooltip.textContent = descText;
+        infoWrap.appendChild(infoIcon);
+        infoWrap.appendChild(tooltip);
+        labelLine.appendChild(infoWrap);
+      }
+      labelArea.appendChild(labelLine);
+      var select = document.createElement("select");
+      select.className = "kulms-settings-number";
+      select.style.cssText = "width:auto !important;padding:4px 6px !important";
+      options.forEach(function (opt) {
+        var option = document.createElement("option");
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === (currentSettings[settingKey] || defaultVal)) option.selected = true;
+        select.appendChild(option);
+      });
+      select.addEventListener("change", function () {
+        currentSettings[settingKey] = select.value;
+        chrome.storage.local.set({ "kulms-settings": currentSettings });
+      });
+      row.appendChild(labelArea);
+      row.appendChild(select);
+      currentCardBody.appendChild(row);
     }
 
     function createColorRow(labelText, settingKey, defaultColor) {
@@ -1631,13 +1728,13 @@
       });
       row.appendChild(labelArea);
       row.appendChild(input);
-      settingsView.appendChild(row);
+      currentCardBody.appendChild(row);
     }
 
     // ========================================
     // 1. 外観 (Appearance): Language
     // ========================================
-    addSectionHeader(t("sectionAppearance"));
+    createSettingsSection(t("sectionAppearance"), "sectionAppearance");
 
     // 言語
     var langRow = document.createElement("div");
@@ -1672,7 +1769,7 @@
     });
     langRow.appendChild(langLabelArea);
     langRow.appendChild(langSelect);
-    settingsView.appendChild(langRow);
+    currentCardBody.appendChild(langRow);
 
     // ========================================
     // 2. パネル (Panel): textbooks, memos, panelPush
@@ -1681,14 +1778,22 @@
     // 4. コースページ (Course Page)
     // ========================================
     FEATURE_GROUPS.forEach(function (group) {
-      addSectionHeader(t(group.sectionKey));
+      createSettingsSection(t(group.sectionKey), group.sectionKey);
       group.features.forEach(addFeatureToggle);
+      if (group.sectionKey === "sectionSidebar") {
+        createSelectRow(t("settingsTabColorStyle"), t("settingsTabColorStyleDesc"),
+          "tabColorStyle", "border", [
+            { value: "border", label: t("tabColorStyleBorder") },
+            { value: "background", label: t("tabColorStyleBackground") },
+            { value: "bold", label: t("tabColorStyleBold") },
+          ]);
+      }
     });
 
     // ========================================
     // 5. 課題更新 (Assignment Updates)
     // ========================================
-    addSectionHeader(t("sectionAssignmentUpdates"));
+    createSettingsSection(t("sectionAssignmentUpdates"), "sectionAssignmentUpdates");
     createNumberRow(
       t("settingsAutoRefresh"), t("settingsAutoRefreshDesc"),
       "fetchInterval", 120, 10, 3600
@@ -1697,7 +1802,7 @@
     // ========================================
     // 6. 緊急度カスタマイズ (Urgency)
     // ========================================
-    addSectionHeader(t("sectionUrgency"));
+    createSettingsSection(t("sectionUrgency"), "sectionUrgency");
     createNumberRow(
       t("settingsDangerHours"), t("settingsDangerHoursDesc"),
       "dangerHours", 24, 1, 168
@@ -1718,13 +1823,7 @@
     // ========================================
     // 7. 一括操作ボタン
     // ========================================
-    var DEFAULTS_COPY = {
-      textbooks: true, tabColoring: true,
-      treeView: false, courseNameCleanup: false, pinSort: false,
-      courseRowClick: false, toolVisibility: false, sidebarResize: false,
-      notificationBadge: false, sidebarStyle: false, memos: false,
-      panelPush: false, previewMode: false
-    };
+    var DEFAULTS_COPY = window.__kulmsDefaults;
 
     function applyAll(valueFn) {
       toggleInputs.forEach(function (item) {
@@ -1767,6 +1866,12 @@
     // ========================================
     // 8. フィードバック + フッター
     // ========================================
+    var feedbackMsg = document.createElement("div");
+    feedbackMsg.className = "kulms-settings-footer";
+    feedbackMsg.style.cssText = "padding:12px 16px 4px !important;color:#777 !important;line-height:1.5 !important";
+    feedbackMsg.textContent = t("feedbackMessage");
+    settingsView.appendChild(feedbackMsg);
+
     var feedbackRow = document.createElement("div");
     feedbackRow.className = "kulms-settings-row kulms-settings-feedback";
     var feedbackLink = document.createElement("a");
@@ -1780,12 +1885,18 @@
 
     var supportRow = document.createElement("div");
     supportRow.className = "kulms-settings-row kulms-settings-feedback";
+    supportRow.style.cssText = "flex-direction:column !important;align-items:center !important;gap:4px !important";
     var supportLink = document.createElement("a");
     supportLink.href = "https://ko-fi.com/radian0523";
     supportLink.target = "_blank";
     supportLink.rel = "noopener";
     supportLink.className = "kulms-feedback-link";
+    supportLink.style.cssText = "width:100% !important";
     supportLink.textContent = t("supportLink");
+    var supportDescEl = document.createElement("div");
+    supportDescEl.style.cssText = "font-size:11px;color:#aaa";
+    supportDescEl.textContent = t("supportDesc");
+    supportRow.appendChild(supportDescEl);
     supportRow.appendChild(supportLink);
     settingsView.appendChild(supportRow);
 
@@ -1846,29 +1957,52 @@
   // サイドバースタイル上書き（<style>タグをDOMに直接注入）
   function injectSidebarOverride() {
     if (window.__kulmsSettings && window.__kulmsSettings.sidebarStyle === false) return;
+    var colorStyle = (window.__kulmsSettings || {}).tabColorStyle || "border";
     var style = document.createElement("style");
     style.id = "kulms-sidebar-override";
-    style.textContent =
-      // 選択中の青背景を消す
+    // 共通: 選択中の青背景を消す + 文字正規化
+    var common =
       "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head { background-color: transparent !important; }" +
-      // 文字色を通常と同じ青に戻す
-      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head a { color: rgb(15, 75, 112) !important; }" +
-      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head button { color: var(--sakai-text-color-1, #333) !important; }" +
-      // 選択中の科目名の太字・拡大を無効化
-      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head a { font-weight: 400 !important; font-size: 14px !important; }" +
-      // 選択中の科目を左ボーダーで表示（課題色がない場合）
-      "#portal-nav-sidebar li.site-list-item.is-current-site { border-left: 3px solid #888 !important; }" +
-      // 選択中 + 課題色がある場合は課題色を優先
-      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-danger { border-left: 4px solid var(--kulms-color-danger) !important; }" +
-      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-warning { border-left: 4px solid var(--kulms-color-warning) !important; }" +
-      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-success { border-left: 4px solid var(--kulms-color-success) !important; }" +
-      "#portal-nav-sidebar li.site-list-item.is-current-site.cs-tab-other { border-left: 4px solid var(--kulms-color-other) !important; }" +
-      "";
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head a { color: rgb(15, 75, 112) !important; font-weight: 400 !important; font-size: 14px !important; }" +
+      "#portal-nav-sidebar li.site-list-item.is-current-site .site-list-item-head button { color: var(--sakai-text-color-1, #333) !important; }";
+
+    var modeCSS = "";
+    if (colorStyle === "background") {
+      modeCSS =
+        "#portal-nav-sidebar li.site-list-item.is-current-site { border-left: 3px solid #888 !important; background: rgba(0,0,0,0.04) !important; }" +
+        "#portal-nav-sidebar.kulms-color-background li.site-list-item.is-current-site.cs-tab-danger { border-left: 3px solid var(--kulms-color-danger) !important; background: color-mix(in srgb, var(--kulms-color-danger) 26%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-background li.site-list-item.is-current-site.cs-tab-warning { border-left: 3px solid var(--kulms-color-warning) !important; background: color-mix(in srgb, var(--kulms-color-warning) 26%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-background li.site-list-item.is-current-site.cs-tab-success { border-left: 3px solid var(--kulms-color-success) !important; background: color-mix(in srgb, var(--kulms-color-success) 26%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-background li.site-list-item.is-current-site.cs-tab-other { border-left: 3px solid var(--kulms-color-other) !important; background: color-mix(in srgb, var(--kulms-color-other) 26%, transparent) !important; }";
+    } else if (colorStyle === "bold") {
+      modeCSS =
+        "#portal-nav-sidebar li.site-list-item.is-current-site { border-left: 4px solid #888 !important; background: rgba(0,0,0,0.03) !important; }" +
+        "#portal-nav-sidebar.kulms-color-bold li.site-list-item.is-current-site.cs-tab-danger { border-left: 6px solid var(--kulms-color-danger) !important; background: color-mix(in srgb, var(--kulms-color-danger) 14%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-bold li.site-list-item.is-current-site.cs-tab-warning { border-left: 6px solid var(--kulms-color-warning) !important; background: color-mix(in srgb, var(--kulms-color-warning) 14%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-bold li.site-list-item.is-current-site.cs-tab-success { border-left: 6px solid var(--kulms-color-success) !important; background: color-mix(in srgb, var(--kulms-color-success) 14%, transparent) !important; }" +
+        "#portal-nav-sidebar.kulms-color-bold li.site-list-item.is-current-site.cs-tab-other { border-left: 6px solid var(--kulms-color-other) !important; background: color-mix(in srgb, var(--kulms-color-other) 14%, transparent) !important; }";
+    } else {
+      modeCSS =
+        "#portal-nav-sidebar li.site-list-item.is-current-site { border-left: 3px solid #888 !important; }" +
+        "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-danger { border-left: 4px solid var(--kulms-color-danger) !important; }" +
+        "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-warning { border-left: 4px solid var(--kulms-color-warning) !important; }" +
+        "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-success { border-left: 4px solid var(--kulms-color-success) !important; }" +
+        "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-other { border-left: 4px solid var(--kulms-color-other) !important; }";
+    }
+
+    style.textContent = common + modeCSS;
     document.head.appendChild(style);
   }
 
   function colorSidebarTabs(assignments) {
     if (window.__kulmsSettings && window.__kulmsSettings.tabColoring === false) return;
+
+    var sidebar = document.querySelector("#portal-nav-sidebar");
+    if (sidebar) {
+      var colorStyle = (window.__kulmsSettings || {}).tabColorStyle || "border";
+      sidebar.classList.remove("kulms-color-border", "kulms-color-background", "kulms-color-bold");
+      sidebar.classList.add("kulms-color-" + colorStyle);
+    }
 
     var courseUrgency = {};
     var priority = {

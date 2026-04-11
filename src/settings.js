@@ -5,25 +5,34 @@ console.log("[KULMS Extension] loaded on:", window.location.href);
 
 // === 設定読み込み ===
 
+window.__kulmsDefaults = {
+  textbooks: true, tabColoring: true, tabColorStyle: "border",
+  folderExpand: false, autoExpandAll: false, hideResourceColumns: false, courseNameCleanup: false, pinSort: false,
+  courseRowClick: false, toolVisibility: false, sidebarResize: false,
+  notificationBadge: false, sidebarStyle: false, memos: false,
+  panelPush: false, previewMode: false,
+  fetchInterval: 120,
+  dangerHours: 24,
+  warningDays: 5,
+  successDays: 14,
+  colorDanger: "#e85555",
+  colorWarning: "#d7aa57",
+  colorSuccess: "#62b665",
+  colorOther: "#777777",
+  language: "auto"
+};
+
 window.__kulmsSettingsReady = new Promise(function (resolve) {
-  var DEFAULTS = {
-    textbooks: true, tabColoring: true,
-    treeView: false, courseNameCleanup: false, pinSort: false,
-    courseRowClick: false, toolVisibility: false, sidebarResize: false,
-    notificationBadge: false, sidebarStyle: false, memos: false,
-    panelPush: false, previewMode: false,
-    fetchInterval: 120,
-    dangerHours: 24,
-    warningDays: 5,
-    successDays: 14,
-    colorDanger: "#e85555",
-    colorWarning: "#d7aa57",
-    colorSuccess: "#62b665",
-    colorOther: "#777777",
-    language: "auto"
-  };
+  var DEFAULTS = window.__kulmsDefaults;
   chrome.storage.local.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};
+    // treeView → folderExpand + autoExpandAll 移行
+    if ("treeView" in saved && !("folderExpand" in saved)) {
+      saved.folderExpand = saved.treeView;
+      saved.autoExpandAll = saved.treeView;
+      delete saved.treeView;
+      chrome.storage.local.set({ "kulms-settings": saved });
+    }
     window.__kulmsSettings = Object.assign({}, DEFAULTS, saved);
     loadOverrideMessages(window.__kulmsSettings.language).then(function () {
       resolve(window.__kulmsSettings);

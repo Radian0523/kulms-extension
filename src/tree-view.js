@@ -1,4 +1,4 @@
-// === 授業資料ツリービュー ===
+// === 授業資料フォルダ展開 ===
 
 (function () {
   "use strict";
@@ -6,8 +6,8 @@
   var table = document.querySelector("table.resourcesList");
   if (!table) return;
 
-  function initTreeView() {
-    console.log("[KULMS Extension] Resources page: applying tree view");
+  function initFolderFeatures(settings) {
+    console.log("[KULMS Extension] Resources page: applying folder features");
 
   // --- 深さ判定 (padding-left em値から) ---
   function getDepth(td) {
@@ -65,6 +65,14 @@
       }
     });
     table.querySelectorAll("tbody tr").forEach(processRow);
+    // innerHTML置換で失われた Bootstrap Popover を再初期化
+    if (typeof bootstrap !== "undefined" && bootstrap.Popover) {
+      table.querySelectorAll('[data-bs-toggle="popover"]').forEach(function (el) {
+        if (!bootstrap.Popover.getInstance(el)) {
+          new bootstrap.Popover(el);
+        }
+      });
+    }
   }
 
   // onclick属性からsakai_actionとcollectionIdを抽出
@@ -138,41 +146,48 @@
   }
 
   // --- 手動の展開/折りたたみクリックをインターセプト ---
-  // キャプチャフェーズで捕まえ、インラインonclickの実行(=form.submit)を阻止
-  table.addEventListener(
-    "click",
-    function (e) {
-      var link = e.target.closest(
-        'a[onclick*="doExpand_collection"], a[onclick*="doCollapse_collection"]'
-      );
-      if (!link || isBusy) return;
+  if (settings.folderExpand) {
+    // キャプチャフェーズで捕まえ、インラインonclickの実行(=form.submit)を阻止
+    table.addEventListener(
+      "click",
+      function (e) {
+        var link = e.target.closest(
+          'a[onclick*="doExpand_collection"], a[onclick*="doCollapse_collection"]'
+        );
+        if (!link || isBusy) return;
 
-      e.preventDefault();
-      e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
 
-      var parsed = parseOnclick(link.getAttribute("onclick") || "");
-      if (!parsed) return;
+        var parsed = parseOnclick(link.getAttribute("onclick") || "");
+        if (!parsed) return;
 
-      isBusy = true;
-      submitFolderAction(parsed.action, parsed.collectionId).then(function () {
-        isBusy = false;
-        refreshTreeView();
-      });
-    },
-    true
-  );
+        isBusy = true;
+        submitFolderAction(parsed.action, parsed.collectionId).then(function () {
+          isBusy = false;
+          refreshTreeView();
+        });
+      },
+      true
+    );
+  }
 
   // --- 適用 ---
   table.classList.add("kulms-tree-view");
   table.querySelectorAll("tbody tr").forEach(processRow);
 
   // --- 初回自動展開 ---
-  expandAllFolders();
+  if (settings.autoExpandAll) {
+    expandAllFolders();
+  }
 
-  } // end initTreeView
+  } // end initFolderFeatures
 
   window.__kulmsSettingsReady.then(function (s) {
-    if (s.treeView === false) return;
-    initTreeView();
+    if (s.hideResourceColumns) {
+      table.classList.add("kulms-hide-columns");
+    }
+    if (!s.folderExpand && !s.autoExpandAll) return;
+    initFolderFeatures(s);
   });
 })();
