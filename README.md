@@ -1,6 +1,6 @@
 # KULMS+
 
-京都大学LMS ([KULMS](https://lms.gakusei.kyoto-u.ac.jp/)) のUIをカスタマイズするChrome拡張機能です。
+京都大学LMS ([KULMS](https://lms.gakusei.kyoto-u.ac.jp/)) のUIをカスタマイズするブラウザ拡張機能です。Chrome / Edge / Firefox に対応しています。
 
 ## 機能一覧
 
@@ -95,14 +95,22 @@
 
 ## インストール方法
 
+### Chrome / Edge
 1. このリポジトリをクローン
    ```bash
    git clone https://github.com/Radian0523/kulms-extension.git
    ```
-2. Chrome で `chrome://extensions` を開く
-3. 右上の「デベロッパーモード」を有効にする
+2. `chrome://extensions`（Edge: `edge://extensions`）を開く
+3. 「デベロッパーモード」を有効にする
 4. 「パッケージ化されていない拡張機能を読み込む」をクリック
 5. クローンしたフォルダを選択
+
+### Firefox
+1. `about:debugging#/runtime/this-firefox` を開く
+2. 「一時的なアドオンを読み込む」をクリック
+3. クローンしたフォルダの `manifest.json` を選択
+
+> **Note**: Firefox でストア配布する場合は `./build.sh firefox` で生成した ZIP を使用してください。
 
 ## ファイル構成
 
@@ -127,13 +135,24 @@ kulms-extension/
 ├── icons/                 # 拡張機能アイコン
 ├── gas/
 │   └── form-to-issue.js   # Google Form → GitHub Issue 連携スクリプト
+├── build.sh               # ブラウザ別ZIPビルドスクリプト
 ├── DEVELOPMENT.md         # 技術詳細・設計判断・開発記録
 └── README.md              # このファイル
 ```
 
+## ビルド
+
+`build.sh` でブラウザ別の配布用 ZIP を生成できます（要 `jq`）。
+
+```bash
+./build.sh chrome   # Chrome / Edge 用 ZIP
+./build.sh firefox  # Firefox 用 ZIP（manifest に gecko 設定を追加）
+./build.sh all      # 両方生成（デフォルト）
+```
+
 ## 対応環境
 
-- Google Chrome (Manifest V3)
+- Google Chrome / Microsoft Edge / Mozilla Firefox (Manifest V3)
 - 対象サイト: `https://lms.gakusei.kyoto-u.ac.jp/*` (Sakai LMS)
 
 ## 更新履歴

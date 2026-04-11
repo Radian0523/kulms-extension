@@ -2,7 +2,7 @@
 
 ## 概要
 
-KULMS+は、京都大学のSakai LMS (KULMS) のUIを拡張するChrome拡張機能。公式APIが限定的な環境で、DOM操作・非公開API・CSSオーバーライドを組み合わせて多数の機能（個別設定可能）を実現している。
+KULMS+は、京都大学のSakai LMS (KULMS) のUIを拡張するブラウザ拡張機能（Chrome / Edge / Firefox 対応）。公式APIが限定的な環境で、DOM操作・非公開API・CSSオーバーライドを組み合わせて多数の機能（個別設定可能）を実現している。
 
 ## 技術スタック
 
@@ -285,6 +285,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 ## 対応環境
 
 - **LMS**: Sakai (京都大学KULMS)
-- **ブラウザ**: Google Chrome (Manifest V3)
+- **ブラウザ**: Google Chrome / Microsoft Edge / Mozilla Firefox (Manifest V3)
 - **フレーム対応**: `all_frames: true` で全iframe内でも実行。`window !== window.top` ガードでトップフレーム限定機能を制御
 - **言語**: 日本語 / 英語 (ブラウザ設定に連動、手動切り替え可)
