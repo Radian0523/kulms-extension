@@ -171,7 +171,7 @@
     "message": "Tool Visibility"
   },
   "featToolVisibilityDesc": {
-    "message": "Collapse unused tools into \"More\""
+    "message": "Collapse unused tools into \"More\". Use the +/- buttons (shown on hover) to customize visible tools per course"
   },
   "featSidebarResize": {
     "message": "Sidebar Resize"
