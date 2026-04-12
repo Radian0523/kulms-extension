@@ -88,11 +88,6 @@ a:hover{text-decoration:underline}
   box-shadow:var(--accent) 0px 0px 0px 0px,var(--accent) 0px 0px 0px 1px;
 }
 .btn-primary:hover{background:var(--accent-hover);text-decoration:none}
-.btn-secondary{
-  background:var(--disabled-bg);color:var(--fg);
-  box-shadow:var(--disabled-bg) 0px 0px 0px 0px,var(--ring) 0px 0px 0px 1px;
-}
-.btn-secondary:hover{text-decoration:none}
 .btn-disabled{
   background:var(--disabled-bg);color:var(--disabled-fg);
   box-shadow:var(--disabled-bg) 0px 0px 0px 0px,var(--ring) 0px 0px 0px 1px;
@@ -104,31 +99,61 @@ a:hover{text-decoration:underline}
   color:var(--fg3);margin-left:0.2rem;
 }
 
-/* Features grid */
-.features{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+/* Carousel */
+.carousel-wrap{position:relative}
+.carousel{
+  display:flex;overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
   gap:1rem;
 }
-.feature{
+.carousel::-webkit-scrollbar{display:none}
+.slide{
+  flex:0 0 100%;scroll-snap-align:center;
   background:var(--bg-card);
   border:1px solid var(--border);
-  border-radius:12px;padding:1.25rem;
+  border-radius:12px;padding:1.5rem;
   box-shadow:var(--shadow) 0px 4px 24px;
-  transition:box-shadow 0.2s;
 }
-.feature:hover{
-  box-shadow:var(--shadow) 0px 8px 32px;
-}
-.feature .icon{font-size:1.5rem;margin-bottom:0.5rem}
-.feature h3{
+.slide-text{margin-bottom:1rem}
+.slide h3{
   font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:1.05rem;font-weight:500;
-  color:var(--fg);margin-bottom:0.25rem;
+  font-size:1.3rem;font-weight:500;
+  color:var(--fg);margin-bottom:0.35rem;
 }
-.feature p{
-  font-size:0.875rem;font-weight:400;
+.slide p{
+  font-size:0.9375rem;font-weight:400;
   color:var(--fg2);line-height:1.6;
 }
+.slide img{
+  width:100%;height:auto;border-radius:8px;
+  border:1px solid var(--border-strong);
+}
+
+/* Nav arrows */
+.carousel-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-card);border:1px solid var(--border-strong);
+  color:var(--fg2);font-size:1.1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:var(--shadow) 0px 2px 8px;
+  z-index:2;transition:background 0.15s;
+}
+.carousel-btn:hover{background:var(--border-strong)}
+.carousel-prev{left:-12px}
+.carousel-next{right:-12px}
+
+/* Dots */
+.dots{display:flex;justify-content:center;gap:8px;margin-top:1rem}
+.dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--ring);border:none;
+  cursor:pointer;padding:0;
+  transition:background 0.2s,transform 0.2s;
+}
+.dot.active{background:var(--accent);transform:scale(1.25)}
 
 /* Footer */
 .footer{
@@ -148,7 +173,7 @@ a:hover{text-decoration:underline}
   .section h2{font-size:1.5rem}
   .downloads{flex-direction:column;align-items:center}
   .btn{width:100%;max-width:320px;justify-content:center}
-  .features{grid-template-columns:1fr}
+  .carousel-btn{display:none}
 }
 </style>
 </head>
@@ -163,32 +188,26 @@ a:hover{text-decoration:underline}
 <section class="section">
   <h2>ダウンロード</h2>
   <div class="downloads">
-    <!-- Chrome -->
     <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5A6.5 6.5 0 0 1 18.5 12H15a3 3 0 0 0-3-3V5.5zM5.5 12a6.5 6.5 0 0 1 3.26-5.63L10.64 9.5A3 3 0 0 0 9 12a3 3 0 0 0 .64 1.85L7.76 17.13A6.48 6.48 0 0 1 5.5 12zm6.5 6.5a6.48 6.48 0 0 1-2.74-.6l1.88-3.25a3 3 0 0 0 3.72 0l1.88 3.25A6.48 6.48 0 0 1 12 18.5z"/></svg>
       Chrome
     </a>
-    <!-- Edge -->
     <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M21.86 17.86q.14 0 .25.12.1.13.1.25t-.11.33l-.32.46-.43.53-.44.5q-.21.25-.38.42l-.22.23q-.58.53-1.34 1.04-.76.51-1.6.91-.86.4-1.74.64t-1.67.24q-.9 0-1.69-.28-.8-.28-1.48-.78-.68-.5-1.22-1.17-.53-.66-.92-1.44-.38-.77-.58-1.6-.2-.83-.2-1.67 0-1 .32-1.96.33-.97.87-1.8.14.95.55 1.77.41.81 1.02 1.5.6.68 1.38 1.21.78.54 1.64.9.86.34 1.78.5.93.14 1.85.08zm-9.5-2.36q0-.61.14-1.24.15-.63.45-1.2.3-.57.75-1.07.44-.51 1.03-.89.59-.39 1.33-.63.73-.23 1.59-.23.39 0 .8.06.42.07.83.17-.73-.67-1.57-1.16-.84-.48-1.76-.79-.92-.3-1.89-.44-.96-.13-1.93-.06.08-.82.36-1.61.28-.79.73-1.49.45-.71 1.05-1.3.6-.6 1.33-1.04.72-.45 1.54-.72.82-.27 1.7-.27.76 0 1.46.2.71.22 1.3.57.62.35 1.08.83.47.47.81 1.02.33.54.51 1.16.18.61.18 1.27 0 .42-.08.85-.09.42-.24.82-.14.4-.34.77-.2.36-.46.68l-.48.6q-.26.28-.54.53-.27.26-.52.48h4.12q.12 0 .18.06t.06.18v.6q0 .12-.06.18t-.18.06H12.36z"/></svg>
       Edge
     </a>
-    <!-- Firefox -->
     <span class="btn btn-disabled">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
       Firefox<span class="badge">準備中</span>
     </span>
-    <!-- Safari -->
     <span class="btn btn-disabled">
       <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1.31-4.69L7.4 8.27l7.04 3.29L17.73 15zm-.19-4.5L13.5 13.5l-2.69-2.69z"/></svg>
       Safari<span class="badge">準備中</span>
     </span>
-    <!-- iOS -->
     <span class="btn btn-disabled">
       <svg viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
       iOS<span class="badge">準備中</span>
     </span>
-    <!-- Android -->
     <span class="btn btn-disabled">
       <svg viewBox="0 0 24 24"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 0c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.98 5.98 0 0 0 6 7h12c0-2.21-1.19-4.15-2.97-5.19l-.5-.65zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
       Android<span class="badge">準備中</span>
@@ -198,43 +217,103 @@ a:hover{text-decoration:underline}
 
 <section class="section">
   <h2>主な機能</h2>
-  <div class="features">
-    <div class="feature">
-      <div class="icon">&#x1F4CB;</div>
-      <h3>課題一覧</h3>
-      <p>全科目の課題を締め切り順にまとめて表示。提出状況もひと目で確認。</p>
+  <div class="carousel-wrap">
+    <div class="carousel" id="carousel">
+      <div class="slide">
+        <div class="slide-text">
+          <h3>課題一覧</h3>
+          <p>全科目の課題を締め切り順にまとめて表示。緊急度別にセクション分けされ、提出状況もひと目で確認。</p>
+        </div>
+        <img src="images/assignments.png" alt="課題一覧パネルのスクリーンショット" loading="lazy">
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>教科書パネル</h3>
+          <p>KULASISシラバスから教科書・参考書情報を自動取得。Amazonリンク付きですぐに購入可能。</p>
+        </div>
+        <img src="images/textbooks.png" alt="教科書パネルのスクリーンショット" loading="lazy">
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>メモ</h3>
+          <p>科目ごとにメモを残せる。締切日時を設定すれば課題と同じように緊急度表示。</p>
+        </div>
+        <img src="images/memo.png" alt="メモ機能のスクリーンショット" loading="lazy">
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>サイドバー色分け</h3>
+          <p>サイドバーの各科目を、最も近い締切の緊急度に応じて色分け表示。</p>
+        </div>
+        <img src="images/sidebar-color.png" alt="サイドバー色分けのスクリーンショット" loading="lazy">
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>ツール整理</h3>
+          <p>使わないツールを「その他」に折りたたみ、よく使うツールだけを表示。</p>
+        </div>
+        <img src="images/tool-visibility.png" alt="ツール整理のスクリーンショット" loading="lazy">
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>科目名整理</h3>
+          <p>長い科目名を自動で短縮。年度・学期情報を除去し、曜日・時限を先頭に表示。</p>
+        </div>
+        <img src="images/course-name.png" alt="科目名整理のスクリーンショット" loading="lazy">
+      </div>
     </div>
-    <div class="feature">
-      <div class="icon">&#x1F4DA;</div>
-      <h3>教科書パネル</h3>
-      <p>教科書・参考書情報をサイドバーからすばやくアクセス。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">&#x1F4DD;</div>
-      <h3>メモ</h3>
-      <p>科目ごとにメモを残せる。課題のヒントや授業ノートに。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">&#x1F3A8;</div>
-      <h3>サイドバー色分け</h3>
-      <p>科目ごとにサイドバーを色分け。視認性がアップ。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">&#x1F527;</div>
-      <h3>ツール整理</h3>
-      <p>使わないツールを非表示にしてサイドバーをすっきり。</p>
-    </div>
-    <div class="feature">
-      <div class="icon">&#x2702;&#xFE0F;</div>
-      <h3>科目名整理</h3>
-      <p>長い科目名を自動で短縮。ピン留め科目を上部に固定。</p>
-    </div>
+    <button class="carousel-btn carousel-prev" aria-label="前へ">&#8249;</button>
+    <button class="carousel-btn carousel-next" aria-label="次へ">&#8250;</button>
   </div>
+  <div class="dots" id="dots"></div>
 </section>
 
 <footer class="footer">
   <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub</a>
 </footer>
+
+<script>
+(function(){
+  var c=document.getElementById('carousel');
+  var dots=document.getElementById('dots');
+  var slides=c.querySelectorAll('.slide');
+  var n=slides.length;
+  // Create dots
+  for(var i=0;i<n;i++){
+    var d=document.createElement('button');
+    d.className='dot'+(i===0?' active':'');
+    d.setAttribute('aria-label','Slide '+(i+1));
+    d.dataset.i=i;
+    dots.appendChild(d);
+  }
+  var allDots=dots.querySelectorAll('.dot');
+  // Scroll to slide
+  function goTo(i){c.scrollTo({left:slides[i].offsetLeft-c.offsetLeft,behavior:'smooth'})}
+  // Update dots on scroll
+  var ticking=false;
+  c.addEventListener('scroll',function(){
+    if(!ticking){requestAnimationFrame(function(){
+      var sl=c.scrollLeft,sw=c.scrollWidth-c.clientWidth;
+      var idx=sw>0?Math.round(sl/sw*(n-1)):0;
+      allDots.forEach(function(d,j){d.classList.toggle('active',j===idx)});
+      ticking=false;
+    });ticking=true;}
+  });
+  // Dot click
+  dots.addEventListener('click',function(e){
+    if(e.target.classList.contains('dot'))goTo(+e.target.dataset.i);
+  });
+  // Arrow buttons
+  document.querySelector('.carousel-prev').addEventListener('click',function(){
+    var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
+    goTo(Math.max(0,idx-1));
+  });
+  document.querySelector('.carousel-next').addEventListener('click',function(){
+    var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
+    goTo(Math.min(n-1,idx+1));
+  });
+})();
+</script>
 
 </body>
 </html>
