@@ -1,5 +1,7 @@
 # KULMS+
 
+**[ランディングページ](https://radian0523.github.io/kulms-extension/)** | **[Chrome Web Store](https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb)**
+
 京都大学LMS ([KULMS](https://lms.gakusei.kyoto-u.ac.jp/)) のUIをカスタマイズするブラウザ拡張機能です。Chrome / Edge / Firefox に対応しています。
 
 ## 機能一覧
@@ -95,7 +97,10 @@
 
 ## インストール方法
 
-### Chrome / Edge
+### Chrome Web Store（推奨）
+[Chrome Web Store](https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb) からインストールできます（Edge でも利用可能）。
+
+### Chrome / Edge（手動）
 1. このリポジトリをクローン
    ```bash
    git clone https://github.com/Radian0523/kulms-extension.git
@@ -135,6 +140,7 @@ kulms-extension/
 ├── icons/                 # 拡張機能アイコン
 ├── gas/
 │   └── form-to-issue.js   # Google Form → GitHub Issue 連携スクリプト
+├── docs/                  # GitHub Pages ランディングページ
 ├── build.sh               # ブラウザ別ZIPビルドスクリプト
 ├── DEVELOPMENT.md         # 技術詳細・設計判断・開発記録
 └── README.md              # このファイル
