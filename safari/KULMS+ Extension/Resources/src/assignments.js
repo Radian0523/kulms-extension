@@ -246,7 +246,7 @@
           if (sub.graded) {
             status = "評定済";
             grade = sub.grade || "";
-          } else if (sub.userSubmission || sub.dateSubmittedEpochSeconds > 0) {
+          } else if (sub.submitted && !sub.draft) {
             status = "提出済";
           } else if (sub.status && sub.status !== "未開始") {
             status = sub.status;
@@ -2246,6 +2246,19 @@
       }, intervalMs);
     }
   }
+
+  // --- ポップアップからの更新リクエスト (top frame のみ) ---
+  chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+    if (msg.type === "kulms-refresh-assignments") {
+      if (window !== window.top) return false;
+      loadAssignments(true).then(function () {
+        sendResponse({ ok: true });
+      }).catch(function () {
+        sendResponse({ ok: false });
+      });
+      return true; // async sendResponse
+    }
+  });
 
   init();
 })();
