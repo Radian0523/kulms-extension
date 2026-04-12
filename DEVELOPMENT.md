@@ -28,6 +28,20 @@ Content Scriptとしてページに注入される性質上、React/Vueなどの
 
 ## アーキテクチャ
 
+### ポップアップ (Extension Page)
+
+```
+popup.html    # ツールバーアイコンクリックで表示されるポップアップ
+popup.js      # キャッシュ読み取り + 課題表示ロジック
+```
+
+ポップアップは Extension Page として動作し、Content Script とは独立した実行コンテキストを持つ。`chrome.storage.local` から課題キャッシュを直接読み取って表示するため、API 呼び出しや認証 Cookie は不要。更新ボタンは `chrome.tabs.sendMessage()` で LMS タブの Content Script にメッセージを送り、`loadAssignments(true)` を実行させる。`chrome.storage.onChanged` で更新を検知して自動再描画する。
+
+`all_frames: true` 環境での対策:
+- 送信側: `{ frameId: 0 }` でトップフレームのみにメッセージ送信
+- 受信側: `window !== window.top` ガードで iframe のリスナーを無効化
+- 複数 LMS タブ対応: アクティブタブを優先し、失敗時は次のタブにフォールバック
+
 ### Content Script構成
 
 ```
@@ -62,6 +76,11 @@ Sakai API → fetchAllAssignments() → saveCache() → chrome.storage
 
 ページ読み込み時:
 chrome.storage → loadCache() → colorSidebarTabs() (パネルを開かなくても色分け適用)
+
+ポップアップ:
+chrome.storage → popup.js render() → DOM
+更新ボタン: popup.js → sendMessage({frameId:0}) → assignments.js loadAssignments(true)
+         → saveCache() → chrome.storage.onChanged → popup.js reloadFromStorage()
 ```
 
 ### 状態管理

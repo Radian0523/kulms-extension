@@ -17,6 +17,7 @@ KULMS+ への貢献を歓迎します。
 ## プロジェクト構成
 
 - `src/` 配下に機能ごとの IIFE ファイル（`manifest.json` の `content_scripts` で読み込み順を定義）
+- `popup.html` / `popup.js` はツールバーポップアップ（Extension Page として独立動作）
 - `styles.css` に全機能のスタイルを集約
 - `background.js` はサービスワーカー（シラバス取得など）
 - `_locales/` に i18n メッセージファイル
