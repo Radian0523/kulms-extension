@@ -246,7 +246,7 @@
           if (sub.graded) {
             status = "評定済";
             grade = sub.grade || "";
-          } else if (sub.userSubmission || sub.dateSubmittedEpochSeconds > 0) {
+          } else if (sub.submitted || (sub.dateSubmittedEpochSeconds > 0 && !sub.draft)) {
             status = "提出済";
           } else if (sub.status && sub.status !== "未開始") {
             status = sub.status;
