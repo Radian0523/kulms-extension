@@ -393,5 +393,18 @@
   },
   "toolOtherCollapsed": {
     "message": "その他 \u25B6"
+  },
+
+  "popupNoCache": {
+    "message": "LMS ページを開いて課題を読み込んでください"
+  },
+  "popupOpenLms": {
+    "message": "LMS を開く"
+  },
+  "popupNoLmsTab": {
+    "message": "LMS タブが見つかりません"
+  },
+  "popupRefreshFailed": {
+    "message": "更新に失敗しました"
   }
 }

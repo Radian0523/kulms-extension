@@ -2247,5 +2247,18 @@
     }
   }
 
+  // --- ポップアップからの更新リクエスト (top frame のみ) ---
+  chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+    if (msg.type === "kulms-refresh-assignments") {
+      if (window !== window.top) return false;
+      loadAssignments(true).then(function () {
+        sendResponse({ ok: true });
+      }).catch(function () {
+        sendResponse({ ok: false });
+      });
+      return true; // async sendResponse
+    }
+  });
+
   init();
 })();

@@ -393,5 +393,18 @@
   },
   "toolOtherCollapsed": {
     "message": "Other \u25B6"
+  },
+
+  "popupNoCache": {
+    "message": "Open the LMS page to load assignments"
+  },
+  "popupOpenLms": {
+    "message": "Open LMS"
+  },
+  "popupNoLmsTab": {
+    "message": "No LMS tab found"
+  },
+  "popupRefreshFailed": {
+    "message": "Refresh failed"
   }
 }
