@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 共通除外パターン
-EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*" "hot-reload.sh")
+EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*" "hot-reload.sh" "safari/*" "docs/*" "gas/*" "*.md")
 
 build_chrome() {
   local out="kulms-extension-chrome.zip"
