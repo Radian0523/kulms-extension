@@ -171,7 +171,7 @@
     "message": "ツール表示管理"
   },
   "featToolVisibilityDesc": {
-    "message": "不要なツールを「その他」に折りたたみ"
+    "message": "不要なツールを「その他」に折りたたみ。各ツールにホバーで表示される +/- ボタンで、科目ごとに表示・非表示をカスタマイズできます"
   },
   "featSidebarResize": {
     "message": "サイドバーリサイズ"
