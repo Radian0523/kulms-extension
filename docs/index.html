@@ -100,7 +100,6 @@ a:hover{text-decoration:underline}
 }
 
 /* Carousel */
-.carousel-wrap{position:relative}
 .carousel{
   display:flex;overflow-x:auto;
   scroll-snap-type:x mandatory;
@@ -111,12 +110,13 @@ a:hover{text-decoration:underline}
 .carousel::-webkit-scrollbar{display:none}
 .slide{
   flex:0 0 100%;scroll-snap-align:center;
+  display:flex;flex-direction:column;
   background:var(--bg-card);
   border:1px solid var(--border);
   border-radius:12px;padding:1.5rem;
   box-shadow:var(--shadow) 0px 4px 24px;
 }
-.slide-text{margin-bottom:1rem}
+.slide-text{flex-shrink:0;margin-bottom:1rem}
 .slide h3{
   font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
   font-size:1.3rem;font-weight:500;
@@ -127,26 +127,27 @@ a:hover{text-decoration:underline}
   color:var(--fg2);line-height:1.6;
 }
 .slide img{
-  width:100%;height:auto;border-radius:8px;
+  flex:1;min-height:0;
+  width:100%;border-radius:8px;
   border:1px solid var(--border-strong);
+  object-fit:contain;object-position:top;
 }
 
-/* Nav arrows */
-.carousel-btn{
-  position:absolute;top:50%;transform:translateY(-50%);
-  width:36px;height:36px;border-radius:50%;
-  background:var(--bg-card);border:1px solid var(--border-strong);
-  color:var(--fg2);font-size:1.1rem;
+/* Carousel nav bar: [← ● ● ● ● ● ● →] */
+.carousel-nav{
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;margin-bottom:1rem;
+}
+.carousel-nav-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:none;border:1px solid var(--border-strong);
+  color:var(--fg3);font-size:1rem;
   cursor:pointer;display:flex;align-items:center;justify-content:center;
-  box-shadow:var(--shadow) 0px 2px 8px;
-  z-index:2;transition:background 0.15s;
+  transition:background 0.15s,color 0.15s,border-color 0.15s;
+  flex-shrink:0;
 }
-.carousel-btn:hover{background:var(--border-strong)}
-.carousel-prev{left:-12px}
-.carousel-next{right:-12px}
-
-/* Dots */
-.dots{display:flex;justify-content:center;gap:8px;margin-top:1rem}
+.carousel-nav-btn:hover{background:var(--border-strong);color:var(--fg);border-color:var(--ring)}
+.dots{display:flex;align-items:center;gap:8px;padding:0 8px}
 .dot{
   width:8px;height:8px;border-radius:50%;
   background:var(--ring);border:none;
@@ -173,7 +174,6 @@ a:hover{text-decoration:underline}
   .section h2{font-size:1.5rem}
   .downloads{flex-direction:column;align-items:center}
   .btn{width:100%;max-width:320px;justify-content:center}
-  .carousel-btn{display:none}
 }
 </style>
 </head>
@@ -217,6 +217,11 @@ a:hover{text-decoration:underline}
 
 <section class="section">
   <h2>主な機能</h2>
+  <div class="carousel-nav">
+    <button class="carousel-nav-btn" id="prev" aria-label="前へ">&#8249;</button>
+    <div class="dots" id="dots"></div>
+    <button class="carousel-nav-btn" id="next" aria-label="次へ">&#8250;</button>
+  </div>
   <div class="carousel-wrap">
     <div class="carousel" id="carousel">
       <div class="slide">
@@ -224,48 +229,45 @@ a:hover{text-decoration:underline}
           <h3>課題一覧</h3>
           <p>全科目の課題を締め切り順にまとめて表示。緊急度別にセクション分けされ、提出状況もひと目で確認。</p>
         </div>
-        <img src="images/assignments.png" alt="課題一覧パネルのスクリーンショット" loading="lazy">
+        <img src="images/assignments.png" alt="課題一覧パネルのスクリーンショット">
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>教科書パネル</h3>
           <p>KULASISシラバスから教科書・参考書情報を自動取得。Amazonリンク付きですぐに購入可能。</p>
         </div>
-        <img src="images/textbooks.png" alt="教科書パネルのスクリーンショット" loading="lazy">
+        <img src="images/textbooks.png" alt="教科書パネルのスクリーンショット">
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>メモ</h3>
           <p>科目ごとにメモを残せる。締切日時を設定すれば課題と同じように緊急度表示。</p>
         </div>
-        <img src="images/memo.png" alt="メモ機能のスクリーンショット" loading="lazy">
+        <img src="images/memo.png" alt="メモ機能のスクリーンショット">
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>サイドバー色分け</h3>
           <p>サイドバーの各科目を、最も近い締切の緊急度に応じて色分け表示。</p>
         </div>
-        <img src="images/sidebar-color.png" alt="サイドバー色分けのスクリーンショット" loading="lazy">
+        <img src="images/sidebar-color.png" alt="サイドバー色分けのスクリーンショット">
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>ツール整理</h3>
           <p>使わないツールを「その他」に折りたたみ、よく使うツールだけを表示。</p>
         </div>
-        <img src="images/tool-visibility.png" alt="ツール整理のスクリーンショット" loading="lazy">
+        <img src="images/tool-visibility.png" alt="ツール整理のスクリーンショット">
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>科目名整理</h3>
           <p>長い科目名を自動で短縮。年度・学期情報を除去し、曜日・時限を先頭に表示。</p>
         </div>
-        <img src="images/course-name.png" alt="科目名整理のスクリーンショット" loading="lazy">
+        <img src="images/course-name.png" alt="科目名整理のスクリーンショット">
       </div>
     </div>
-    <button class="carousel-btn carousel-prev" aria-label="前へ">&#8249;</button>
-    <button class="carousel-btn carousel-next" aria-label="次へ">&#8250;</button>
   </div>
-  <div class="dots" id="dots"></div>
 </section>
 
 <footer class="footer">
@@ -304,11 +306,11 @@ a:hover{text-decoration:underline}
     if(e.target.classList.contains('dot'))goTo(+e.target.dataset.i);
   });
   // Arrow buttons
-  document.querySelector('.carousel-prev').addEventListener('click',function(){
+  document.getElementById('prev').addEventListener('click',function(){
     var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
     goTo(Math.max(0,idx-1));
   });
-  document.querySelector('.carousel-next').addEventListener('click',function(){
+  document.getElementById('next').addEventListener('click',function(){
     var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
     goTo(Math.min(n-1,idx+1));
   });
