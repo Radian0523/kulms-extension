@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.9.6",
+  "version": "1.10.0",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://radian0523.github.io/kulms-extension/",
   "default_locale": "ja",

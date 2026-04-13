@@ -337,6 +337,13 @@ a:hover{text-decoration:underline}
         </div>
         <img src="images/now-badge.png" alt="授業中ハイライトのスクリーンショット">
       </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>ピン留め上部バー</h3>
+          <p>ヘッダー直下にピン留め科目を横並びで常時表示（PC のみ）。サイズ 4 段階、色分けスタイルに対応。タブクリックでツール一覧をドロップダウン表示（コース行クリック展開 ON 時）。</p>
+        </div>
+        <img src="images/top-favbar.png" alt="ピン留め上部バーのスクリーンショット">
+      </div>
     </div>
   </div>
   <p class="carousel-note">※ 画像はイメージです。実際の表示とは異なる場合があります。</p>
@@ -347,8 +354,33 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.9.5</span>
+      <span class="release-version">v1.10.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>ピン留め上部バー機能を追加</strong>（PC のみ）
+        <ul>
+          <li>ヘッダー直下にピン留め科目を横並びで常時表示（<code>position: fixed</code>）</li>
+          <li>サイズ 4 段階（小 / 中 / 大 / 特大）から選択可能</li>
+          <li>科目タブ色分けの 3 スタイル（ボーダー / 背景 / 太バー + 背景）に対応</li>
+          <li>NOW / NEXT / 新着課題バッジもサイドバーと連動</li>
+          <li>KULMS+ パネルの押し出しモード時は上部バーも一緒にスライド</li>
+        </ul>
+      </li>
+      <li><strong>上部バーのドロップダウンツール表示</strong>
+        <ul>
+          <li>「コース行クリック展開」ON 時は、タブをクリックするとツール一覧（概要・授業資料・課題等）がドロップダウンで展開</li>
+          <li>「ツール表示管理」ON 時はサイドバーのカスタマイズ設定を継承し、非表示ツールは「その他 ▶」で折りたたみ</li>
+          <li>ドロップダウン外クリック / ESC キー / ウィンドウリサイズで自動閉鎖・位置追従</li>
+        </ul>
+      </li>
+      <li>設定画面を再構成: 「サイドバー」と「上部バー」のセクションを分離</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.9.5</span>
     </div>
     <ul>
       <li>教科書取得の精度向上: 同名科目が複数ヒットした場合に教員名で絞り込み

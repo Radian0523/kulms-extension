@@ -60,7 +60,8 @@ src/
 ├── course-click.js      # IIFE: コース行クリック
 ├── tool-visibility.js   # IIFE: ツール表示管理
 ├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携)
-└── sidebar-resize.js    # IIFE: サイドバーリサイズ
+├── sidebar-resize.js    # IIFE: サイドバーリサイズ
+└── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
 ```
 
 Manifest V3の `content_scripts.js` 配列で上記の順序通り注入される。各ファイルはIIFE（即時実行関数式）で機能を分離しており、`settings.js` で定義されるグローバル変数（`window.__kulmsSettingsReady`, `t()` 関数）を共有インターフェースとして疎結合を実現している。
@@ -236,6 +237,22 @@ function buildAssignmentToolMap() {
 
 **解決策**: コールバックパラメータ名を `li` にリネームして衝突を解消。
 
+### 9. 上部バーの押し出しモード追従
+
+**問題**: ピン留め上部バー (`position: fixed`) を追加したが、KULMS+ パネルの押し出しモード (`body { margin-right: 300px }`) で上部バーだけが画面右端まで伸びてパネルに隠れてしまった。
+
+**原因**: `position: fixed` 要素は viewport を基準に配置されるため、`body` の margin の影響を受けない。
+
+**解決策**: パネル開閉時に `body` に `kulms-panel-pushed` クラスを付与し、CSS で `body.kulms-panel-pushed .kulms-top-favbar { right: 300px }` を適用。`transition: right 0.5s ease` でパネルと同じスピードでスライドするように調整。
+
+### 10. 上部バーのドロップダウン vs サイドバーの折り畳み
+
+**問題**: 「コース行クリック展開」ON 時にサイドバー側は DOM にあるチェブロンボタンを `.click()` することで展開したが、上部バーは同じ DOM を持たないため、この方式が使えなかった。
+
+**解決策**: サイドバーの `.site-page-list > .nav-item` を都度クローンして独自の `position: fixed` ドロップダウンを構築する方式に切り替え。ツール表示管理 (`kulms-tool-config` localStorage) も読み込んで、非表示ツールは「その他 ▶」トグル下に折りたたむ。
+
+`document` へのクリックリスナーは `capture: true` で登録し、バーの click ハンドラより先に評価させることで、別のタブをクリックした際に「旧ドロップダウンを閉じてから新しいドロップダウンを開く」という順序を保証している。
+
 ## コース取得の3段階フォールバック
 
 Sakai環境の不安定さに対応するため、コース一覧の取得に3段階のフォールバックを実装:
@@ -296,6 +313,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 | 外観 | 言語 |
 | パネル | 教科書パネル、メモ機能、パネル押し出し |
 | サイドバー | タブ色分け、色分けスタイル (border/background/bold)、新着バッジ、科目名整理、ピンソート、授業中ハイライト、行クリック、ツール管理、リサイズ、スタイル |
+| 上部バー | ピン留め上部バー (PC のみ)、サイズ (小/中/大/特大) |
 | コースページ | ツリービュー |
 | 課題更新 | 自動完了判定、自動更新間隔 |
 | 緊急度カスタマイズ | 閾値（時間/日）、カラーピッカー |
