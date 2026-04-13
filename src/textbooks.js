@@ -6,9 +6,17 @@
   if (window !== window.top) return;
   if (window.__kulmsSettings && window.__kulmsSettings.textbooks === false) return;
 
-  const TEXTBOOK_CACHE_KEY = "kulms-textbooks";
+  const TEXTBOOK_CACHE_KEY = "kulms-textbooks-v2";
   // キャッシュは無期限 (更新ボタンで手動リフレッシュ)
   const BASE_URL = window.location.origin;
+
+  function extractLectureCodeFromSiteId(siteId) {
+    if (!siteId) return "";
+    var parts = String(siteId).split("-");
+    if (parts.length < 3) return "";
+    var lectureCode = parts.slice(2).join("").trim();
+    return /^[A-Za-z0-9]+$/.test(lectureCode) ? lectureCode.toUpperCase() : "";
+  }
 
   // --- コース一覧取得 ---
   // Sakai APIを優先（正確なコース名・タイプを返す）
@@ -21,7 +29,11 @@
     const data = await res.json();
     return (data.site_collection || [])
       .filter((s) => s.type === "course" || s.type === "project")
-      .map((s) => ({ id: s.id, name: s.title }));
+      .map((s) => ({
+        id: s.id,
+        name: s.title,
+        lectureCode: extractLectureCodeFromSiteId(s.id),
+      }));
   }
 
   function extractCoursesFromDOM() {
@@ -39,7 +51,11 @@
         if (/\/tool\//.test(href)) return;
         var match = href.match(/\/portal\/site\/([^\/?#]+)/);
         if (match && !match[1].startsWith("~")) {
-          courses.push({ id: match[1], name: a.textContent.trim() });
+          courses.push({
+            id: match[1],
+            name: a.textContent.trim(),
+            lectureCode: extractLectureCodeFromSiteId(match[1]),
+          });
         }
       });
     var seen = new Set();
@@ -84,10 +100,14 @@
 
   // --- background へリクエスト ---
 
-  function fetchTextbooksForCourse(courseName) {
+  function fetchTextbooksForCourse(course) {
     return new Promise((resolve) => {
       chrome.runtime.sendMessage(
-        { action: "fetchTextbooks", courseName: courseName },
+        {
+          action: "fetchTextbooks",
+          courseName: course.name,
+          lectureCode: course.lectureCode || "",
+        },
         (response) => {
           if (chrome.runtime.lastError) {
             resolve([]);
@@ -303,7 +323,8 @@
 
       var allTextbooks = {};
       for (var i = 0; i < courses.length; i++) {
-        var name = courses[i].name;
+        var course = courses[i];
+        var name = course.name;
         showLoading(
           "\u30B7\u30E9\u30D0\u30B9\u3092\u53D6\u5F97\u4E2D... (" +
             (i + 1) +
@@ -312,7 +333,7 @@
             ")"
         );
         try {
-          var result = await fetchTextbooksForCourse(name);
+          var result = await fetchTextbooksForCourse(course);
           if (result.books.length > 0) {
             allTextbooks[name] = { books: result.books, syllabusUrl: result.syllabusUrl, status: "found" };
           } else {

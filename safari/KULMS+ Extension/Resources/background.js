@@ -122,7 +122,7 @@ async function fetchAndDecode(url) {
 
 // /search エンドポイントで科目名を検索し、最適な lectureNo を返す
 // 全学部・全科目 (11,848件) が対象
-async function searchSyllabus(keyword) {
+async function searchSyllabus(keyword, preferFirstResult) {
   // サーバーがShift_JISエンコードを期待するため、encodeShiftJISを使用
   // x/y パラメータは <input type="image"> のsubmitボタン座標（必須）
   const searchUrl =
@@ -179,6 +179,16 @@ async function searchSyllabus(keyword) {
       "[KULMS] results:",
       results.map((r) => r.name).join(", ")
     );
+  }
+
+  if (preferFirstResult) {
+    console.log(
+      "[KULMS] using first result for keyword:",
+      keyword,
+      results[0].name,
+      results[0].lectureNo
+    );
+    return { lectureNo: results[0].lectureNo, departmentNo: results[0].departmentNo };
   }
 
   const normalized = normalizeForMatch(keyword);
@@ -344,19 +354,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action !== "fetchTextbooks") return false;
 
   const courseName = message.courseName;
-  if (!courseName) {
+  const lectureCode = String(message.lectureCode || "").trim().toUpperCase();
+  if (!courseName && !lectureCode) {
     sendResponse({ books: [] });
     return false;
   }
 
-  const keyword = cleanCourseName(courseName);
-  if (!keyword) {
+  const keyword = cleanCourseName(courseName || "");
+  if (!lectureCode && !keyword) {
     sendResponse({ books: [] });
     return false;
   }
 
   (async () => {
     try {
+      if (lectureCode) {
+        const matched = await searchSyllabus(lectureCode, true);
+        if (!matched) {
+          sendResponse({ books: [] });
+          return;
+        }
+        const syllabusUrl = matched.departmentNo
+          ? `${SYLLABUS_BASE}/department_syllabus?lectureNo=${matched.lectureNo}&departmentNo=${matched.departmentNo}`
+          : `${SYLLABUS_BASE}/la_syllabus?lectureNo=${matched.lectureNo}`;
+        const books = await fetchSyllabusDetail(matched.lectureNo, matched.departmentNo);
+        sendResponse({ books, syllabusUrl });
+        return;
+      }
+
       const result = await searchSyllabus(keyword);
       if (!result) {
         sendResponse({ books: [] });
