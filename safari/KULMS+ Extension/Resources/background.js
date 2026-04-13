@@ -122,7 +122,12 @@ async function fetchAndDecode(url) {
 
 // /search エンドポイントで科目名を検索し、最適な lectureNo を返す
 // 全学部・全科目 (11,848件) が対象
-async function searchSyllabus(keyword, preferFirstResult) {
+//
+// options:
+//   - expectedName: 検索結果の中で名前マッチさせたい科目名 (lectureCode検索時に指定)
+//     指定時はマッチしなければ null を返す（呼び出し元でフォールバック判断）
+async function searchSyllabus(keyword, options) {
+  options = options || {};
   // サーバーがShift_JISエンコードを期待するため、encodeShiftJISを使用
   // x/y パラメータは <input type="image"> のsubmitボタン座標（必須）
   const searchUrl =
@@ -181,17 +186,10 @@ async function searchSyllabus(keyword, preferFirstResult) {
     );
   }
 
-  if (preferFirstResult) {
-    console.log(
-      "[KULMS] using first result for keyword:",
-      keyword,
-      results[0].name,
-      results[0].lectureNo
-    );
-    return { lectureNo: results[0].lectureNo, departmentNo: results[0].departmentNo };
-  }
-
-  const normalized = normalizeForMatch(keyword);
+  // expectedName が指定されていれば、その科目名で結果から絞り込む
+  // (lectureCode 検索など、keyword 自体が科目名でないケース用)
+  const matchTarget = options.expectedName || keyword;
+  const normalized = normalizeForMatch(matchTarget);
 
   // 完全一致（正規化後）
   const exact = results.find(
@@ -212,7 +210,19 @@ async function searchSyllabus(keyword, preferFirstResult) {
     return { lectureNo: partial.lectureNo, departmentNo: partial.departmentNo };
   }
 
-  // 検索エンジンが返した最初の結果を使用
+  // expectedName 指定時は名前マッチが見つからなければフォールバック判断を呼び出し元に任せる
+  // (lectureCode 検索で全く別科目を選んでしまうのを防ぐ)
+  if (options.expectedName) {
+    console.log(
+      "[KULMS] no name match for expectedName:",
+      options.expectedName,
+      "(keyword:",
+      keyword + ")"
+    );
+    return null;
+  }
+
+  // 検索エンジンが返した最初の結果を使用 (科目名検索の最終フォールバック)
   console.log(
     "[KULMS] using first result:",
     results[0].name,
@@ -368,18 +378,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   (async () => {
     try {
-      if (lectureCode) {
-        const matched = await searchSyllabus(lectureCode, true);
-        if (!matched) {
-          sendResponse({ books: [] });
+      if (lectureCode && keyword) {
+        // lectureCode で検索 + 科目名で絞り込み（同名科目問題と誤マッチの両方を防ぐ）
+        const matched = await searchSyllabus(lectureCode, { expectedName: keyword });
+        if (matched) {
+          const syllabusUrl = matched.departmentNo
+            ? `${SYLLABUS_BASE}/department_syllabus?lectureNo=${matched.lectureNo}&departmentNo=${matched.departmentNo}`
+            : `${SYLLABUS_BASE}/la_syllabus?lectureNo=${matched.lectureNo}`;
+          const books = await fetchSyllabusDetail(matched.lectureNo, matched.departmentNo);
+          sendResponse({ books, syllabusUrl });
           return;
         }
-        const syllabusUrl = matched.departmentNo
-          ? `${SYLLABUS_BASE}/department_syllabus?lectureNo=${matched.lectureNo}&departmentNo=${matched.departmentNo}`
-          : `${SYLLABUS_BASE}/la_syllabus?lectureNo=${matched.lectureNo}`;
-        const books = await fetchSyllabusDetail(matched.lectureNo, matched.departmentNo);
-        sendResponse({ books, syllabusUrl });
-        return;
+        // 名前マッチ失敗 → 科目名検索にフォールバック
+        console.log("[KULMS] lectureCode search did not match name, falling back to name search");
       }
 
       const result = await searchSyllabus(keyword);

@@ -6,7 +6,7 @@
   if (window !== window.top) return;
   if (window.__kulmsSettings && window.__kulmsSettings.textbooks === false) return;
 
-  const TEXTBOOK_CACHE_KEY = "kulms-textbooks-v2";
+  const TEXTBOOK_CACHE_KEY = "kulms-textbooks-v3";
   // キャッシュは無期限 (更新ボタンで手動リフレッシュ)
   const BASE_URL = window.location.origin;
 
