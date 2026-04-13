@@ -235,7 +235,7 @@
     "message": "提出状態の自動判定"
   },
   "featAutoCompleteDesc": {
-    "message": "提出済み・評定済みの課題を自動で完了済みに分類。OFFにすると手動チェックのみで管理"
+    "message": "提出済・評定済の課題を自動で完了済みに分類。OFFにすると手動チェックのみで管理"
   },
 
   "settingsAutoRefresh": {
