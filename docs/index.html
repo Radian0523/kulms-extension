@@ -354,8 +354,24 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.11.0</span>
+      <span class="release-version">v1.11.1</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>セッションタイムアウト時のキャッシュ保護（バグ修正）</strong>
+        <ul>
+          <li>LMS からログアウト/タイムアウトした状態で自動更新が走ると、課題一覧が空になり一時的に表示できなくなる問題を修正</li>
+          <li>API レスポンスがログイン HTML の場合は <code>LoggedOutError</code> を伝播し、既存キャッシュを保持して再表示するよう変更</li>
+          <li>Comfortable PandA 方式の DOM ベース判定 (<code>"loggedIn": true</code> 検出) も併用</li>
+        </ul>
+      </li>
+      <li>Chrome / Firefox / Safari の全プラットフォームを同期</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.0</span>
     </div>
     <ul>
       <li><strong>Safari 版（macOS）を本格サポート</strong>

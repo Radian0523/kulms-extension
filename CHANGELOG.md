@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.11.1
+
+- **セッションタイムアウト時のキャッシュ保護 (バグ修正)**
+  - LMS からログアウト/タイムアウトした状態で自動更新が走ると、課題一覧が空になり一時的に表示できなくなる問題を修正
+  - 原因: API レスポンスがログイン HTML だったときに各 `fetch*ForCourse` が空配列を返し、`saveCache([])` で既存キャッシュを上書きしていた
+  - 対応:
+    - `isLoggedInDOM()` を追加 (Comfortable PandA 方式: ページ `<script>` 内の `"loggedIn": true` を検出)
+    - `sakaiGet()` でリダイレクト URL / Content-Type を確認し `LoggedOutError` を送出
+    - `LoggedOutError` を `fetchAllAssignments` まで伝播させ、`loadAssignments` の catch でキャッシュ保護
+    - ログアウト検知時は既存キャッシュ (TTL 無視) を再表示
+  - Chrome / Firefox / Safari の全プラットフォームを同期
+
 ## v1.11.0
 
 - **Safari 版の本格サポート**
