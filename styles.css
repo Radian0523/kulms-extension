@@ -85,6 +85,19 @@ body {
   color: #464646 !important;
 }
 
+.kulms-assign-version {
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  color: #888 !important;
+  margin-left: 6px !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+}
+.kulms-assign-version:hover {
+  color: #4a6fa5 !important;
+  text-decoration: underline !important;
+}
+
 .kulms-assign-header-right {
   display: flex !important;
   align-items: center !important;

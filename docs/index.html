@@ -160,6 +160,59 @@ a:hover{text-decoration:underline}
   color:var(--fg3);margin-top:1rem;
 }
 
+/* Changelog */
+.release{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1.25rem 1.5rem;
+  margin-bottom:1rem;
+  box-shadow:var(--shadow) 0px 2px 12px;
+}
+.release-head{
+  display:flex;align-items:baseline;
+  gap:0.75rem;margin-bottom:0.75rem;
+}
+.release-version{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.25rem;font-weight:500;color:var(--fg);
+}
+.release-latest{
+  display:inline-block;
+  font-size:0.7rem;font-weight:500;
+  color:#faf9f5;background:var(--accent);
+  padding:2px 8px;border-radius:999px;
+  letter-spacing:0.03em;
+}
+.release ul{
+  list-style:none;padding:0;margin:0;
+}
+.release li{
+  position:relative;padding-left:1.25rem;
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.65;margin-bottom:0.25rem;
+}
+.release li::before{
+  content:"";position:absolute;
+  left:0.25rem;top:0.7em;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--fg3);
+}
+.release li ul{
+  margin-top:0.25rem;
+}
+.release li li{
+  padding-left:1.25rem;font-size:0.875rem;
+}
+.release li li::before{
+  background:var(--ring);
+  width:4px;height:4px;top:0.75em;
+}
+.changelog-more{
+  text-align:center;margin-top:1.5rem;
+  font-size:0.9375rem;color:var(--fg2);
+}
+
 /* Footer */
 .footer{
   text-align:center;padding:3rem 1.5rem;
@@ -287,6 +340,93 @@ a:hover{text-decoration:underline}
     </div>
   </div>
   <p class="carousel-note">※ 画像はイメージです。実際の表示とは異なる場合があります。</p>
+</section>
+
+<section class="section" id="changelog">
+  <h2>更新履歴</h2>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.9.2</span>
+      <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li>パネル/ポップアップのヘッダーに現在のバージョンを表示
+        <ul>
+          <li>バージョン部分をクリックするとこの更新履歴セクションを新規タブで開く</li>
+          <li><code>chrome.runtime.getManifest().version</code> から動的取得</li>
+        </ul>
+      </li>
+      <li>ランディングページに「更新履歴」セクションを追加（このセクション）</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.9.1</span>
+    </div>
+    <ul>
+      <li>授業中ハイライトに NEXT バッジを追加
+        <ul>
+          <li>休み時間中は次の時限の科目に青い「NEXT」バッジを表示</li>
+          <li>1限は開始15分前（8:30）から NEXT バッジを表示</li>
+          <li>5限終了後（18:15〜）は何も表示しない</li>
+          <li>NOW（赤・点滅）と NEXT（青・静止）で視覚的に区別</li>
+        </ul>
+      </li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.9.0</span>
+    </div>
+    <ul>
+      <li>授業中ハイライト機能を追加（設定 → サイドバー）
+        <ul>
+          <li>京大の時間割（1〜5限）に基づき、現在の時限に該当する科目のサイドバーに「NOW」バッジを表示</li>
+          <li>60秒間隔で自動更新、タブ復帰時にも即時更新</li>
+          <li><code>[曜日+時限]</code> パターン（例: <code>[月1]</code>）を持つ科目名のみ対象</li>
+        </ul>
+      </li>
+      <li>サイドバーリサイズ機能が動作しないバグを修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.8.2</span>
+    </div>
+    <ul>
+      <li>ウィンドウ幅を狭めた際に KULMS のモバイルレイアウトが崩壊するバグを修正</li>
+      <li>設定画面のツールチップをインライン展開 UI に変更（(i) クリックで説明を表示/非表示）</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.8.1</span>
+    </div>
+    <ul>
+      <li>提出状態の自動判定をオン/オフできる設定を追加（設定 → 課題更新セクション）</li>
+      <li>個別 API の提出判定で <code>submitted</code> ではなく <code>userSubmission</code> を参照するよう修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.8.0</span>
+    </div>
+    <ul>
+      <li>ツールバーアイコンクリックで課題一覧ポップアップを表示</li>
+      <li>緊急度別セクションでコンパクト表示、ダークモード対応</li>
+      <li>完了済みセクションはデフォルトで折りたたみ</li>
+    </ul>
+  </article>
+
+  <p class="changelog-more">
+    すべての更新履歴は <a href="https://github.com/Radian0523/kulms-extension/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
+  </p>
 </section>
 
 <footer class="footer">

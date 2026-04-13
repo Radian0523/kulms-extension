@@ -606,7 +606,15 @@
 
     var logo = document.createElement("span");
     logo.className = "kulms-assign-logo";
-    logo.textContent = t("panelTitle");
+    logo.appendChild(document.createTextNode(t("panelTitle")));
+
+    var version = document.createElement("a");
+    version.className = "kulms-assign-version";
+    version.href = "https://radian0523.github.io/kulms-extension/#changelog";
+    version.target = "_blank";
+    version.rel = "noopener noreferrer";
+    version.textContent = "v" + chrome.runtime.getManifest().version;
+    logo.appendChild(version);
 
     var headerRight = document.createElement("div");
     headerRight.className = "kulms-assign-header-right";

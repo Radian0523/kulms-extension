@@ -419,6 +419,7 @@
 
         loadOverrideMessages(settings.language).then(function () {
           document.getElementById("header-title").textContent = t("panelTitle");
+          document.getElementById("header-version").textContent = "v" + chrome.runtime.getManifest().version;
           document.getElementById("open-lms").textContent = t("popupOpenLms");
           document.getElementById("refresh-btn").title = t("refresh");
 
