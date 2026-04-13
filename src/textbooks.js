@@ -107,6 +107,7 @@
           action: "fetchTextbooks",
           courseName: course.name,
           lectureCode: course.lectureCode || "",
+          siteId: course.id || "",
         },
         (response) => {
           if (chrome.runtime.lastError) {

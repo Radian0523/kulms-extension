@@ -8,6 +8,7 @@ chrome.runtime.onInstalled.addListener(() => {
 // === シラバス教科書取得ハンドラ ===
 
 const SYLLABUS_BASE = "https://www.k.kyoto-u.ac.jp/external/open_syllabus";
+const LMS_BASE = "https://lms.gakusei.kyoto-u.ac.jp";
 
 // 科目名からコース番号部分や年度/曜日限情報を除去して検索用キーワードにする
 function cleanCourseName(name) {
@@ -27,6 +28,61 @@ function normalizeForMatch(str) {
     .replace(/\u3000/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// 教員名比較用の正規化（空白/全角空白/NBSP をすべて除去）
+// KULASIS は "久門 尚史"、Sakai は "久門尚史" と表記揺れがあるため
+function normalizeTeacherName(str) {
+  return String(str || "")
+    .replace(/[\s\u3000\u00A0]+/g, "")
+    .trim();
+}
+
+// Sakai サイト情報ツールから「サイト連絡先・メール」欄の教員名を抽出
+// 失敗時は null を返す（呼び出し元はフォールバック判断）
+async function fetchSakaiSiteContact(siteId) {
+  if (!siteId) return null;
+  try {
+    // Step 1: pages.json から sakai.siteinfo の placementId を取得
+    const pagesRes = await fetch(
+      `${LMS_BASE}/direct/site/${encodeURIComponent(siteId)}/pages.json`,
+      { credentials: "include" }
+    );
+    if (!pagesRes.ok) return null;
+    const pages = await pagesRes.json();
+    let placementId = null;
+    for (const p of pages || []) {
+      for (const t of p.tools || []) {
+        if (t.toolId === "sakai.siteinfo") {
+          placementId = t.placementId;
+          break;
+        }
+      }
+      if (placementId) break;
+    }
+    if (!placementId) return null;
+
+    // Step 2: Site Info HTML を取得して「サイト連絡先・メール」行を抽出
+    const htmlRes = await fetch(
+      `${LMS_BASE}/portal/tool/${encodeURIComponent(placementId)}`,
+      { credentials: "include" }
+    );
+    if (!htmlRes.ok) return null;
+    const html = await htmlRes.text();
+
+    // <th>サイト連絡先・メール</th> ... <td> 教員名, <a href="mailto:..."> ...
+    // 教員名はカンマ or '<' の手前まで
+    const m = html.match(
+      /サイト連絡先[・･\u30FB]?メール[\s\S]*?<td[^>]*>\s*([^,<\n]+?)\s*(?:,|<)/
+    );
+    if (!m) return null;
+    const name = m[1].trim();
+    if (!name || /<|>/.test(name)) return null;
+    return name;
+  } catch (e) {
+    console.warn("[KULMS] fetchSakaiSiteContact error:", e.message);
+    return null;
+  }
 }
 
 // Shift_JISエンコード用テーブル（Unicode文字 → Shift_JISバイト列）
@@ -126,6 +182,8 @@ async function fetchAndDecode(url) {
 // options:
 //   - expectedName: 検索結果の中で名前マッチさせたい科目名 (lectureCode検索時に指定)
 //     指定時はマッチしなければ null を返す（呼び出し元でフォールバック判断）
+//   - expectedTeacher: 名前マッチ候補が複数残った場合の絞り込みに使う教員名
+//     文字列または async 関数 (遅延フェッチ用) を指定可
 async function searchSyllabus(keyword, options) {
   options = options || {};
   // サーバーがShift_JISエンコードを期待するため、encodeShiftJISを使用
@@ -170,10 +228,11 @@ async function searchSyllabus(keyword, options) {
       if (text && text.length > 1) cells.push(text);
     }
 
-    // 最初の非空セルが科目名
+    // 最初の非空セルが科目名、2 番目が教員名（複数教員はスペース区切りで連結される）
     const name = cells[0] || "";
+    const teacherName = cells[1] || "";
     if (name) {
-      results.push({ lectureNo, departmentNo, name });
+      results.push({ lectureNo, departmentNo, name, teacherName });
     }
   }
 
@@ -191,23 +250,36 @@ async function searchSyllabus(keyword, options) {
   const matchTarget = options.expectedName || keyword;
   const normalized = normalizeForMatch(matchTarget);
 
+  function pickResult(r, label) {
+    console.log("[KULMS]", label + ":", r.name, "/", r.teacherName, r.lectureNo);
+    return { lectureNo: r.lectureNo, departmentNo: r.departmentNo };
+  }
+
   // 完全一致（正規化後）
-  const exact = results.find(
+  const exactMatches = results.filter(
     (r) => normalizeForMatch(r.name) === normalized
   );
-  if (exact) {
-    console.log("[KULMS] exact match:", exact.name, exact.lectureNo);
-    return { lectureNo: exact.lectureNo, departmentNo: exact.departmentNo };
+  if (exactMatches.length === 1) {
+    return pickResult(exactMatches[0], "exact match");
+  }
+  if (exactMatches.length > 1) {
+    const winner = await disambiguateByTeacher(exactMatches, options);
+    if (winner) return pickResult(winner, "exact match (teacher-disambiguated)");
+    return pickResult(exactMatches[0], "exact match (first of " + exactMatches.length + ", teacher unknown)");
   }
 
   // 部分一致
-  const partial = results.find((r) => {
+  const partialMatches = results.filter((r) => {
     const rn = normalizeForMatch(r.name);
     return rn.includes(normalized) || normalized.includes(rn);
   });
-  if (partial) {
-    console.log("[KULMS] partial match:", partial.name, partial.lectureNo);
-    return { lectureNo: partial.lectureNo, departmentNo: partial.departmentNo };
+  if (partialMatches.length === 1) {
+    return pickResult(partialMatches[0], "partial match");
+  }
+  if (partialMatches.length > 1) {
+    const winner = await disambiguateByTeacher(partialMatches, options);
+    if (winner) return pickResult(winner, "partial match (teacher-disambiguated)");
+    return pickResult(partialMatches[0], "partial match (first of " + partialMatches.length + ", teacher unknown)");
   }
 
   // expectedName 指定時は名前マッチが見つからなければフォールバック判断を呼び出し元に任せる
@@ -229,6 +301,30 @@ async function searchSyllabus(keyword, options) {
     results[0].lectureNo
   );
   return { lectureNo: results[0].lectureNo, departmentNo: results[0].departmentNo };
+}
+
+// 名前マッチが複数残った場合、教員名で絞り込む
+// options.expectedTeacher は文字列または async 関数 (遅延 fetch 用)
+async function disambiguateByTeacher(candidates, options) {
+  if (!options.expectedTeacher) return null;
+  let teacher = options.expectedTeacher;
+  if (typeof teacher === "function") {
+    try {
+      teacher = await teacher();
+    } catch (e) {
+      console.warn("[KULMS] expectedTeacher fetch failed:", e.message);
+      teacher = null;
+    }
+  }
+  if (!teacher) return null;
+  const teacherKey = normalizeTeacherName(teacher);
+  if (!teacherKey) return null;
+  console.log("[KULMS] disambiguating by teacher:", teacher);
+  const found = candidates.find((c) => {
+    const ck = normalizeTeacherName(c.teacherName || "");
+    return ck && (ck.includes(teacherKey) || teacherKey.includes(ck));
+  });
+  return found || null;
 }
 
 // シラバス詳細ページから教科書・参考書情報を抽出
@@ -364,6 +460,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action !== "fetchTextbooks") return false;
 
   const courseName = message.courseName;
+  const siteId = String(message.siteId || "").trim();
   const lectureCode = String(message.lectureCode || "").trim().toUpperCase();
   if (!courseName && !lectureCode) {
     sendResponse({ books: [] });
@@ -376,11 +473,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
 
+  // 教員名は遅延フェッチ (一度だけ実行されるようメモ化)
+  let teacherPromise = null;
+  const lazyTeacher = () => {
+    if (!siteId) return Promise.resolve(null);
+    if (!teacherPromise) teacherPromise = fetchSakaiSiteContact(siteId);
+    return teacherPromise;
+  };
+
   (async () => {
     try {
       if (lectureCode && keyword) {
         // lectureCode で検索 + 科目名で絞り込み（同名科目問題と誤マッチの両方を防ぐ）
-        const matched = await searchSyllabus(lectureCode, { expectedName: keyword });
+        // 名前で複数候補が残った場合は Sakai の連絡先教員名で絞り込む
+        const matched = await searchSyllabus(lectureCode, {
+          expectedName: keyword,
+          expectedTeacher: lazyTeacher,
+        });
         if (matched) {
           const syllabusUrl = matched.departmentNo
             ? `${SYLLABUS_BASE}/department_syllabus?lectureNo=${matched.lectureNo}&departmentNo=${matched.departmentNo}`
@@ -393,7 +502,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         console.log("[KULMS] lectureCode search did not match name, falling back to name search");
       }
 
-      const result = await searchSyllabus(keyword);
+      const result = await searchSyllabus(keyword, {
+        expectedTeacher: lazyTeacher,
+      });
       if (!result) {
         sendResponse({ books: [] });
         return;
