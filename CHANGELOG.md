@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.11.2
+
+- **未公開クイズが課題一覧に表示される問題を修正 (バグ修正)**
+  - Sakai の `sam_pub_collection` API は `startDate` (公開開始時刻) が未来のクイズも返すが、KULMS+ ではフィルタしておらず未公開のテスト・クイズが表示されていた
+  - `fetchQuizzesForCourse()` に `startDate <= 現在時刻` のフィルタを追加 (Comfortable Sakai 同様の挙動)
+  - `startDate` が未指定のクイズは公開済みとして従来通り表示
+  - Chrome / Firefox / Safari の全プラットフォームを同期
+
 ## v1.11.1
 
 - **セッションタイムアウト時のキャッシュ保護 (バグ修正)**

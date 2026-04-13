@@ -354,8 +354,24 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.11.1</span>
+      <span class="release-version">v1.11.2</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>未公開クイズが課題一覧に表示される問題を修正（バグ修正）</strong>
+        <ul>
+          <li>Sakai の <code>sam_pub_collection</code> API は <code>startDate</code> が未来のクイズも返すが、KULMS+ ではフィルタしておらず未公開のテスト・クイズが表示されていた</li>
+          <li><code>fetchQuizzesForCourse()</code> に <code>startDate &le; 現在時刻</code> のフィルタを追加（Comfortable Sakai 準拠）</li>
+          <li><code>startDate</code> が未指定のクイズは公開済みとして従来通り表示</li>
+        </ul>
+      </li>
+      <li>Chrome / Firefox / Safari の全プラットフォームを同期</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.1</span>
     </div>
     <ul>
       <li><strong>セッションタイムアウト時のキャッシュ保護（バグ修正）</strong>
