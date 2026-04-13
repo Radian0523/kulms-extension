@@ -35,11 +35,14 @@
   }
 
   function loadOverrideMessages(lang) {
-    if (!lang || lang === "auto") {
-      overrideMessages = null;
-      return Promise.resolve();
+    // Safari's chrome.i18n.getMessage has placeholder substitution bugs,
+    // so always load messages.json and use manual substitution in t().
+    var resolvedLang = lang;
+    if (!resolvedLang || resolvedLang === "auto") {
+      var uiLang = (chrome.i18n && chrome.i18n.getUILanguage && chrome.i18n.getUILanguage()) || navigator.language || "en";
+      resolvedLang = uiLang.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
     }
-    var url = chrome.runtime.getURL("_locales/" + lang + "/messages.json");
+    var url = chrome.runtime.getURL("_locales/" + resolvedLang + "/messages.json");
     return fetch(url)
       .then(function (r) { return r.json(); })
       .then(function (data) { overrideMessages = data; })
