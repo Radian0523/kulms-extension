@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.11.0
+
+- **Safari 版の本格サポート**
+  - Safari 拡張機能 (macOS) のアイコンを Chrome / Firefox 版と同じツリーロゴに統一
+    - `AppIcon.appiconset` の 10 サイズ (16@1x〜512@2x) と app window 表示用 `Icon.png` (128x128) を更新
+  - ツールバーポップアップ (課題一覧) を Safari でも表示可能に
+    - `build.sh` の Safari 同期対象に `popup.html` / `popup.js` を追加
+  - Xcode プロジェクトの Run Script ビルドフェーズで Resources を自動同期
+    - `${SRCROOT}/KULMS+ Extension/Resources` → `${TARGET_BUILD_DIR}/.../Resources` を `rsync` で同期
+    - 新規ファイル追加時も Xcode で手動参照する必要がなくなり、`./build.sh safari` だけで反映
+    - `ENABLE_USER_SCRIPT_SANDBOXING = NO` を付与して Sandboxing によるアクセス拒否を回避
+- **Safari の `chrome.i18n.getMessage` プレースホルダー置換バグを回避**
+  - Safari では `$DAYS$日$HOURS$時間$MINS$分` のような置換文字列で、プレースホルダー前の文字が消えて「残時分」のように表示されるバグがあった
+  - `popup.js` / `src/settings.js` の `loadOverrideMessages()` を修正し、言語設定が「自動」でも常に `messages.json` を読み込んで手動置換するよう変更
+  - Chrome / Firefox での挙動は透過的 (同等の結果)
+
 ## v1.10.0
 
 - **ピン留め上部バー機能を追加**（設定 → 上部バー）

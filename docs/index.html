@@ -354,8 +354,25 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.10.0</span>
+      <span class="release-version">v1.11.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>Safari 版（macOS）を本格サポート</strong>
+        <ul>
+          <li>Safari 拡張機能のアイコンを Chrome / Firefox 版と同じツリーロゴに統一</li>
+          <li>ツールバーポップアップ（課題一覧）を Safari でも表示可能に</li>
+          <li>Xcode プロジェクトの Run Script ビルドフェーズで Resources を自動同期（新規ファイル追加時も Xcode 操作不要）</li>
+        </ul>
+      </li>
+      <li>Safari で残り時間が「残時分」のように途切れて表示される <code>chrome.i18n</code> プレースホルダー置換バグを修正</li>
+      <li>Chrome / Firefox の挙動は変更なし</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.10.0</span>
     </div>
     <ul>
       <li><strong>ピン留め上部バー機能を追加</strong>（PC のみ）

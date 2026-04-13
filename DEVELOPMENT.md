@@ -253,6 +253,51 @@ function buildAssignmentToolMap() {
 
 `document` へのクリックリスナーは `capture: true` で登録し、バーの click ハンドラより先に評価させることで、別のタブをクリックした際に「旧ドロップダウンを閉じてから新しいドロップダウンを開く」という順序を保証している。
 
+### 11. Safari の `chrome.i18n.getMessage` プレースホルダー置換バグ
+
+**問題**: Safari Web Extension で `chrome.i18n.getMessage("remainingTime", [3, 2, 15])` を呼ぶと、`残り$DAYS$日$HOURS$時間$MINS$分` の定義に対して「残時分」のような壊れた文字列が返る。各プレースホルダー直前の日本語文字が消える挙動だった。
+
+**原因**: Safari 側の `chrome.i18n.getMessage` 実装のプレースホルダー置換にバグがあり、`$NAME$` パターン直前のバイトを巻き込んで削除している。
+
+**解決策**: `popup.js` と `src/settings.js` の `loadOverrideMessages()` を修正し、言語設定が「自動」でも `_locales/{ja|en}/messages.json` を常にフェッチ。`t()` 関数内で手動のプレースホルダー置換ロジックを通すようにした。Chrome / Firefox での挙動は透過的 (同等の結果)。
+
+```javascript
+function loadOverrideMessages(lang) {
+  // Safari's chrome.i18n.getMessage has placeholder substitution bugs,
+  // so always load messages.json and use manual substitution in t().
+  var resolvedLang = lang;
+  if (!resolvedLang || resolvedLang === "auto") {
+    var uiLang = chrome.i18n.getUILanguage() || navigator.language || "en";
+    resolvedLang = uiLang.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
+  }
+  var url = chrome.runtime.getURL("_locales/" + resolvedLang + "/messages.json");
+  return fetch(url).then(function (r) { return r.json(); })
+    .then(function (data) { __kulmsOverrideMessages = data; });
+}
+```
+
+### 12. Safari Xcode プロジェクトのリソース同期自動化
+
+**問題**: Safari 版は Xcode プロジェクト (`safari/KULMS+.xcodeproj`) の Resources フォルダーに実ファイルを配置する必要があり、ルート直下の `popup.html` / `popup.js` などは個別に `PBXFileReference` で参照されていたため、新規ファイルを追加するたびに Xcode で手動登録が必要だった。
+
+**解決策1 (採用)**: `PBXShellScriptBuildPhase` でビルド時に `rsync` で Resources を同期。
+
+```bash
+set -euo pipefail
+SRC="${SRCROOT}/KULMS+ Extension/Resources"
+DEST="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}"
+if [ -d "${SRC}" ]; then
+  mkdir -p "${DEST}"
+  rsync -a --exclude='.DS_Store' "${SRC}/" "${DEST}/"
+fi
+```
+
+**解決策2 (不採用)**: Resources ディレクトリ全体を Folder Reference (青フォルダ) として単一参照する方法。実際に試したところ、バンドル内で `Resources/Resources/` と二重構造になってしまい Safari が読み込めなかった。
+
+**追加対応**: Xcode 15+ の User Script Sandboxing が有効だと rsync が「Operation not permitted」で失敗するため、Extension ターゲットの Build Settings で `ENABLE_USER_SCRIPT_SANDBOXING = NO` を設定する必要がある。
+
+これにより `build.sh` の `sync_safari` (Resources コピー) → Xcode ビルド (Run Script で再同期) というパイプラインが確立し、新規ファイル追加でも自動反映される。
+
 ## コース取得の3段階フォールバック
 
 Sakai環境の不安定さに対応するため、コース一覧の取得に3段階のフォールバックを実装:
@@ -323,5 +368,6 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 
 - **LMS**: Sakai (京都大学KULMS)
 - **ブラウザ**: Google Chrome / Microsoft Edge / Mozilla Firefox (Manifest V3)
+- **Safari (開発ビルド)**: macOS Safari 16+ 向けに `safari/KULMS+.xcodeproj` を同梱。`./build.sh safari` で Resources を同期し、Xcode でビルドすると Safari の Extension として利用可能 (App Store 配布は未定)
 - **フレーム対応**: `all_frames: true` で全iframe内でも実行。`window !== window.top` ガードでトップフレーム限定機能を制御
 - **言語**: 日本語 / 英語 (ブラウザ設定に連動、手動切り替え可)
