@@ -741,6 +741,7 @@
 
     if (isPushMode()) {
       document.body.style.marginRight = "300px";
+      document.body.classList.add("kulms-panel-pushed");
     } else {
       // オーバーレイモード: クリック外閉じ用
       var cover = document.getElementById("kulms-cover");
@@ -765,6 +766,7 @@
     if (!panelEl) return;
     panelEl.classList.remove("open");
     document.body.style.marginRight = "";
+    document.body.classList.remove("kulms-panel-pushed");
     var cover = document.getElementById("kulms-cover");
     if (cover) cover.classList.remove("visible");
     sessionStorage.removeItem("kulms-panel-open");
@@ -1523,6 +1525,9 @@
       { key: "sidebarStyle", labelKey: "featSidebarStyle", descKey: "featSidebarStyleDesc" },
       { key: "currentPeriodHighlight", labelKey: "featCurrentPeriod", descKey: "featCurrentPeriodDesc" },
     ]},
+    { sectionKey: "sectionTopFavbar", features: [
+      { key: "topFavbar", labelKey: "featTopFavbar", descKey: "featTopFavbarDesc" },
+    ]},
     { sectionKey: "sectionCoursePage", features: [
       { key: "folderExpand", labelKey: "featFolderExpand", descKey: "featFolderExpandDesc" },
       { key: "autoExpandAll", labelKey: "featAutoExpandAll", descKey: "featAutoExpandAllDesc" },
@@ -1770,7 +1775,31 @@
     // ========================================
     FEATURE_GROUPS.forEach(function (group) {
       createSettingsSection(t(group.sectionKey), group.sectionKey);
-      group.features.forEach(addFeatureToggle);
+      group.features.forEach(function (feat) {
+        addFeatureToggle(feat);
+        // ピン留め上部バーの直下にサイズ設定を配置 (ON 時のみ表示)
+        if (feat.key === "topFavbar") {
+          createSelectRow(t("settingsTopFavbarSize"), t("settingsTopFavbarSizeDesc"),
+            "topFavbarSize", "medium", [
+              { value: "small", label: t("sizeSmall") },
+              { value: "medium", label: t("sizeMedium") },
+              { value: "large", label: t("sizeLarge") },
+              { value: "xlarge", label: t("sizeXLarge") },
+            ]);
+          var sizeRow = currentCardBody.lastChild;
+          var topFavbarToggle = null;
+          for (var i = 0; i < toggleInputs.length; i++) {
+            if (toggleInputs[i].key === "topFavbar") { topFavbarToggle = toggleInputs[i].input; break; }
+          }
+          if (topFavbarToggle && sizeRow) {
+            var syncSizeRowVisibility = function () {
+              sizeRow.style.display = topFavbarToggle.checked ? "" : "none";
+            };
+            syncSizeRowVisibility();
+            topFavbarToggle.addEventListener("change", syncSizeRowVisibility);
+          }
+        }
+      });
       if (group.sectionKey === "sectionSidebar") {
         createSelectRow(t("settingsTabColorStyle"), t("settingsTabColorStyleDesc"),
           "tabColorStyle", "border", [

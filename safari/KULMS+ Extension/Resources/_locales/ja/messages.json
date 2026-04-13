@@ -200,6 +200,30 @@
   "tabColorStyleBold": {
     "message": "太バー + 背景"
   },
+  "featTopFavbar": {
+    "message": "ピン留め上部バー"
+  },
+  "featTopFavbarDesc": {
+    "message": "ヘッダー直下にピン留め科目のバーを表示 (PC のみ)"
+  },
+  "settingsTopFavbarSize": {
+    "message": "上部バーのサイズ"
+  },
+  "settingsTopFavbarSizeDesc": {
+    "message": "ピン留め項目の大きさを3段階で調整"
+  },
+  "sizeSmall": {
+    "message": "小"
+  },
+  "sizeMedium": {
+    "message": "中"
+  },
+  "sizeLarge": {
+    "message": "大"
+  },
+  "sizeXLarge": {
+    "message": "特大"
+  },
   "featNotificationBadge": {
     "message": "新着課題バッジ"
   },
@@ -377,6 +401,9 @@
   },
   "sectionSidebar": {
     "message": "サイドバー"
+  },
+  "sectionTopFavbar": {
+    "message": "上部バー"
   },
   "sectionCoursePage": {
     "message": "コースページ"

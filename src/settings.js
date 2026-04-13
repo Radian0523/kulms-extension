@@ -11,6 +11,8 @@ window.__kulmsDefaults = {
   courseRowClick: false, toolVisibility: false, sidebarResize: false,
   notificationBadge: false, sidebarStyle: false, memos: true,
   panelPush: false, previewMode: false, autoComplete: true, currentPeriodHighlight: false,
+  topFavbar: false,
+  topFavbarSize: "medium",
   fetchInterval: 120,
   dangerHours: 24,
   warningDays: 5,

@@ -200,6 +200,30 @@
   "tabColorStyleBold": {
     "message": "Bold Bar + BG"
   },
+  "featTopFavbar": {
+    "message": "Top Pinned Bar"
+  },
+  "featTopFavbarDesc": {
+    "message": "Show pinned courses as a horizontal bar below the header (PC only)"
+  },
+  "settingsTopFavbarSize": {
+    "message": "Top Bar Size"
+  },
+  "settingsTopFavbarSizeDesc": {
+    "message": "Adjust pinned item size (3 levels)"
+  },
+  "sizeSmall": {
+    "message": "Small"
+  },
+  "sizeMedium": {
+    "message": "Medium"
+  },
+  "sizeLarge": {
+    "message": "Large"
+  },
+  "sizeXLarge": {
+    "message": "Extra Large"
+  },
   "featNotificationBadge": {
     "message": "New Assignment Badge"
   },
@@ -377,6 +401,9 @@
   },
   "sectionSidebar": {
     "message": "Sidebar"
+  },
+  "sectionTopFavbar": {
+    "message": "Top Bar"
   },
   "sectionCoursePage": {
     "message": "Course Page"

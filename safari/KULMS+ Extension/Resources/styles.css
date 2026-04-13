@@ -1296,4 +1296,280 @@ body.kulms-sidebar-resizing iframe {
   50% { opacity: 0.6; }
 }
 
+/* === 上部ピン留めバー === */
+/* Sakai は CSS Grid レイアウトなので、通常フローで配置すると Grid セルに割り当てられてしまう。
+   position: fixed でヘッダー直下に固定し、#pageBody 側で padding-top を確保する。
+   バー高さは JS (ResizeObserver) が --kulms-favbar-height に反映し、
+   科目数が多いときは自動で改行されて高さが伸びる */
+.kulms-top-favbar {
+  position: fixed !important;
+  top: 63px !important; /* header.portal-header の高さ */
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 900 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  background: var(--sakai-background-color-2, #f4f4f4) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-sizing: border-box !important;
+  transition: right 0.5s ease !important; /* パネル押し出し時の追従 */
+  /* サイズ CSS 変数: デフォルト (medium) の値 */
+  --kulms-favitem-font: 13px;
+  --kulms-favitem-py: 4px;
+  --kulms-favitem-px: 10px;
+  --kulms-favitem-maxw: 260px;
+  --kulms-favitem-gap: 6px;
+  --kulms-favitem-badge-size: 10px;
+  --kulms-favitem-dot-size: 8px;
+}
+
+.kulms-top-favbar.kulms-favbar-size-small {
+  --kulms-favitem-font: 11px;
+  --kulms-favitem-py: 2px;
+  --kulms-favitem-px: 7px;
+  --kulms-favitem-maxw: 180px;
+  --kulms-favitem-gap: 4px;
+  --kulms-favitem-badge-size: 9px;
+  --kulms-favitem-dot-size: 6px;
+}
+
+.kulms-top-favbar.kulms-favbar-size-large {
+  --kulms-favitem-font: 15px;
+  --kulms-favitem-py: 6px;
+  --kulms-favitem-px: 14px;
+  --kulms-favitem-maxw: 340px;
+  --kulms-favitem-gap: 8px;
+  --kulms-favitem-badge-size: 11px;
+  --kulms-favitem-dot-size: 10px;
+}
+
+.kulms-top-favbar.kulms-favbar-size-xlarge {
+  --kulms-favitem-font: 17px;
+  --kulms-favitem-py: 8px;
+  --kulms-favitem-px: 18px;
+  --kulms-favitem-maxw: 420px;
+  --kulms-favitem-gap: 10px;
+  --kulms-favitem-badge-size: 13px;
+  --kulms-favitem-dot-size: 12px;
+}
+
+/* バー表示中はヘッダー直下のコンテンツのみバー高さ分下にずらす
+   (ヘッダー自体は top=0 のまま、favbar が top=63 に fixed 配置される) */
+body.kulms-has-top-favbar #portal-nav-sidebar,
+body.kulms-has-top-favbar .portal-main-container {
+  padding-top: var(--kulms-favbar-height, 40px) !important;
+  box-sizing: border-box !important;
+}
+
+/* パネル押し出しモード中は、上部バーもパネル幅 (300px) 分だけ右端をシフトさせる */
+body.kulms-panel-pushed .kulms-top-favbar {
+  right: 300px !important;
+}
+
+.kulms-top-favbar-item {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: var(--kulms-favitem-gap) !important;
+  padding: var(--kulms-favitem-py) var(--kulms-favitem-px) !important;
+  border-radius: 4px !important;
+  font-size: var(--kulms-favitem-font) !important;
+  color: var(--sakai-text-color-1, #333) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  border-left: 3px solid transparent !important;
+  flex: 0 0 auto !important;
+  max-width: var(--kulms-favitem-maxw) !important;
+}
+
+.kulms-top-favbar-item:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  text-decoration: none !important;
+  color: var(--sakai-text-color-1, #333) !important;
+}
+
+.kulms-top-favbar-name {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* border モード (既定): 左ボーダーのみ色付け */
+.kulms-top-favbar-item.cs-tab-danger  { border-left-color: var(--kulms-color-danger, #e85555) !important; }
+.kulms-top-favbar-item.cs-tab-warning { border-left-color: var(--kulms-color-warning, #d7aa57) !important; }
+.kulms-top-favbar-item.cs-tab-success { border-left-color: var(--kulms-color-success, #62b665) !important; }
+.kulms-top-favbar-item.cs-tab-other   { border-left-color: var(--kulms-color-other, #777) !important; }
+
+/* background モード: 背景にも色を反映 (サイドバーと同じ 26%) */
+.kulms-top-favbar.kulms-color-background .kulms-top-favbar-item.cs-tab-danger {
+  background: color-mix(in srgb, var(--kulms-color-danger, #e85555) 26%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-background .kulms-top-favbar-item.cs-tab-warning {
+  background: color-mix(in srgb, var(--kulms-color-warning, #d7aa57) 26%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-background .kulms-top-favbar-item.cs-tab-success {
+  background: color-mix(in srgb, var(--kulms-color-success, #62b665) 26%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-background .kulms-top-favbar-item.cs-tab-other {
+  background: color-mix(in srgb, var(--kulms-color-other, #777) 26%, transparent) !important;
+}
+
+/* bold モード: 太いボーダー + 薄い背景 (サイドバーと同じ 14%) */
+.kulms-top-favbar.kulms-color-bold .kulms-top-favbar-item {
+  border-left-width: 5px !important;
+}
+.kulms-top-favbar.kulms-color-bold .kulms-top-favbar-item.cs-tab-danger {
+  background: color-mix(in srgb, var(--kulms-color-danger, #e85555) 14%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-bold .kulms-top-favbar-item.cs-tab-warning {
+  background: color-mix(in srgb, var(--kulms-color-warning, #d7aa57) 14%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-bold .kulms-top-favbar-item.cs-tab-success {
+  background: color-mix(in srgb, var(--kulms-color-success, #62b665) 14%, transparent) !important;
+}
+.kulms-top-favbar.kulms-color-bold .kulms-top-favbar-item.cs-tab-other {
+  background: color-mix(in srgb, var(--kulms-color-other, #777) 14%, transparent) !important;
+}
+
+.kulms-top-favbar-item .kulms-now-badge {
+  position: static !important;
+  margin: 0 !important;
+  padding: 1px 6px !important;
+  font-size: var(--kulms-favitem-badge-size) !important;
+}
+
+.kulms-top-favbar-item .kulms-notification-badge {
+  position: static !important;
+  margin: 0 !important;
+  width: var(--kulms-favitem-dot-size) !important;
+  height: var(--kulms-favitem-dot-size) !important;
+  flex: 0 0 auto !important;
+}
+
+/* === ピン留め上部バー: ドロップダウンモード === */
+.kulms-top-favbar.kulms-favbar-dropdown-mode .kulms-top-favbar-item {
+  cursor: pointer;
+}
+.kulms-top-favbar.kulms-favbar-dropdown-mode .kulms-top-favbar-item::after {
+  content: "";
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 4px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  opacity: 0.55;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.kulms-top-favbar.kulms-favbar-dropdown-mode .kulms-top-favbar-item.is-open::after {
+  transform: rotate(180deg);
+  opacity: 0.9;
+}
+.kulms-top-favbar.kulms-favbar-dropdown-mode .kulms-top-favbar-item.is-open {
+  background: rgba(0,0,0,0.06) !important;
+}
+
+.kulms-favbar-dropdown {
+  position: fixed;
+  z-index: 950;
+  background: #ffffff;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  padding: 6px 0;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+.kulms-favbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  color: #333;
+  text-decoration: none !important;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kulms-favbar-dropdown-item:hover {
+  background: rgba(0,0,0,0.06);
+  color: #1a73e8;
+}
+.kulms-favbar-dropdown-item > i {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+  opacity: 0.75;
+  font-size: 14px;
+}
+.kulms-favbar-dropdown-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kulms-favbar-dropdown-item.kulms-hidden-tool {
+  display: none !important;
+}
+
+.kulms-favbar-dropdown-other {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  margin-top: 4px;
+  border: 0;
+  border-top: 1px solid #eceef1;
+  background: transparent;
+  color: #666;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.kulms-favbar-dropdown-other:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  .kulms-favbar-dropdown {
+    background: #2a2d31;
+    border-color: #3d4147;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .kulms-favbar-dropdown-item {
+    color: #e6e6e6;
+  }
+  .kulms-favbar-dropdown-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #8ab4f8;
+  }
+  .kulms-favbar-dropdown-other {
+    color: #aaa;
+    border-top-color: #3d4147;
+  }
+  .kulms-favbar-dropdown-other:hover {
+    background: rgba(255,255,255,0.06);
+  }
+  .kulms-top-favbar.kulms-favbar-dropdown-mode .kulms-top-favbar-item.is-open {
+    background: rgba(255,255,255,0.08) !important;
+  }
+}
+
 } /* end @media (min-width: 771px) */
+
+@media (max-width: 770px) {
+  .kulms-top-favbar { display: none !important; }
+  body.kulms-has-top-favbar #portal-nav-sidebar,
+  body.kulms-has-top-favbar .portal-main-container { padding-top: 0 !important; }
+}

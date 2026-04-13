@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.9.5",
+  "version": "1.9.6",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://radian0523.github.io/kulms-extension/",
   "default_locale": "ja",
@@ -33,7 +33,8 @@
         "src/course-click.js",
         "src/tool-visibility.js",
         "src/textbooks.js",
-        "src/sidebar-resize.js"
+        "src/sidebar-resize.js",
+        "src/top-favbar.js"
       ],
       "run_at": "document_idle",
       "all_frames": true
