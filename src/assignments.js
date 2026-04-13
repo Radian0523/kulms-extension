@@ -1577,6 +1577,19 @@
       currentCardBody = body;
     }
 
+    function attachInfoToggle(labelLine, labelArea, descText) {
+      if (!descText) return;
+      var infoIcon = document.createElement("span");
+      infoIcon.className = "kulms-settings-info-icon";
+      infoIcon.textContent = "\u24D8";
+      var desc = document.createElement("div");
+      desc.className = "kulms-settings-desc";
+      desc.textContent = descText;
+      infoIcon.addEventListener("click", function () { desc.classList.toggle("open"); });
+      labelLine.appendChild(infoIcon);
+      labelArea.appendChild(desc);
+    }
+
     function addFeatureToggle(feat) {
       var row = document.createElement("div");
       row.className = "kulms-settings-row";
@@ -1588,21 +1601,8 @@
       var labelLine = document.createElement("div");
       labelLine.className = "kulms-settings-label-line";
       labelLine.appendChild(labelEl);
-      var descText = t(feat.descKey);
-      if (descText) {
-        var infoWrap = document.createElement("span");
-        infoWrap.className = "kulms-settings-info-wrap";
-        var infoIcon = document.createElement("span");
-        infoIcon.className = "kulms-settings-info-icon";
-        infoIcon.textContent = "\u24D8";
-        var tooltip = document.createElement("span");
-        tooltip.className = "kulms-settings-tooltip";
-        tooltip.textContent = descText;
-        infoWrap.appendChild(infoIcon);
-        infoWrap.appendChild(tooltip);
-        labelLine.appendChild(infoWrap);
-      }
       labelArea.appendChild(labelLine);
+      attachInfoToggle(labelLine, labelArea, t(feat.descKey));
       var toggle = document.createElement("label");
       toggle.className = "kulms-toggle";
       var input = document.createElement("input");
@@ -1633,20 +1633,8 @@
       var labelLine = document.createElement("div");
       labelLine.className = "kulms-settings-label-line";
       labelLine.appendChild(label);
-      if (descText) {
-        var infoWrap = document.createElement("span");
-        infoWrap.className = "kulms-settings-info-wrap";
-        var infoIcon = document.createElement("span");
-        infoIcon.className = "kulms-settings-info-icon";
-        infoIcon.textContent = "\u24D8";
-        var tooltip = document.createElement("span");
-        tooltip.className = "kulms-settings-tooltip";
-        tooltip.textContent = descText;
-        infoWrap.appendChild(infoIcon);
-        infoWrap.appendChild(tooltip);
-        labelLine.appendChild(infoWrap);
-      }
       labelArea.appendChild(labelLine);
+      attachInfoToggle(labelLine, labelArea, descText);
       var input = document.createElement("input");
       input.type = "number";
       input.min = String(min);
@@ -1678,20 +1666,8 @@
       var labelLine = document.createElement("div");
       labelLine.className = "kulms-settings-label-line";
       labelLine.appendChild(label);
-      if (descText) {
-        var infoWrap = document.createElement("span");
-        infoWrap.className = "kulms-settings-info-wrap";
-        var infoIcon = document.createElement("span");
-        infoIcon.className = "kulms-settings-info-icon";
-        infoIcon.textContent = "\u24D8";
-        var tooltip = document.createElement("span");
-        tooltip.className = "kulms-settings-tooltip";
-        tooltip.textContent = descText;
-        infoWrap.appendChild(infoIcon);
-        infoWrap.appendChild(tooltip);
-        labelLine.appendChild(infoWrap);
-      }
       labelArea.appendChild(labelLine);
+      attachInfoToggle(labelLine, labelArea, descText);
       var select = document.createElement("select");
       select.className = "kulms-settings-number";
       select.style.cssText = "width:auto !important;padding:4px 6px !important";
@@ -2012,7 +1988,7 @@
         "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-other { border-left: 4px solid var(--kulms-color-other) !important; }";
     }
 
-    style.textContent = common + modeCSS;
+    style.textContent = "@media (min-width: 771px) {" + common + modeCSS + "}";
     document.head.appendChild(style);
   }
 
@@ -2098,7 +2074,7 @@
         var siteId = match[1];
         if (newByCourse[siteId]) {
           var head = li.querySelector(".site-list-item-head") || li;
-          head.style.position = "relative";
+          if (window.innerWidth > 770) head.style.position = "relative";
           var badge = document.createElement("span");
           badge.className = "kulms-notification-badge";
           head.appendChild(badge);

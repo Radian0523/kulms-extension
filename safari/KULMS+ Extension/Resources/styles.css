@@ -1055,51 +1055,25 @@ body {
   gap: 4px !important;
 }
 
-.kulms-settings-info-wrap {
-  position: relative !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
 .kulms-settings-info-icon {
   font-size: 13px !important;
   color: #aaa !important;
-  cursor: help !important;
+  cursor: pointer !important;
 }
 
 .kulms-settings-info-icon:hover {
   color: #666 !important;
 }
 
-.kulms-settings-tooltip {
+.kulms-settings-desc {
   display: none !important;
-  position: absolute !important;
-  left: 50% !important;
-  bottom: calc(100% + 6px) !important;
-  transform: translateX(-50%) !important;
-  background: #333 !important;
-  color: #fff !important;
   font-size: 11px !important;
-  font-weight: 400 !important;
-  padding: 6px 10px !important;
-  border-radius: 6px !important;
-  width: 200px !important;
-  z-index: 10 !important;
-  pointer-events: none !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+  color: #888 !important;
+  line-height: 1.4 !important;
+  padding: 4px 0 2px !important;
 }
 
-.kulms-settings-tooltip::after {
-  content: "" !important;
-  position: absolute !important;
-  top: 100% !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  border: 5px solid transparent !important;
-  border-top-color: #333 !important;
-}
-
-.kulms-settings-info-wrap:hover .kulms-settings-tooltip {
+.kulms-settings-desc.open {
   display: block !important;
 }
 
@@ -1133,20 +1107,20 @@ table.resourcesList.kulms-tree-view th {
   border-top: none !important;
 }
 
-/* === サイドバー: コース行のクリック領域拡大 === */
+/* === サイドバー系スタイル（デスクトップのみ） === */
 
+@media (min-width: 771px) {
+
+/* コース行のクリック領域拡大 */
 #portal-nav-sidebar .site-list-item-head {
   cursor: pointer !important;
 }
 
-/* === サイドバー: ツール表示管理 === */
-
-/* 非表示ツール */
+/* ツール表示管理 */
 .kulms-hidden-tool {
   display: none !important;
 }
 
-/* その他トグル */
 .kulms-other-btn {
   color: #888 !important;
   font-size: 0.82em !important;
@@ -1159,7 +1133,6 @@ table.resourcesList.kulms-tree-view th {
   background-color: rgba(0, 0, 0, 0.04) !important;
 }
 
-/* ツール切り替えボタン (ホバーで表示) */
 .kulms-tool-toggle {
   position: absolute;
   right: 4px;
@@ -1189,13 +1162,11 @@ table.resourcesList.kulms-tree-view th {
   background: rgba(0, 0, 0, 0.15);
 }
 
-/* ボタンの親 a を relative に */
 .site-page-list .nav-item a {
   position: relative;
 }
 
-/* === サイドバーリサイズハンドル === */
-
+/* サイドバーリサイズハンドル */
 .kulms-sidebar-handle {
   position: absolute;
   top: 0;
@@ -1216,7 +1187,6 @@ table.resourcesList.kulms-tree-view th {
   background-color: rgba(70, 100, 160, 0.5);
 }
 
-/* ドラッグ中はテキスト選択を無効化 + カーソル固定 */
 body.kulms-sidebar-resizing {
   cursor: col-resize !important;
   user-select: none !important;
@@ -1231,7 +1201,7 @@ body.kulms-sidebar-resizing iframe {
   pointer-events: none !important;
 }
 
-/* === サイドバー科目タブ色分け（モード別） === */
+/* 科目タブ色分け（モード別） */
 
 /* Mode: border */
 #portal-nav-sidebar.kulms-color-border .cs-tab-danger { border-left: 4px solid var(--kulms-color-danger) !important; }
@@ -1275,8 +1245,7 @@ body.kulms-sidebar-resizing iframe {
   background: color-mix(in srgb, var(--kulms-color-other) 8%, transparent) !important;
 }
 
-/* === 新着課題通知バッジ === */
-
+/* 新着課題通知バッジ */
 .kulms-notification-badge {
   position: absolute !important;
   top: 4px !important;
@@ -1287,3 +1256,5 @@ body.kulms-sidebar-resizing iframe {
   border-radius: 50% !important;
   pointer-events: none !important;
 }
+
+} /* end @media (min-width: 771px) */

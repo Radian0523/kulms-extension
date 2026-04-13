@@ -40,13 +40,12 @@
         newCols += " " + parts.slice(2).join(" ");
       }
       styleEl.textContent =
+        "@media (min-width: 771px) {\n" +
         ".portal-container { grid-template-columns: " + newCols + " !important; }\n" +
-        "#portal-nav-sidebar { width: 100% !important; max-width: none !important; }\n" +
+        "#portal-nav-sidebar { width: 100% !important; max-width: none !important; position: relative !important; }\n" +
         "#portal-nav-sidebar .site-link-block { width: auto !important; flex: 1 !important; min-width: 0 !important; }\n" +
-        "#portal-nav-sidebar .sidebar-site-title { width: auto !important; }\n";
-    }
-
-    sidebar.style.position = "relative";
+        "#portal-nav-sidebar .sidebar-site-title { width: auto !important; }\n" +
+        "}\n";
     var handle = document.createElement("div");
     handle.className = "kulms-sidebar-handle";
     sidebar.appendChild(handle);
