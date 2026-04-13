@@ -246,7 +246,7 @@
           if (sub.graded) {
             status = "評定済";
             grade = sub.grade || "";
-          } else if (sub.submitted && !sub.draft) {
+          } else if (sub.userSubmission && !sub.draft) {
             status = "提出済";
           } else if (sub.status && sub.status !== "未開始") {
             status = sub.status;
@@ -821,6 +821,7 @@
     }
 
     var now = Date.now();
+    var autoCompleteEnabled = (window.__kulmsSettings || {}).autoComplete !== false;
 
     // 非表示（dismiss）された課題を除外
     var notDismissed = assignments.filter(function (a) {
@@ -830,7 +831,7 @@
     // 期限切れ + 完了済みの課題を除外（再提出アクティブは除外しない）
     var visible = notDismissed.filter(function (a) {
       if (isExplicitlyActive(a)) return true;
-      var isCompleted = isAssignmentChecked(a) || isSubmitted(a.status);
+      var isCompleted = isAssignmentChecked(a) || (autoCompleteEnabled && isSubmitted(a.status));
       var isClosed = a.closeTime && a.closeTime < now;
       return !(isCompleted && isClosed);
     });
@@ -842,7 +843,7 @@
     visible.forEach(function (a) {
       if (isExplicitlyActive(a)) {
         active.push(a);
-      } else if (isAssignmentChecked(a) || isSubmitted(a.status)) {
+      } else if (isAssignmentChecked(a) || (autoCompleteEnabled && isSubmitted(a.status))) {
         completed.push(a);
       } else {
         active.push(a);
@@ -1799,6 +1800,7 @@
     // 5. 課題更新 (Assignment Updates)
     // ========================================
     createSettingsSection(t("sectionAssignmentUpdates"), "sectionAssignmentUpdates");
+    addFeatureToggle({ key: "autoComplete", labelKey: "featAutoComplete", descKey: "featAutoCompleteDesc" });
     createNumberRow(
       t("settingsAutoRefresh"), t("settingsAutoRefreshDesc"),
       "fetchInterval", 120, 10, 3600
