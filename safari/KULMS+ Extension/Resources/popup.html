@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+:root {
+  --color-danger: #e85555;
+  --color-warning: #d7aa57;
+  --color-success: #62b665;
+  --color-other: #777777;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 360px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: #333;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a6fa5;
+}
+
+.version-link {
+  font-size: 11px;
+  font-weight: 400;
+  color: #888;
+  margin-left: 6px;
+  text-decoration: none;
+}
+.version-link:hover {
+  color: #4a6fa5;
+  text-decoration: underline;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cache-info {
+  font-size: 11px;
+  color: #999;
+}
+
+.refresh-btn {
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.refresh-btn:hover { background: rgba(0,0,0,0.08); }
+.refresh-btn:disabled { opacity: 0.4; cursor: default; }
+.refresh-btn.spinning { animation: popup-spin 0.8s linear infinite; }
+
+@keyframes popup-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  white-space: nowrap;
+  z-index: 10;
+  animation: toast-fade 3s ease forwards;
+}
+
+@keyframes toast-fade {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Content */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px;
+}
+
+/* Footer */
+.footer {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.footer a {
+  color: #4a6fa5;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.footer a:hover { text-decoration: underline; }
+
+/* Section */
+.section { margin-bottom: 6px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 5px;
+  margin-bottom: 4px;
+}
+
+.section-overdue { border-left: 5px solid #b71c1c; background: #e8b0b0; color: #5c0e0e; }
+.section-danger { border-left: 5px solid var(--color-danger); background: #f1cdcd; color: #8b2020; }
+.section-warning { border-left: 5px solid var(--color-warning); background: #e2d4bf; color: #6b4f1a; }
+.section-success { border-left: 5px solid var(--color-success); background: #cce6cf; color: #1e5e20; }
+.section-other { border-left: 5px solid var(--color-other); background: #e0e0e0; color: #444; }
+.section-checked { border-left: 5px solid #6582ff; background: #c6d1fc; color: #2a3d8f; }
+
+.section-toggle {
+  font-size: 9px;
+  transition: transform 0.2s ease;
+}
+
+.section-toggle.collapsed { transform: rotate(-90deg); }
+
+.section-count { font-weight: 400; opacity: 0.7; }
+
+.section-items { display: block; }
+.section-items.collapsed { display: none; }
+
+/* Card */
+.card {
+  background: #fff;
+  border: 2px solid #777;
+  border-radius: 8px;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  transition: box-shadow 0.15s;
+}
+
+.card:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+
+.card.urgency-danger,
+.card.urgency-overdue { border-color: var(--color-danger); }
+.card.urgency-warning { border-color: var(--color-warning); }
+.card.urgency-success { border-color: var(--color-success); }
+.card.urgency-other { border-color: var(--color-other); }
+.card.completed { border-color: #6582ff; opacity: 0.7; }
+
+/* Badge row */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.course-pill {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-pill.urgency-danger,
+.course-pill.urgency-overdue { background: var(--color-danger); }
+.course-pill.urgency-warning { background: var(--color-warning); }
+.course-pill.urgency-success { background: var(--color-success); }
+.course-pill.urgency-other { background: var(--color-other); }
+
+.badge-quiz {
+  background: #f3e5f5;
+  color: #7b1fa2;
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.badge-resubmit {
+  padding: 1px 6px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 600;
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Card name */
+.card-name {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.card-name a {
+  color: #1565c0;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.card-name a:hover { text-decoration: underline; }
+
+/* Card meta */
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #999;
+}
+
+.time-remain {
+  font-weight: 700;
+  font-size: 11px;
+  color: #333;
+}
+
+.time-remain.overdue { color: #e85555; }
+
+/* Empty state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  gap: 8px;
+}
+
+.empty-icon { font-size: 32px; }
+.empty-text { font-size: 13px; color: #999; text-align: center; line-height: 1.5; }
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  body { background: #1e1e1e; color: #e0e0e0; }
+  .header { background: #2a2a2a; border-color: #444; }
+  .logo { color: #7ba3d8; }
+  .version-link { color: #888; }
+  .version-link:hover { color: #7ba3d8; }
+  .cache-info { color: #777; }
+  .footer { background: #2a2a2a; border-color: #444; }
+  .footer a { color: #7ba3d8; }
+  .card { background: #2a2a2a; }
+  .card-name a { color: #64b5f6; }
+  .card-meta { color: #777; }
+  .time-remain { color: #e0e0e0; }
+  .refresh-btn { color: #aaa; }
+  .refresh-btn:hover { background: rgba(255,255,255,0.1); }
+  .toast { background: #555; }
+  .empty-text { color: #777; }
+  .section-overdue { background: #4a1a1a; color: #f0a0a0; }
+  .section-danger { background: #4a2020; color: #f0a0a0; }
+  .section-warning { background: #4a3a1a; color: #e0c080; }
+  .section-success { background: #1a3a1a; color: #90d090; }
+  .section-other { background: #3a3a3a; color: #bbb; }
+  .section-checked { background: #2a2a5a; color: #a0b0f0; }
+}
+</style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">
+      <span id="header-title">KULMS+</span>
+      <a id="header-version" class="version-link" href="https://radian0523.github.io/kulms-extension/#changelog" target="_blank" rel="noopener noreferrer"></a>
+    </span>
+    <div class="header-right">
+      <span id="cache-info" class="cache-info"></span>
+      <button id="refresh-btn" class="refresh-btn" title="更新">&#x1F504;</button>
+    </div>
+  </div>
+  <div id="content" class="content"></div>
+  <div class="footer">
+    <a href="#" id="open-lms">LMS を開く</a>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

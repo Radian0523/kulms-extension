@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # 共通除外パターン
-EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*" "hot-reload.sh" "safari/*" "docs/*" "gas/*" "*.md")
+EXCLUDE=(-x ".git/*" ".DS_Store" "*.zip" ".claude/*" "build.sh" ".gitignore" ".github/*" "hot-reload.sh" "safari/*" "docs/*" "gas/*" "*.md" "icons/icon1024.png")
 
 build_chrome() {
   local out="kulms-extension-chrome.zip"
@@ -46,11 +46,13 @@ sync_safari() {
   fi
 
   # 拡張機能リソースを Safari プロジェクトに同期
-  local resources=(manifest.json background.js styles.css src icons _locales)
+  local resources=(manifest.json background.js popup.html popup.js styles.css src icons _locales)
   for item in "${resources[@]}"; do
     rm -rf "$dest/$item"
     cp -R "$item" "$dest/$item"
   done
+  # icon1024.png は AppIcon 生成用ソースのため Safari バンドルには不要
+  rm -f "$dest/icons/icon1024.png"
   echo "Synced resources to $dest"
 }
 

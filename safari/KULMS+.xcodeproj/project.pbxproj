@@ -186,6 +186,7 @@
 				C03B95C52F8A9C22004A4956 /* Sources */,
 				C03B95C62F8A9C22004A4956 /* Frameworks */,
 				C03B95C72F8A9C22004A4956 /* Resources */,
+				C03BA1002F8A9C22004A4956 /* Sync Web Extension Resources */,
 			);
 			buildRules = (
 			);
@@ -264,6 +265,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C03BA1002F8A9C22004A4956 /* Sync Web Extension Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Sync Web Extension Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Auto-sync all files from Resources/ into the appex bundle\n# This ensures files added to Resources/ are automatically included without editing pbxproj\nset -euo pipefail\nSRC=\"${SRCROOT}/KULMS+ Extension/Resources\"\nDEST=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nif [ -d \"${SRC}\" ]; then\n  mkdir -p \"${DEST}\"\n  rsync -a --exclude='.DS_Store' \"${SRC}/\" \"${DEST}/\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C03B95AA2F8A9C21004A4956 /* Sources */ = {
@@ -438,6 +461,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "KULMS+ Extension/Info.plist";
@@ -472,6 +496,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "KULMS+ Extension/Info.plist";
