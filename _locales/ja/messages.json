@@ -111,6 +111,9 @@
   "fetchError": {
     "message": "課題の取得に失敗しました"
   },
+  "loggedOutError": {
+    "message": "ログアウト状態のため課題を取得できませんでした。LMS にログインしてください。"
+  },
   "noCourses": {
     "message": "登録コースが見つかりませんでした"
   },

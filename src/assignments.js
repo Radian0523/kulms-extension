@@ -20,10 +20,43 @@
   let memos = [];
   let lastAssignments = [];
 
+  // --- ログイン状態判定 ---
+
+  // Sakai はログイン済みページの <script> 内に "loggedIn": true を埋め込むため、
+  // ページロード直後の静的チェックとして利用する (Comfortable PandA 方式)。
+  function isLoggedInDOM() {
+    var scripts = document.getElementsByTagName("script");
+    for (var i = 0; i < scripts.length; i++) {
+      if (scripts[i].textContent &&
+          scripts[i].textContent.indexOf('"loggedIn": true') !== -1) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ログアウト検知用のカスタムエラー。
+  // sakaiGet → fetchAllAssignments → loadAssignments まで伝播させ、
+  // loadAssignments の catch で saveCache をスキップしてキャッシュを保護する。
+  function LoggedOutError() {
+    var err = new Error("LOGGED_OUT");
+    err.loggedOut = true;
+    return err;
+  }
+
   // --- Sakai Direct API ヘルパー ---
 
   async function sakaiGet(path) {
     const res = await fetch(BASE_URL + path, { credentials: "include" });
+    // ログアウト検知: /portal/xlogin などにリダイレクトされたか、
+    // JSON 以外 (ログインページの HTML) が返ってきた場合
+    if (res.redirected && /\/portal\/(x?login|relogin|logout)/.test(res.url)) {
+      throw LoggedOutError();
+    }
+    const ct = res.headers.get("content-type") || "";
+    if (ct && ct.indexOf("json") === -1) {
+      throw LoggedOutError();
+    }
     if (!res.ok) {
       throw new Error(`API ${path} returned ${res.status}`);
     }
@@ -111,6 +144,8 @@
         return courses;
       }
     } catch (e) {
+      // ログアウトエラーは上位に伝播 (portal HTML tier もログインページを返すため無意味)
+      if (e && e.loggedOut) throw e;
       console.warn("[KULMS] Sakai API failed:", e.message);
     }
 
@@ -269,6 +304,8 @@
         };
       });
     } catch (e) {
+      // ログアウトエラーは上位に伝播させてキャッシュ保護を働かせる
+      if (e && e.loggedOut) throw e;
       console.warn(
         "[KULMS] assignment fetch failed for",
         course.name,
@@ -312,6 +349,8 @@
         };
       });
     } catch (e) {
+      // ログアウトエラーは上位に伝播
+      if (e && e.loggedOut) throw e;
       return [];
     }
   }
@@ -339,6 +378,13 @@
           ];
         })
       );
+      // ログアウトエラーが検出されたら即座に伝播させ、空キャッシュ上書きを防ぐ
+      for (var ri = 0; ri < results.length; ri++) {
+        var r = results[ri];
+        if (r.status === "rejected" && r.reason && r.reason.loggedOut) {
+          throw r.reason;
+        }
+      }
       results.forEach((r) => {
         if (r.status === "fulfilled") {
           allAssignments.push(...r.value);
@@ -404,6 +450,15 @@
         } else {
           resolve(null);
         }
+      });
+    });
+  }
+
+  // TTL を無視してキャッシュを読む (ログアウト時の表示用)
+  async function loadStaleCache() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(CACHE_KEY, (result) => {
+        resolve(result[CACHE_KEY] || null);
       });
     });
   }
@@ -2184,6 +2239,12 @@
         }
       }
 
+      // 初期ロード時のログイン状態チェック (Comfortable PandA 方式)
+      // ページ DOM の <script> に "loggedIn": true が埋め込まれていなければログアウト扱い
+      if (!isLoggedInDOM()) {
+        throw LoggedOutError();
+      }
+
       showLoading();
       updateCacheInfo(null);
 
@@ -2197,8 +2258,22 @@
       colorSidebarTabs(assignments);
       checkNotificationBadges(assignments);
     } catch (e) {
-      console.error("[KULMS Extension] assignment fetch error:", e);
-      showError(e.message || t("fetchError"));
+      // ログアウトエラーは特別扱い: saveCache をスキップし、既存キャッシュを再表示する
+      if (e && e.loggedOut) {
+        console.warn("[KULMS Extension] session expired or logged out; preserving existing cache");
+        var stale = await loadStaleCache();
+        if (stale && stale.assignments) {
+          updateCacheInfo(stale.timestamp);
+          renderAssignments(stale.assignments);
+          colorSidebarTabs(stale.assignments);
+          checkNotificationBadges(stale.assignments);
+        } else {
+          showError(t("loggedOutError"));
+        }
+      } else {
+        console.error("[KULMS Extension] assignment fetch error:", e);
+        showError(e.message || t("fetchError"));
+      }
     } finally {
       isLoading = false;
     }

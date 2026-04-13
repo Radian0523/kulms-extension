@@ -111,6 +111,9 @@
   "fetchError": {
     "message": "Failed to fetch assignments"
   },
+  "loggedOutError": {
+    "message": "Cannot fetch assignments while logged out. Please sign in to the LMS."
+  },
   "noCourses": {
     "message": "No enrolled courses found"
   },
