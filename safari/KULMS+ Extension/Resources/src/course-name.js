@@ -115,16 +115,27 @@
   // JavaScript getDay(): 0=日, 1=月, ..., 6=土
   var JS_DAY_MAP = { 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6, 日: 0 };
 
-  function getCurrentPeriod() {
+  // 授業中は NOW、休み時間は次の時限に NEXT、1限は開始15分前から NEXT、5限後は非表示
+  function getActivePeriod() {
     var now = new Date();
     var day = now.getDay();
     var mins = now.getHours() * 60 + now.getMinutes();
+
+    var firstStart = PERIOD_TIMES[0][0] * 60 + PERIOD_TIMES[0][1];
+    var lastEnd = PERIOD_TIMES[PERIOD_TIMES.length - 1][2] * 60 + PERIOD_TIMES[PERIOD_TIMES.length - 1][3];
+
+    // 1限開始15分前より早い、または5限後は対象外
+    if (mins < firstStart - 15 || mins >= lastEnd) return null;
+
     for (var i = 0; i < PERIOD_TIMES.length; i++) {
       var p = PERIOD_TIMES[i];
       var start = p[0] * 60 + p[1];
       var end = p[2] * 60 + p[3];
       if (mins >= start && mins < end) {
-        return { day: day, period: i + 1 };
+        return { day: day, period: i + 1, type: "now" };
+      }
+      if (mins < start) {
+        return { day: day, period: i + 1, type: "next" };
       }
     }
     return null;
@@ -134,30 +145,40 @@
 
   function updateNowBadges() {
     updatingNowBadges = true;
-    var current = (window.innerWidth > 770) ? getCurrentPeriod() : null;
+    var active = (window.innerWidth > 770) ? getActivePeriod() : null;
 
     document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
       var link = li.querySelector('a[href*="/portal/site"]');
       if (!link || !isCourseLink(link)) return;
 
       var existing = li.querySelector(".kulms-now-badge");
-      var shouldShow = false;
+      var targetType = null;
 
-      if (current) {
+      if (active) {
         var m = link.textContent.match(SORT_RE);
-        if (m) {
-          shouldShow = (JS_DAY_MAP[m[1]] === current.day && toHalfWidth(m[2]) === current.period);
+        if (m && JS_DAY_MAP[m[1]] === active.day && toHalfWidth(m[2]) === active.period) {
+          targetType = active.type;
         }
       }
 
-      if (shouldShow && !existing) {
+      var currentType = existing
+        ? (existing.classList.contains("is-next") ? "next" : "now")
+        : null;
+
+      if (targetType === currentType) return;
+
+      if (existing) existing.remove();
+      if (targetType) {
         var badge = document.createElement("span");
         badge.className = "kulms-now-badge";
-        badge.textContent = "NOW";
+        if (targetType === "next") {
+          badge.classList.add("is-next");
+          badge.textContent = "NEXT";
+        } else {
+          badge.textContent = "NOW";
+        }
         var titleEl = li.querySelector(".sidebar-site-title") || link;
         titleEl.appendChild(badge);
-      } else if (!shouldShow && existing) {
-        existing.remove();
       }
     });
     updatingNowBadges = false;
