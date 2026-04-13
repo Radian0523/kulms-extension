@@ -347,8 +347,24 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.9.2</span>
+      <span class="release-version">v1.9.3</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li>教科書取得を site.id 由来の <code>lectureCode</code> ベースに変更（<a href="https://github.com/Radian0523/kulms-extension/pull/9" target="_blank" rel="noopener">#9</a>, Thanks <a href="https://github.com/AttoCat" target="_blank" rel="noopener">@AttoCat</a>!）
+        <ul>
+          <li>Sakai API の <code>site.id</code> から <code>lectureCode</code> を抽出して公開シラバス検索に利用</li>
+          <li>同名科目の誤認識問題を解決</li>
+          <li><code>lectureCode</code> が取れない場合は従来の科目名検索にフォールバック</li>
+          <li>教科書キャッシュキーを <code>kulms-textbooks-v2</code> に更新</li>
+        </ul>
+      </li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.9.2</span>
     </div>
     <ul>
       <li>パネル/ポップアップのヘッダーに現在のバージョンを表示
@@ -410,17 +426,6 @@ a:hover{text-decoration:underline}
     <ul>
       <li>提出状態の自動判定をオン/オフできる設定を追加（設定 → 課題更新セクション）</li>
       <li>個別 API の提出判定で <code>submitted</code> ではなく <code>userSubmission</code> を参照するよう修正</li>
-    </ul>
-  </article>
-
-  <article class="release">
-    <div class="release-head">
-      <span class="release-version">v1.8.0</span>
-    </div>
-    <ul>
-      <li>ツールバーアイコンクリックで課題一覧ポップアップを表示</li>
-      <li>緊急度別セクションでコンパクト表示、ダークモード対応</li>
-      <li>完了済みセクションはデフォルトで折りたたみ</li>
     </ul>
   </article>
 

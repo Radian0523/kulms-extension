@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.9.3
+
+- 教科書取得を site.id 由来の `lectureCode` ベースに変更 (#9, Thanks @AttoCat!)
+  - Sakai API の各 `site.id` (例: `2026-888-H352-001`) から `lectureCode` (`H352001`) を抽出
+  - `https://www.k.kyoto-u.ac.jp/external/open_syllabus/search` に `lectureCode` を渡し、検索結果の先頭を採用
+  - `lectureCode` が取得できない場合は従来の科目名検索にフォールバック
+  - 同名科目の誤認識問題 (#7) を解決
+  - 教科書キャッシュキーを `kulms-textbooks-v2` に更新（既存キャッシュとの衝突回避）
+  - Chrome 版 / Safari 版の両方を同期
+
 ## v1.9.2
 
 - パネル/ポップアップのヘッダーに現在のバージョンを表示
