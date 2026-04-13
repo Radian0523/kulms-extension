@@ -101,14 +101,88 @@
     }, 300);
   }
 
+  // --- 授業中 NOW バッジ ---
+
+  // 京大の時限: [開始時, 開始分, 終了時, 終了分]
+  var PERIOD_TIMES = [
+    [8, 45, 10, 15],   // 1限
+    [10, 30, 12, 0],   // 2限
+    [13, 15, 14, 45],  // 3限
+    [15, 0, 16, 30],   // 4限
+    [16, 45, 18, 15],  // 5限
+  ];
+
+  // JavaScript getDay(): 0=日, 1=月, ..., 6=土
+  var JS_DAY_MAP = { 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6, 日: 0 };
+
+  function getCurrentPeriod() {
+    var now = new Date();
+    var day = now.getDay();
+    var mins = now.getHours() * 60 + now.getMinutes();
+    for (var i = 0; i < PERIOD_TIMES.length; i++) {
+      var p = PERIOD_TIMES[i];
+      var start = p[0] * 60 + p[1];
+      var end = p[2] * 60 + p[3];
+      if (mins >= start && mins < end) {
+        return { day: day, period: i + 1 };
+      }
+    }
+    return null;
+  }
+
+  var updatingNowBadges = false;
+
+  function updateNowBadges() {
+    updatingNowBadges = true;
+    var current = (window.innerWidth > 770) ? getCurrentPeriod() : null;
+
+    document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
+      var link = li.querySelector('a[href*="/portal/site"]');
+      if (!link || !isCourseLink(link)) return;
+
+      var existing = li.querySelector(".kulms-now-badge");
+      var shouldShow = false;
+
+      if (current) {
+        var m = link.textContent.match(SORT_RE);
+        if (m) {
+          shouldShow = (JS_DAY_MAP[m[1]] === current.day && toHalfWidth(m[2]) === current.period);
+        }
+      }
+
+      if (shouldShow && !existing) {
+        var badge = document.createElement("span");
+        badge.className = "kulms-now-badge";
+        badge.textContent = "NOW";
+        var titleEl = li.querySelector(".sidebar-site-title") || link;
+        titleEl.appendChild(badge);
+      } else if (!shouldShow && existing) {
+        existing.remove();
+      }
+    });
+    updatingNowBadges = false;
+  }
+
+  function startNowBadgeUpdater() {
+    updateNowBadges();
+    setInterval(updateNowBadges, 60000);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) updateNowBadges();
+    });
+  }
+
+  // --- 初期化 ---
+
   window.__kulmsSettingsReady.then(function (s) {
     if (s.courseNameCleanup !== false) cleanAll();
     if (s.pinSort !== false) setTimeout(sortPinned, 600);
+    if (s.currentPeriodHighlight) setTimeout(startNowBadgeUpdater, 800);
 
     new MutationObserver(function () {
-      if (sorting) return;
+      if (sorting || updatingNowBadges) return;
       if (s.courseNameCleanup !== false) cleanAll();
       if (s.pinSort !== false) scheduleSortPinned();
+      if (s.currentPeriodHighlight) updateNowBadges();
     }).observe(document.body, { childList: true, subtree: true });
   });
 })();

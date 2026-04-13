@@ -212,6 +212,12 @@
   "featSidebarStyleDesc": {
     "message": "選択中科目の青背景を除去し左ボーダー表示に変更"
   },
+  "featCurrentPeriod": {
+    "message": "授業中ハイライト"
+  },
+  "featCurrentPeriodDesc": {
+    "message": "時間割に基づき現在の授業の科目にNOWバッジを表示"
+  },
   "featMemos": {
     "message": "メモ機能"
   },

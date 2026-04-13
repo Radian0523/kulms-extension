@@ -212,6 +212,12 @@
   "featSidebarStyleDesc": {
     "message": "Replace blue selection background with left border"
   },
+  "featCurrentPeriod": {
+    "message": "Current Class Highlight"
+  },
+  "featCurrentPeriodDesc": {
+    "message": "Show NOW badge on the current timetable class"
+  },
   "featMemos": {
     "message": "Memos"
   },

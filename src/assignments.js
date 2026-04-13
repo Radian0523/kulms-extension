@@ -1513,6 +1513,7 @@
       { key: "toolVisibility", labelKey: "featToolVisibility", descKey: "featToolVisibilityDesc" },
       { key: "sidebarResize", labelKey: "featSidebarResize", descKey: "featSidebarResizeDesc" },
       { key: "sidebarStyle", labelKey: "featSidebarStyle", descKey: "featSidebarStyleDesc" },
+      { key: "currentPeriodHighlight", labelKey: "featCurrentPeriod", descKey: "featCurrentPeriodDesc" },
     ]},
     { sectionKey: "sectionCoursePage", features: [
       { key: "folderExpand", labelKey: "featFolderExpand", descKey: "featFolderExpandDesc" },

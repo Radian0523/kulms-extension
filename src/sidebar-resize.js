@@ -46,6 +46,8 @@
         "#portal-nav-sidebar .site-link-block { width: auto !important; flex: 1 !important; min-width: 0 !important; }\n" +
         "#portal-nav-sidebar .sidebar-site-title { width: auto !important; }\n" +
         "}\n";
+    }
+
     var handle = document.createElement("div");
     handle.className = "kulms-sidebar-handle";
     sidebar.appendChild(handle);

@@ -1257,4 +1257,25 @@ body.kulms-sidebar-resizing iframe {
   pointer-events: none !important;
 }
 
+/* 授業中NOWバッジ */
+.kulms-now-badge {
+  display: inline-block !important;
+  margin-left: 5px !important;
+  padding: 0 5px !important;
+  border-radius: 8px !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  background: #e53935 !important;
+  color: #fff !important;
+  line-height: 16px !important;
+  vertical-align: middle !important;
+  letter-spacing: 0.5px !important;
+  animation: kulms-now-pulse 2s ease-in-out infinite !important;
+}
+
+@keyframes kulms-now-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 } /* end @media (min-width: 771px) */
