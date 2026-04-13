@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.9.2
+
+- パネル/ポップアップのヘッダーに現在のバージョンを表示
+  - `KULMS+ v1.9.2` のように薄い色で控えめに表示
+  - クリックで GitHub Pages の更新履歴セクションを新規タブで開く
+  - `chrome.runtime.getManifest().version` から動的取得（manifest 更新だけで反映）
+- GitHub Pages (`docs/index.html`) に「更新履歴」セクションを追加
+  - 最新バージョンに「最新」バッジ、最近 6 バージョンを表示
+  - 末尾に `CHANGELOG.md` への誘導リンク
+  - ダークモード対応のカード風レイアウト
+
 ## v1.9.1
 
 - 授業中ハイライトに NEXT バッジを追加
