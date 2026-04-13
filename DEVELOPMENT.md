@@ -56,7 +56,7 @@ src/
 │   └── サイドバー連携 (色分け, バッジ, スタイル注入)
 ├── submit-detect.js     # IIFE: 提出ボタン検出
 ├── tree-view.js         # IIFE: 授業資料ツリービュー
-├── course-name.js       # IIFE: 科目名整理 + ピン留めソート
+├── course-name.js       # IIFE: 科目名整理 + ピン留めソート + 授業中NOWバッジ
 ├── course-click.js      # IIFE: コース行クリック
 ├── tool-visibility.js   # IIFE: ツール表示管理
 ├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携)
@@ -295,7 +295,7 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 |------------|------|
 | 外観 | 言語 |
 | パネル | 教科書パネル、メモ機能、パネル押し出し |
-| サイドバー | タブ色分け、色分けスタイル (border/background/bold)、新着バッジ、科目名整理、ピンソート、行クリック、ツール管理、リサイズ、スタイル |
+| サイドバー | タブ色分け、色分けスタイル (border/background/bold)、新着バッジ、科目名整理、ピンソート、授業中ハイライト、行クリック、ツール管理、リサイズ、スタイル |
 | コースページ | ツリービュー |
 | 課題更新 | 自動完了判定、自動更新間隔 |
 | 緊急度カスタマイズ | 閾値（時間/日）、カラーピッカー |
