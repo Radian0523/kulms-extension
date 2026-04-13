@@ -331,6 +331,12 @@
       var data = await sakaiGet("/direct/sam_pub/context/" + course.id + ".json");
       var list = data.sam_pub_collection || [];
       var quizUrl = toolMap[course.id] || BASE_URL + "/portal/site/" + course.id;
+      // 未公開クイズを除外: startDate が未来のものはまだ公開されていない (Comfortable Sakai 同様)
+      var now = Date.now();
+      list = list.filter(function (q) {
+        var startTs = extractTimestamp(q.startDate);
+        return !startTs || startTs <= now;
+      });
       return list.map(function (q) {
         var deadline = extractTimestamp(q.dueDate);
         var closeTime = extractTimestamp(q.retractDate) || deadline;
