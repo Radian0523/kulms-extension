@@ -66,8 +66,11 @@
     });
   }
 
-  detectSubmit();
-  new MutationObserver(function () {
+  window.__kulmsSettingsReady.then(function () {
+    if (window.__kulmsSettings && window.__kulmsSettings.autoComplete === false) return;
     detectSubmit();
-  }).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(function () {
+      detectSubmit();
+    }).observe(document.body, { childList: true, subtree: true });
+  });
 })();

@@ -231,6 +231,13 @@
     "message": "Show dummy assignments to preview UI (dev)"
   },
 
+  "featAutoComplete": {
+    "message": "Auto-complete Detection"
+  },
+  "featAutoCompleteDesc": {
+    "message": "Auto-classify submitted/graded as completed. When OFF, only manual checks apply"
+  },
+
   "settingsAutoRefresh": {
     "message": "Auto-refresh Interval"
   },

@@ -231,6 +231,13 @@
     "message": "ダミー課題を表示してUIを確認（開発用）"
   },
 
+  "featAutoComplete": {
+    "message": "提出状態の自動判定"
+  },
+  "featAutoCompleteDesc": {
+    "message": "提出済み・評定済みの課題を自動で完了済みに分類。OFFにすると手動チェックのみで管理"
+  },
+
   "settingsAutoRefresh": {
     "message": "自動更新間隔"
   },
