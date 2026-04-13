@@ -31,7 +31,7 @@ function normalizeForMatch(str) {
 }
 
 // 教員名比較用の正規化（空白/全角空白/NBSP をすべて除去）
-// KULASIS は "久門 尚史"、Sakai は "久門尚史" と表記揺れがあるため
+// KULASIS は "京大 太郎"、Sakai は "京大太郎" と表記揺れがあるため
 function normalizeTeacherName(str) {
   return String(str || "")
     .replace(/[\s\u3000\u00A0]+/g, "")
