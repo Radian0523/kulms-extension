@@ -81,7 +81,7 @@
 
   async function loadCache() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(TEXTBOOK_CACHE_KEY, (result) => {
+      window.__kulmsSafeStorage.get(TEXTBOOK_CACHE_KEY, (result) => {
         const cached = result[TEXTBOOK_CACHE_KEY];
         if (cached && cached.data) {
           resolve(cached.data);
@@ -93,7 +93,7 @@
   }
 
   function saveCache(data) {
-    chrome.storage.local.set({
+    window.__kulmsSafeStorage.set({
       [TEXTBOOK_CACHE_KEY]: { timestamp: Date.now(), data: data },
     });
   }
@@ -102,21 +102,31 @@
 
   function fetchTextbooksForCourse(course) {
     return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        {
-          action: "fetchTextbooks",
-          courseName: course.name,
-          lectureCode: course.lectureCode || "",
-          siteId: course.id || "",
-        },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            resolve([]);
-            return;
+      if (!window.__kulmsAlive()) {
+        window.__kulmsShowReloadBanner();
+        resolve({ books: [], syllabusUrl: "" });
+        return;
+      }
+      try {
+        chrome.runtime.sendMessage(
+          {
+            action: "fetchTextbooks",
+            courseName: course.name,
+            lectureCode: course.lectureCode || "",
+            siteId: course.id || "",
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              resolve({ books: [], syllabusUrl: "" });
+              return;
+            }
+            resolve(response ? { books: response.books || [], syllabusUrl: response.syllabusUrl || "" } : { books: [], syllabusUrl: "" });
           }
-          resolve(response ? { books: response.books || [], syllabusUrl: response.syllabusUrl || "" } : { books: [], syllabusUrl: "" });
-        }
-      );
+        );
+      } catch (e) {
+        window.__kulmsShowReloadBanner();
+        resolve({ books: [], syllabusUrl: "" });
+      }
     });
   }
 

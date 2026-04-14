@@ -34,14 +34,14 @@
       sessionStorage.setItem("kulms-submitted", Date.now().toString());
 
       // 課題名を取得してチェック状態に保存
-      chrome.storage.local.get(CHECKED_KEY, function (result) {
+      window.__kulmsSafeStorage.get(CHECKED_KEY, function (result) {
         var checked = result[CHECKED_KEY] || {};
 
         // entityIdを使う（assignmentIdInputの値がentityIdに相当）
         var entityId = assignmentIdInput ? assignmentIdInput.value : "";
         if (entityId && entityId !== "$assignmentReference") {
           checked[entityId] = Date.now();
-          chrome.storage.local.set({ [CHECKED_KEY]: checked });
+          window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checked });
           return;
         }
 
@@ -60,7 +60,7 @@
         if (titleEl) {
           var key = courseId + ":" + titleEl.textContent.trim();
           checked[key] = Date.now();
-          chrome.storage.local.set({ [CHECKED_KEY]: checked });
+          window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checked });
         }
       });
     });

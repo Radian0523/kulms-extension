@@ -120,17 +120,22 @@
     refreshBtn.classList.add("spinning");
     refreshBtn.disabled = true;
 
-    chrome.tabs.query({ url: LMS_PATTERN }, function (tabs) {
-      if (!tabs || tabs.length === 0) {
-        refreshBtn.classList.remove("spinning");
-        refreshBtn.disabled = false;
-        showRefreshToast(t("popupNoLmsTab"));
-        return;
-      }
-      // アクティブなタブを優先
-      tabs.sort(function (a, b) { return (b.active ? 1 : 0) - (a.active ? 1 : 0); });
-      trySendRefresh(tabs, 0, refreshBtn);
-    });
+    try {
+      chrome.tabs.query({ url: LMS_PATTERN }, function (tabs) {
+        if (!tabs || tabs.length === 0) {
+          refreshBtn.classList.remove("spinning");
+          refreshBtn.disabled = false;
+          showRefreshToast(t("popupNoLmsTab"));
+          return;
+        }
+        // アクティブなタブを優先
+        tabs.sort(function (a, b) { return (b.active ? 1 : 0) - (a.active ? 1 : 0); });
+        trySendRefresh(tabs, 0, refreshBtn);
+      });
+    } catch (e) {
+      refreshBtn.classList.remove("spinning");
+      refreshBtn.disabled = false;
+    }
   }
 
   function trySendRefresh(tabs, index, refreshBtn) {
@@ -243,7 +248,7 @@
       a.textContent = assignment.name;
       a.addEventListener("click", function (e) {
         e.preventDefault();
-        chrome.tabs.create({ url: assignment.url });
+        try { chrome.tabs.create({ url: assignment.url }); } catch (ex) { /* context invalidated */ }
       });
       nameDiv.appendChild(a);
     } else {
@@ -391,61 +396,71 @@
   }
 
   function reloadFromStorage() {
-    chrome.storage.local.get(
-      [CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
-      function (result) {
-        render(result[CACHE_KEY] || null, result[CHECKED_KEY] || {}, result[DISMISSED_KEY] || {});
-      }
-    );
+    try {
+      chrome.storage.local.get(
+        [CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
+        function (result) {
+          render(result[CACHE_KEY] || null, result[CHECKED_KEY] || {}, result[DISMISSED_KEY] || {});
+        }
+      );
+    } catch (e) { /* extension context invalidated */ }
   }
 
   // --- Init ---
 
   document.addEventListener("DOMContentLoaded", function () {
-    chrome.storage.local.get(
-      [SETTINGS_KEY, CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
-      function (result) {
-        var DEFAULTS = {
-          dangerHours: 24, warningDays: 5, successDays: 14,
-          colorDanger: "#e85555", colorWarning: "#d7aa57",
-          colorSuccess: "#62b665", colorOther: "#777777",
-          language: "auto"
-        };
-        settings = Object.assign({}, DEFAULTS, result[SETTINGS_KEY] || {});
+    try {
+      chrome.storage.local.get(
+        [SETTINGS_KEY, CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
+        function (result) {
+          var DEFAULTS = {
+            dangerHours: 24, warningDays: 5, successDays: 14,
+            colorDanger: "#e85555", colorWarning: "#d7aa57",
+            colorSuccess: "#62b665", colorOther: "#777777",
+            language: "auto"
+          };
+          settings = Object.assign({}, DEFAULTS, result[SETTINGS_KEY] || {});
 
-        // Apply custom urgency colors
-        var root = document.documentElement;
-        root.style.setProperty("--color-danger", settings.colorDanger);
-        root.style.setProperty("--color-warning", settings.colorWarning);
-        root.style.setProperty("--color-success", settings.colorSuccess);
-        root.style.setProperty("--color-other", settings.colorOther);
+          // Apply custom urgency colors
+          var root = document.documentElement;
+          root.style.setProperty("--color-danger", settings.colorDanger);
+          root.style.setProperty("--color-warning", settings.colorWarning);
+          root.style.setProperty("--color-success", settings.colorSuccess);
+          root.style.setProperty("--color-other", settings.colorOther);
 
-        loadOverrideMessages(settings.language).then(function () {
-          document.getElementById("header-title").textContent = t("panelTitle");
-          document.getElementById("header-version").textContent = "v" + chrome.runtime.getManifest().version;
-          document.getElementById("open-lms").textContent = t("popupOpenLms");
-          document.getElementById("refresh-btn").title = t("refresh");
+          loadOverrideMessages(settings.language).then(function () {
+            document.getElementById("header-title").textContent = t("panelTitle");
+            try {
+              document.getElementById("header-version").textContent = "v" + chrome.runtime.getManifest().version;
+            } catch (e) {
+              document.getElementById("header-version").textContent = "";
+            }
+            document.getElementById("open-lms").textContent = t("popupOpenLms");
+            document.getElementById("refresh-btn").title = t("refresh");
 
-          var cache = result[CACHE_KEY] || null;
-          var checkedState = result[CHECKED_KEY] || {};
-          var dismissedState = result[DISMISSED_KEY] || {};
-          render(cache, checkedState, dismissedState);
-        });
-      }
-    );
+            var cache = result[CACHE_KEY] || null;
+            var checkedState = result[CHECKED_KEY] || {};
+            var dismissedState = result[DISMISSED_KEY] || {};
+            render(cache, checkedState, dismissedState);
+          });
+        }
+      );
+    } catch (e) { /* extension context invalidated */ }
 
     document.getElementById("refresh-btn").addEventListener("click", refreshAssignments);
 
     document.getElementById("open-lms").addEventListener("click", function (e) {
       e.preventDefault();
-      chrome.tabs.create({ url: LMS_URL });
+      try { chrome.tabs.create({ url: LMS_URL }); } catch (ex) { /* context invalidated */ }
     });
 
     // Re-render when storage changes (after refresh completes)
-    chrome.storage.onChanged.addListener(function (changes) {
-      if (changes[CACHE_KEY] || changes[CHECKED_KEY] || changes[DISMISSED_KEY]) {
-        reloadFromStorage();
-      }
-    });
+    try {
+      chrome.storage.onChanged.addListener(function (changes) {
+        if (changes[CACHE_KEY] || changes[CHECKED_KEY] || changes[DISMISSED_KEY]) {
+          reloadFromStorage();
+        }
+      });
+    } catch (e) { /* extension context invalidated */ }
   });
 })();

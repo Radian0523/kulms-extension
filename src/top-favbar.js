@@ -414,38 +414,42 @@
     document.addEventListener("keydown", onKeyDown);
 
     // 設定変更を即座に反映 (storage 変更を監視)
-    chrome.storage.onChanged.addListener(function (changes, area) {
-      if (area !== "local" || !changes["kulms-settings"]) return;
-      var newVal = changes["kulms-settings"].newValue || {};
-      if (!window.__kulmsSettings) return;
-      if (window.__kulmsSettings.topFavbar !== newVal.topFavbar) {
-        window.__kulmsSettings.topFavbar = newVal.topFavbar;
-        apply();
-      }
-      if (window.__kulmsSettings.topFavbarSize !== newVal.topFavbarSize) {
-        window.__kulmsSettings.topFavbarSize = newVal.topFavbarSize;
-        var barSize = document.getElementById(BAR_ID);
-        if (barSize) {
-          applySize(barSize);
-          updateBarHeight();
+    try {
+      chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area !== "local" || !changes["kulms-settings"]) return;
+        var newVal = changes["kulms-settings"].newValue || {};
+        if (!window.__kulmsSettings) return;
+        if (window.__kulmsSettings.topFavbar !== newVal.topFavbar) {
+          window.__kulmsSettings.topFavbar = newVal.topFavbar;
+          apply();
         }
-      }
-      if (window.__kulmsSettings.tabColorStyle !== newVal.tabColorStyle) {
-        window.__kulmsSettings.tabColorStyle = newVal.tabColorStyle;
-        var barStyle = document.getElementById(BAR_ID);
-        if (barStyle) applyColorStyle(barStyle);
-      }
-      if (window.__kulmsSettings.courseRowClick !== newVal.courseRowClick) {
-        window.__kulmsSettings.courseRowClick = newVal.courseRowClick;
-        var barDd = document.getElementById(BAR_ID);
-        if (barDd) applyDropdownMode(barDd);
-        closeDropdown();
-      }
-      if (window.__kulmsSettings.toolVisibility !== newVal.toolVisibility) {
-        window.__kulmsSettings.toolVisibility = newVal.toolVisibility;
-        closeDropdown();
-      }
-    });
+        if (window.__kulmsSettings.topFavbarSize !== newVal.topFavbarSize) {
+          window.__kulmsSettings.topFavbarSize = newVal.topFavbarSize;
+          var barSize = document.getElementById(BAR_ID);
+          if (barSize) {
+            applySize(barSize);
+            updateBarHeight();
+          }
+        }
+        if (window.__kulmsSettings.tabColorStyle !== newVal.tabColorStyle) {
+          window.__kulmsSettings.tabColorStyle = newVal.tabColorStyle;
+          var barStyle = document.getElementById(BAR_ID);
+          if (barStyle) applyColorStyle(barStyle);
+        }
+        if (window.__kulmsSettings.courseRowClick !== newVal.courseRowClick) {
+          window.__kulmsSettings.courseRowClick = newVal.courseRowClick;
+          var barDd = document.getElementById(BAR_ID);
+          if (barDd) applyDropdownMode(barDd);
+          closeDropdown();
+        }
+        if (window.__kulmsSettings.toolVisibility !== newVal.toolVisibility) {
+          window.__kulmsSettings.toolVisibility = newVal.toolVisibility;
+          closeDropdown();
+        }
+      });
+    } catch (e) {
+      window.__kulmsShowReloadBanner();
+    }
 
     // ヘッダー挿入タイミングに備えて、body 変化でも再試行
     new MutationObserver(function () {

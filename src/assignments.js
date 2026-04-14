@@ -445,7 +445,7 @@
 
   async function loadCache() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(CACHE_KEY, (result) => {
+      window.__kulmsSafeStorage.get(CACHE_KEY, (result) => {
         const cached = result[CACHE_KEY];
         if (
           cached &&
@@ -463,14 +463,14 @@
   // TTL を無視してキャッシュを読む (ログアウト時の表示用)
   async function loadStaleCache() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(CACHE_KEY, (result) => {
+      window.__kulmsSafeStorage.get(CACHE_KEY, (result) => {
         resolve(result[CACHE_KEY] || null);
       });
     });
   }
 
   function saveCache(assignments) {
-    chrome.storage.local.set({
+    window.__kulmsSafeStorage.set({
       [CACHE_KEY]: { timestamp: Date.now(), assignments: assignments },
     });
   }
@@ -479,7 +479,7 @@
 
   async function loadCheckedState() {
     return new Promise(function (resolve) {
-      chrome.storage.local.get(CHECKED_KEY, function (result) {
+      window.__kulmsSafeStorage.get(CHECKED_KEY, function (result) {
         checkedState = result[CHECKED_KEY] || {};
         resolve();
       });
@@ -487,7 +487,7 @@
   }
 
   function saveCheckedState() {
-    chrome.storage.local.set({ [CHECKED_KEY]: checkedState });
+    window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checkedState });
   }
 
   function getCheckedKey(assignment) {
@@ -560,7 +560,7 @@
 
   async function loadDismissedState() {
     return new Promise(function (resolve) {
-      chrome.storage.local.get(DISMISSED_KEY, function (result) {
+      window.__kulmsSafeStorage.get(DISMISSED_KEY, function (result) {
         dismissedState = result[DISMISSED_KEY] || {};
         purgeExpiredDismissed();
         resolve();
@@ -569,7 +569,7 @@
   }
 
   function saveDismissedState() {
-    chrome.storage.local.set({ [DISMISSED_KEY]: dismissedState });
+    window.__kulmsSafeStorage.set({ [DISMISSED_KEY]: dismissedState });
   }
 
   function purgeExpiredDismissed() {
@@ -626,7 +626,7 @@
 
   async function loadMemos() {
     return new Promise(function (resolve) {
-      chrome.storage.local.get(MEMO_KEY, function (result) {
+      window.__kulmsSafeStorage.get(MEMO_KEY, function (result) {
         memos = result[MEMO_KEY] || [];
         resolve();
       });
@@ -634,7 +634,7 @@
   }
 
   function saveMemos() {
-    chrome.storage.local.set({ [MEMO_KEY]: memos });
+    window.__kulmsSafeStorage.set({ [MEMO_KEY]: memos });
   }
 
   // --- UI ---
@@ -674,7 +674,12 @@
     version.href = "https://radian0523.github.io/kulms-extension/#changelog";
     version.target = "_blank";
     version.rel = "noopener noreferrer";
-    version.textContent = "v" + chrome.runtime.getManifest().version;
+    try {
+      version.textContent = "v" + chrome.runtime.getManifest().version;
+    } catch (e) {
+      version.textContent = "";
+      window.__kulmsShowReloadBanner();
+    }
     logo.appendChild(version);
 
     var headerRight = document.createElement("div");
@@ -1689,7 +1694,7 @@
       toggle.appendChild(slider);
       input.addEventListener("change", function () {
         currentSettings[feat.key] = input.checked;
-        chrome.storage.local.set({ "kulms-settings": currentSettings });
+        window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
       });
       row.appendChild(labelArea);
       row.appendChild(toggle);
@@ -1722,7 +1727,7 @@
         if (val > max) val = max;
         input.value = val;
         currentSettings[settingKey] = val;
-        chrome.storage.local.set({ "kulms-settings": currentSettings });
+        window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
       });
       row.appendChild(labelArea);
       row.appendChild(input);
@@ -1755,7 +1760,7 @@
       });
       select.addEventListener("change", function () {
         currentSettings[settingKey] = select.value;
-        chrome.storage.local.set({ "kulms-settings": currentSettings });
+        window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
       });
       row.appendChild(labelArea);
       row.appendChild(select);
@@ -1778,7 +1783,7 @@
       input.style.cssText = "width:36px;height:28px;border:1px solid #ccc;border-radius:4px;padding:1px;cursor:pointer;flex-shrink:0";
       input.addEventListener("input", function () {
         currentSettings[settingKey] = input.value;
-        chrome.storage.local.set({ "kulms-settings": currentSettings });
+        window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
         injectUrgencyColors(currentSettings);
       });
       row.appendChild(labelArea);
@@ -1821,7 +1826,7 @@
     });
     langSelect.addEventListener("change", function () {
       currentSettings.language = langSelect.value;
-      chrome.storage.local.set({ "kulms-settings": currentSettings });
+      window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
     });
     langRow.appendChild(langLabelArea);
     langRow.appendChild(langSelect);
@@ -1913,7 +1918,7 @@
         item.input.checked = val;
         currentSettings[item.key] = val;
       });
-      chrome.storage.local.set({ "kulms-settings": currentSettings });
+      window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
     }
 
     var btnRow = document.createElement("div");
@@ -1938,7 +1943,7 @@
           currentSettings[item.key] = def;
         }
       });
-      chrome.storage.local.set({ "kulms-settings": currentSettings });
+      window.__kulmsSafeStorage.set({ "kulms-settings": currentSettings });
     });
 
     var btnAllOn = document.createElement("button");
@@ -2142,7 +2147,7 @@
   function checkNotificationBadges(assignments) {
     if (window.__kulmsSettings && window.__kulmsSettings.notificationBadge === false) return;
 
-    chrome.storage.local.get(PREV_ASSIGNMENTS_KEY, function (result) {
+    window.__kulmsSafeStorage.get(PREV_ASSIGNMENTS_KEY, function (result) {
       var prevIds = result[PREV_ASSIGNMENTS_KEY] || {};
       var currentIds = {};
       var newByCourse = {};
@@ -2156,7 +2161,7 @@
         }
       });
 
-      chrome.storage.local.set({ [PREV_ASSIGNMENTS_KEY]: currentIds });
+      window.__kulmsSafeStorage.set({ [PREV_ASSIGNMENTS_KEY]: currentIds });
 
       // 初回実行時はバッジ表示しない
       if (Object.keys(prevIds).length === 0) return;
@@ -2345,17 +2350,21 @@
   }
 
   // --- ポップアップからの更新リクエスト (top frame のみ) ---
-  chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    if (msg.type === "kulms-refresh-assignments") {
-      if (window !== window.top) return false;
-      loadAssignments(true).then(function () {
-        sendResponse({ ok: true });
-      }).catch(function () {
-        sendResponse({ ok: false });
-      });
-      return true; // async sendResponse
-    }
-  });
+  try {
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+      if (msg.type === "kulms-refresh-assignments") {
+        if (window !== window.top) return false;
+        loadAssignments(true).then(function () {
+          try { sendResponse({ ok: true }); } catch (e) { /* context invalidated */ }
+        }).catch(function () {
+          try { sendResponse({ ok: false }); } catch (e) { /* context invalidated */ }
+        });
+        return true; // async sendResponse
+      }
+    });
+  } catch (e) {
+    window.__kulmsShowReloadBanner();
+  }
 
   init();
 })();
