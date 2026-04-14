@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>プライバシーポリシー — KULMS+</title>
+<link rel="icon" href="icon128.png" type="image/png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4ed;
+  --bg-card:#faf9f5;
+  --fg:#141413;
+  --fg2:#5e5d59;
+  --fg3:#87867f;
+  --accent:#c96442;
+  --accent-hover:#b85838;
+  --border:#f0eee6;
+  --border-strong:#e8e6dc;
+  --shadow:rgba(0,0,0,0.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141413;
+    --bg-card:#30302e;
+    --fg:#faf9f5;
+    --fg2:#b0aea5;
+    --fg3:#87867f;
+    --accent:#d97757;
+    --accent-hover:#e08a6c;
+    --border:#30302e;
+    --border-strong:#3d3d3a;
+    --shadow:rgba(0,0,0,0.15);
+  }
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{text-align:center;padding:5rem 1.5rem 2rem}
+.header img{
+  width:64px;height:64px;border-radius:12px;
+  box-shadow:var(--shadow) 0px 4px 24px;
+}
+.header h1{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:2.25rem;font-weight:500;
+  margin:1rem 0 0.25rem;line-height:1.1;
+  color:var(--fg);
+}
+.header p{font-size:1rem;color:var(--fg3)}
+.content{
+  max-width:680px;margin:0 auto;padding:0 1.5rem 3rem;
+}
+.content h2{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.4rem;font-weight:500;
+  margin:2rem 0 0.75rem;color:var(--fg);
+}
+.content p,.content ul{
+  font-size:0.9375rem;color:var(--fg2);
+  margin-bottom:0.75rem;
+}
+.content ul{padding-left:1.5rem}
+.content li{margin-bottom:0.35rem}
+.footer{
+  text-align:center;padding:2rem 1.5rem;
+  color:var(--fg3);font-size:0.85rem;
+  border-top:1px solid var(--border);
+  max-width:680px;margin:0 auto;
+}
+.footer a{color:var(--fg3)}
+.footer a:hover{color:var(--accent)}
+@media(max-width:640px){
+  .header{padding:3rem 1.5rem 1.5rem}
+  .header h1{font-size:1.75rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="./">
+    <img src="icon128.png" alt="KULMS+ icon" width="64" height="64">
+  </a>
+  <h1>プライバシーポリシー</h1>
+  <p>KULMS+ — 京都大学LMS拡張機能</p>
+</header>
+
+<main class="content">
+  <p>最終更新日: 2026年4月15日</p>
+
+  <h2>はじめに</h2>
+  <p>KULMS+（以下「本拡張機能」）は、京都大学LMS（PandA）の利便性を向上させるブラウザ拡張機能です。本拡張機能はユーザーのプライバシーを尊重し、個人情報の収集・送信を一切行いません。</p>
+
+  <h2>データの収集について</h2>
+  <p>本拡張機能は、外部サーバーへのデータ送信を行いません。以下のデータはすべてお使いのブラウザのローカルストレージ（chrome.storage.local / browser.storage.local）にのみ保存され、端末の外に出ることはありません。</p>
+  <ul>
+    <li>課題・クイズの一覧データ（LMS APIから取得したキャッシュ）</li>
+    <li>ユーザーが作成したメモ</li>
+    <li>機能のオン/オフ設定、色・閾値等のカスタマイズ</li>
+    <li>課題の完了チェック状態</li>
+    <li>教科書情報のキャッシュ</li>
+    <li>サイドバーのツール表示設定</li>
+  </ul>
+
+  <h2>外部との通信</h2>
+  <p>本拡張機能は、以下のドメインとのみ通信を行います。</p>
+  <ul>
+    <li><strong>lms.gakusei.kyoto-u.ac.jp</strong> — 京都大学LMS（課題・クイズ・科目情報の取得）</li>
+    <li><strong>www.k.kyoto-u.ac.jp</strong> — KULASISシラバス（教科書情報の取得）</li>
+  </ul>
+  <p>これらの通信はすべてユーザーのブラウザから直接行われ、第三者のサーバーを経由しません。アナリティクス、トラッキング、広告関連の通信は一切ありません。</p>
+
+  <h2>アカウント情報</h2>
+  <p>本拡張機能は、京都大学のアカウント情報（ユーザー名・パスワード等）を保存・収集しません。LMS APIへのアクセスは、ブラウザが保持する既存のログインセッション（Cookie）を利用します。</p>
+
+  <h2>第三者への提供</h2>
+  <p>本拡張機能が取得・保存するデータを、第三者に提供・販売・共有することはありません。</p>
+
+  <h2>データの削除</h2>
+  <p>本拡張機能をアンインストールすると、ローカルストレージに保存されたすべてのデータが自動的に削除されます。</p>
+
+  <h2>お問い合わせ</h2>
+  <p>本ポリシーに関するご質問は、<a href="https://github.com/Radian0523/kulms-extension/issues" target="_blank" rel="noopener">GitHub Issues</a> までお願いします。</p>
+</main>
+
+<footer class="footer">
+  <a href="./">KULMS+ トップページ</a>
+</footer>
+
+</body>
+</html>
