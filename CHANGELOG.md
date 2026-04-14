@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.11.7
+
+- **Firefox 版を Firefox Add-ons に公開**
+- **Safari 版 App Store 提出準備**
+  - Bundle ID を `com.radian0523.kulms-plus-for-safari.Extension` に修正
+  - 署名設定（Development Team）を Extension ターゲットにも適用
+  - `LSApplicationCategoryType` を Info.plist に追加
+  - App Store 用の説明文（messages.json）を最大文字数に合わせて修正
+- ランディングページに Firefox ダウンロードリンクを追加
+
 ## v1.11.6
 
 - **提出済み課題のチェックボックスロックを廃止**
