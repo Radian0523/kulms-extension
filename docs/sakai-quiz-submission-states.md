@@ -107,18 +107,22 @@ Sakai ソースコード（GitHub: sakaiproject/sakai, master ブランチ）を
   → submittedDate = null
 
 [学生が「提出」ボタンを押す]
-  → forGrade = true (←ここが重要)
-  → status = SUBMITTED (1) (setIsLate() 内で設定)
+  → forGrade = true (←ここが重要) (persistAssessmentGrading 内で設定)
   → submittedDate = new Date() (storeGrades 内で設定)
-  → isLate = dueDate前ならfalse, 後ならtrue
+  → isLate = dueDate前ならfalse, 後ならtrue (GradingService.setIsLate 内で判定)
+  → status = SUBMITTED (1) (GradingService.setIsLate 内で forGrade=true の場合に設定)
+  ※ isLateはSubmitToGradingActionListenerとGradingServiceで2回判定され、後者が最終値
 
 [自動採点完了 / 教員が採点ページ表示]
   → forGrade = true
   → status = AUTO_GRADED (2) or NEED_HUMAN_ATTENTION (3)
 
-[テスト再公開時]
-  → forGrade = false (受験中の場合)
-  → status = ASSESSMENT_UPDATED (6) or ASSESSMENT_UPDATED_NEED_RESUBMIT (4)
+[テスト再公開時] (PublishedAssessmentService.regradePublishedAssessment)
+  提出済み(forGrade=true)のデータ:
+    → forGrade = false に変更
+    → status = ASSESSMENT_UPDATED_NEED_RESUBMIT (4)
+  受験中(forGrade=false)のデータ:
+    → status = ASSESSMENT_UPDATED (6)
 
 [再提出時 (状態4 or 6から)]
   → status = IN_PROGRESS (0) にリセット
@@ -126,11 +130,15 @@ Sakai ソースコード（GitHub: sakaiproject/sakai, master ブランチ）を
   → totalOverrideScore = 0
 
 [自動提出ジョブ実行時]
-  自動提出条件:
+  HQLクエリの条件:
     - autoSubmit=1 が設定されている
-    - forGrade=false (未提出)
-    - hasAutoSubmissionRun=false
-    - 期限経過
+    - status NOT IN (REMOVED, NO_SUBMISSION)
+    - hasAutoSubmissionRun=false (or null)
+    - attemptDate IS NOT NULL
+    - 期限経過 (lateHandling=1: retractDate経過, lateHandling=2: dueDate経過)
+  processAttempt() 内の追加条件:
+    - forGrade=false (未提出) ← クエリ条件ではなくJavaロジックで判定
+    - assessment.status != DEAD
     → attemptDate != null かつ submittedDate == null の場合:
         status = REMOVED (-1)  ← 何も回答していない場合は削除
     → それ以外:
@@ -246,38 +254,48 @@ public Object getEntity(EntityReference ref) {
 `/direct/sam_pub.json?siteId={siteId}` のレスポンス:
 
 Entity Broker が `PublishedAssessmentFacade` を自動的にJSON化する。
-JavaBean のゲッターメソッドから以下のフィールドが含まれる:
+ただし `getEntities()` 内部の HQL クエリは限定的なフィールドしか取得しないため、
+**多くのゲッターが null/0/false を返す。** 以下の表で実際に値が入るフィールドを明示する:
 
-| フィールド | 型 | 説明 |
-|---|---|---|
-| `publishedAssessmentId` | Long | テストID |
-| `title` | String | テスト名 |
-| `description` | String | 説明文 |
-| `status` | Integer | テスト本体のステータス (0/1/2/3) |
-| `startDate` | Date | 開始日時 |
-| `dueDate` | Date | 提出期限 |
-| `retractDate` | Date | 回収日時 |
-| `releaseTo` | String | 公開先 ("Selected Groups" 等) |
-| `lateHandling` | Integer | 遅延提出ポリシー (1=受付, 2=拒否) |
-| `unlimitedSubmissions` | Boolean | 無制限提出か |
-| `submissionsAllowed` | Integer | 許可提出回数 |
-| `scoringType` | Integer | 採点方式 (1=最高, 2=最終, 4=平均) |
-| `feedbackDelivery` | Integer | フィードバック配信モード |
-| `feedbackDate` | Date | フィードバック開始日 |
-| `feedbackEndDate` | Date | フィードバック終了日 |
-| `timeLimit` | Integer | 制限時間(秒) |
-| `createdBy` | String | 作成者ID |
-| `createdDate` | Date | 作成日 |
-| `lastModifiedBy` | String | 最終更新者ID |
-| `lastModifiedDate` | Date | 最終更新日 |
-| `submissionSize` | int | 全提出数 |
-| `submittedCount` | int | 提出済み数 |
-| `inProgressCount` | int | 受験中数 |
-| `hasAssessmentGradingData` | boolean | 採点データの有無 |
+| フィールド | 型 | 値が入るか | 説明 |
+|---|---|---|---|
+| `publishedAssessmentId` | Long | **値あり** | テストID |
+| `title` | String | **値あり** | テスト名 |
+| `description` | String | **常にnull** | HQLクエリが取得しない |
+| `status` | Integer | **学生権限ではnull** | Activeクエリのコンストラクタにstatusパラメータがない |
+| `startDate` | Date | **値あり** | 開始日時 |
+| `dueDate` | Date | **値あり** | 提出期限 |
+| `retractDate` | Date | **値あり** | 回収日時 |
+| `releaseTo` | String | **値あり** | 公開先 ("Selected Groups" 等) |
+| `lateHandling` | Integer | **常にnull** | HQLクエリが取得しない |
+| `unlimitedSubmissions` | Boolean | **常にnull** | HQLクエリが取得しない |
+| `submissionsAllowed` | Integer | **常にnull** | HQLクエリが取得しない |
+| `scoringType` | Integer | **常にnull** | HQLクエリが取得しない |
+| `feedbackDelivery` | Integer | **常にnull** | HQLクエリが取得しない |
+| `feedbackDate` | Date | **常にnull** | HQLクエリが取得しない |
+| `feedbackEndDate` | Date | **常にnull** | HQLクエリが取得しない |
+| `timeLimit` | Integer | **常にnull** | HQLクエリが取得しない |
+| `createdBy` | String | **常にnull** | HQLクエリが取得しない |
+| `createdDate` | Date | **常にnull** | HQLクエリが取得しない |
+| `lastModifiedBy` | String | **値あり** | displayName文字列として |
+| `lastModifiedDate` | Date | **値あり** | 最終更新日 |
+| `submissionSize` | int | **常に0** | セッターが呼ばれない |
+| `submittedCount` | int | **常に0** | セッターが呼ばれない |
+| `inProgressCount` | int | **常に0** | セッターが呼ばれない |
+| `hasAssessmentGradingData` | boolean | **常にfalse** | セッターが呼ばれない |
+
+内部HQLクエリ (`getBasicInfoOfAllActivePublishedAssessments`):
+```sql
+select new PublishedAssessmentData(
+  p.publishedAssessmentId, p.title,
+  c.releaseTo, c.startDate, c.dueDate, c.retractDate,
+  p.lastModifiedDate, p.lastModifiedBy
+) from PublishedAssessmentData p, PublishedAccessControl c, AuthorizationData z ...
+```
 
 **重要: `sam_pub` のREST APIにはテスト本体の情報は含まれるが、学生個人の提出(AssessmentGradingData)の詳細は含まれない。**
 
-提出状態はテスト一覧の `submittedCount`, `inProgressCount`, `hasAssessmentGradingData` でのみ間接的に分かる。
+**注意: `submittedCount`, `inProgressCount`, `hasAssessmentGradingData` はゲッターが存在するが、`getEntities()` の処理パスではセッターが一度も呼ばれないため、常にデフォルト値(0/false)を返す。** これらのフィールドで提出状態を間接的に知ることもできない。
 学生個人のスコアや提出回数を取得するには別のAPIまたは画面スクレイピングが必要。
 
 ## 日付フィールドの意味と動作
@@ -297,11 +315,14 @@ Active テスト（status=1）がAPIで返される条件:
 
 教員権限(CAN_PUBLISH)の場合: 全Active + 全InActive テスト
 学生権限(CAN_TAKE)の場合: Active テストのみ
-  → さらに以下でフィルタ:
-     startDate == null OR currentDate > startDate
-  → InActive判定（一覧から除外されるもの）:
-     dueDate != null AND dueDate <= currentDate
-     AND (retractDate != null AND retractDate <= currentDate)
+  → Java側フィルタで以下を保持:
+     (dueDate == null OR dueDate > now) AND (retractDate == null OR retractDate > now)
+  → 除外される条件（上記の否定）:
+     (dueDate != null AND dueDate <= now) OR (retractDate != null AND retractDate <= now)
+     ※ ANDではなくOR: dueDateだけ過ぎても、retractDateだけ過ぎても除外される
+
+注意: startDateフィルタは getEntities() には含まれない。
+startDateフィルタが適用されるのは browseEntities()（BrowseSearchable実装）のみ。
 ```
 
 ### 提出試行の日付
@@ -444,12 +465,17 @@ dueDate 後:
 
 ### 状態 S7, S8 からの再提出
 
-テスト再公開時、既存の受験中データの状態が変更される:
+テスト再公開時 (`regradePublishedAssessment`)、既存データの `forGrade` 値に基づいて状態が分岐する:
 
 ```
+提出済み(forGrade=true)のデータ:
+  → forGrade = false に変更
+  → status = ASSESSMENT_UPDATED_NEED_RESUBMIT (4)
+  ※ 「再提出必須設定」ではなく、提出済みかどうかで分岐する
+
 受験中(forGrade=false)のデータ:
-  再提出必須設定あり → status = ASSESSMENT_UPDATED_NEED_RESUBMIT (4)
-  再提出必須設定なし → status = ASSESSMENT_UPDATED (6)
+  → status = ASSESSMENT_UPDATED (6)
+  ※ forGradeは元からfalseなので変更なし
 
 学生が再提出を開始すると:
   status → IN_PROGRESS (0) にリセット
@@ -492,7 +518,16 @@ Entity Provider の `getEntities()` は `PublishedAssessmentFacade` を返し、
 学生個人の提出状態を取得するには:
 1. 別のAPIエンドポイント（存在する場合）
 2. 画面スクレイピング
-3. `submittedCount`, `inProgressCount` フィールド（教員権限のみ？）
+
+**注意: `submittedCount`, `inProgressCount` は `getEntities()` では常に0を返すため利用不可（上記「getEntities()が返すオブジェクト」参照）。**
+
+Samigo モジュールの Entity Provider は以下の4つのみ（いずれも学生個人の提出データを返さない）:
+| ENTITY_PREFIX | 内容 |
+|---|---|
+| `sam_pub` | 公開テスト一覧/情報 |
+| `sam_core` | コアテスト参照（スタブ実装: getEntities()は空リスト） |
+| `sam_item` | 問題(Item)のコンテンツ |
+| `sam_publisheditem` | 公開済み問題のコンテンツ |
 
 ## フィードバック表示判定
 
@@ -529,8 +564,8 @@ feedbackDelivery の値:
 | `take_assessment_notAvailable` | 受験可能なテストは現在ありません。 | テストなし |
 | `review_assessment_notAvailable` | まだ何のテストも提出していません。 | 未提出 |
 | `assessment_updated` | *テストが更新されました。* | 状態 S8 |
-| `assessment_updated_need_resubmit` | (再提出必要の旨) | 状態 S7 |
-| `assessmentRetractedForEdit` | (編集のため回収) | 状態 A4 |
+| `assessment_updated_need_resubmit` | \*テストが更新されました。念のため、再提出する必要があります。\* | 状態 S7 |
+| `assessmentRetractedForEdit` | \*テストは回収されました。フィードバックは利用できません。\* | 状態 A4 |
 | `recorded_score` | 記録済み点数 | 記録スコア列 |
 | `highest_score` | (最高) | HIGHEST_SCORE |
 | `last_score` | (最後) | LAST_SCORE |
@@ -644,8 +679,8 @@ function isPastDue(assessment) {
 
 ## まとめ
 
-1. **`sam_pub` REST API はテスト本体の情報（タイトル、日付、設定）を返す**
-2. **学生個人の提出データ（提出済みか、スコア等）は `sam_pub` API では取得できない**
+1. **`sam_pub` REST API はテスト本体の限定的な情報（ID、タイトル、日付、releaseTo、lastModified）のみ返す**（lateHandling等の設定値はnull）
+2. **学生個人の提出データ（提出済みか、スコア等）は `sam_pub` API では取得できない**（submittedCount等も常に0）
 3. テスト/クイズの提出状態は `AssessmentGradingData` の `forGrade` + `status` で管理される
 4. 状態は Integer コード（-1 ~ 7）で管理され、課題のような文字列ステータスではない
 5. 自動提出機能があり、期限切れ時に自動的に `forGrade=true` に遷移する
