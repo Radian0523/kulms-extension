@@ -369,7 +369,7 @@
           deadline: deadline,
           closeTime: closeTime,
           deadlineText: deadline ? formatDeadline(deadline) : "",
-          status: q.submitted ? "提出済" : "",
+          status: "",
           grade: "",
           entityId: q.publishedAssessmentId ? String(q.publishedAssessmentId) : "",
           type: "quiz",

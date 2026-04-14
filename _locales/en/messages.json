@@ -268,7 +268,7 @@
     "message": "Auto-complete Detection"
   },
   "featAutoCompleteDesc": {
-    "message": "Auto-classify submitted/graded as completed. When OFF, only manual checks apply"
+    "message": "Auto-classify submitted/graded as completed. When OFF, only manual checks apply. *Quizzes/tests always require manual checks"
   },
 
   "settingsAutoRefresh": {
