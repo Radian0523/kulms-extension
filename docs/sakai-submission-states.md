@@ -151,14 +151,26 @@ public boolean isDraftSubmission(AssignmentSubmission s) {
 
 ## KULMS+ 拡張機能での推奨判定ロジック
 
+### 各フィールドの信頼性
+
+| フィールド | 単体で信頼できるか | 理由 |
+|---|---|---|
+| `userSubmission` | **単体では不十分** | `true` は「学生が操作した」だが下書きも含む |
+| `submitted` | **単体では不十分** | 教員が採点画面を開くだけで `true` になるプレースホルダーがある |
+| `dateSubmitted` | **単体では不十分** | 返却後の再提出作業中（状態#11）でも前回の値が残る |
+| `userSubmission && submitted` | **最も信頼できる組み合わせ** | プレースホルダー除外 + 下書き除外 = 確実に提出済み |
+| `status` 文字列 | **フォールバック用** | 京大カスタム翻訳への依存がある |
+
+### 推奨コード
+
 ```javascript
 // 提出済み判定（推奨）
 function isSubmitted(sub) {
   // 1. userSubmission=true かつ submitted=true → 確実に提出済み
+  //    - userSubmission: 学生が実際に操作した（プレースホルダー除外）
+  //    - submitted: ドラフトでない（下書き除外）
   if (sub.userSubmission && sub.submitted) return true;
-  // 2. dateSubmitted が存在する → 提出済み（最も信頼できる指標）
-  if (sub.dateSubmitted) return true;
-  // 3. status 文字列による判定（京大カスタム翻訳対応）
+  // 2. status 文字列による判定（フォールバック: 京大カスタム翻訳対応）
   const s = (sub.status || "").toLowerCase();
   if (s.includes("提出済") || s.includes("submitted") ||
       s.includes("再提出") || s.includes("resubmitted") ||
@@ -181,6 +193,12 @@ function isGraded(sub) {
 // - "宣誓済み" / "Honor Pledge Accepted" → 誓約のみ、未提出
 // - "取組中" / "In progress" → 下書き保存中
 ```
+
+### 注意: `dateSubmitted` を単体で使ってはいけない理由
+
+状態#11（返却後に再提出作業中）では `submitted=false` だが前回提出時の
+`dateSubmitted` が残っている。`dateSubmitted` 単体で判定すると、
+下書き作業中なのに「提出済み」と誤判定する。
 
 ## 実データ（2026/04/14 取得）
 
