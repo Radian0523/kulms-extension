@@ -1248,17 +1248,11 @@
     // チェックボックス
     var checkbox = document.createElement("div");
     checkbox.className = "kulms-checkbox" + (isCompleted ? " checked" : "");
-    if (submitted && !assignment.allowResubmission && !checked) {
-      // 再提出不可の提出済み → クリック無効
-      checkbox.style.pointerEvents = "none";
-      checkbox.style.opacity = "0.5";
-    } else {
-      checkbox.addEventListener("click", function (e) {
-        e.stopPropagation();
-        toggleChecked(assignment);
-        renderAssignments(lastAssignments);
-      });
-    }
+    checkbox.addEventListener("click", function (e) {
+      e.stopPropagation();
+      toggleChecked(assignment);
+      renderAssignments(lastAssignments);
+    });
 
     // カード本体
     var body = document.createElement("div");
