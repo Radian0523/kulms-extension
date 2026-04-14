@@ -298,6 +298,38 @@ fi
 
 これにより `build.sh` の `sync_safari` (Resources コピー) → Xcode ビルド (Run Script で再同期) というパイプラインが確立し、新規ファイル追加でも自動反映される。
 
+### 13. Extension context invalidated 対策
+
+**問題**: 拡張機能が更新またはリロードされた後、LMS ページ上に残る古いコンテンツスクリプトが `chrome.runtime` / `chrome.storage` API を呼び出すと "Extension context invalidated" エラーが発生し、コンソールにエラーが大量出力される。ユーザーにはなぜ動かなくなったか分からない。
+
+**解決策**: `settings.js` に3つのヘルパーを追加し、全コンテンツスクリプトから利用:
+
+1. **`window.__kulmsAlive()`**: `chrome.runtime.id` の存在をチェックしてコンテキストの有効性を判定
+2. **`window.__kulmsSafeStorage`**: `chrome.storage.local.get/set` のラッパー。呼び出し前に `__kulmsAlive()` で検証し、無効時は静かに失敗（get は空オブジェクト、set は無視）
+3. **`window.__kulmsShowReloadBanner()`**: コンテキスト無効時にページ上部に固定バナーを表示（1回のみ、`__kulmsReloadBannerShown` フラグで重複防止）
+
+```javascript
+window.__kulmsSafeStorage = {
+  get: function (keys, callback) {
+    if (!window.__kulmsAlive()) {
+      window.__kulmsShowReloadBanner();
+      if (callback) callback({});
+      return;
+    }
+    chrome.storage.local.get(keys, callback);
+  },
+  set: function (items) {
+    if (!window.__kulmsAlive()) {
+      window.__kulmsShowReloadBanner();
+      return;
+    }
+    chrome.storage.local.set(items);
+  }
+};
+```
+
+バナーの CSS はインラインスタイルで完結させている。拡張機能のコンテキストが無効化された状態では `styles.css` も読み込めない可能性があるため。`popup.js` は `settings.js` を読み込まないため、個別に try-catch で保護。`background.js` はサービスワーカー自身がコンテキストなので対策不要。
+
 ## コース取得の3段階フォールバック
 
 Sakai環境の不安定さに対応するため、コース一覧の取得に3段階のフォールバックを実装:

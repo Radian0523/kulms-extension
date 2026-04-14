@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.11.3
+
+- **拡張機能の更新/リロード後に発生する "Extension context invalidated" エラーを修正 (バグ修正)**
+  - 拡張機能が更新またはリロードされた後、LMS ページ上に残る古いコンテンツスクリプトが `chrome.runtime` / `chrome.storage` API を呼び出すとエラーが発生していた
+  - `settings.js` にコンテキスト有効性チェック (`__kulmsAlive`)、安全な storage ラッパー (`__kulmsSafeStorage`)、リロード促進バナー (`__kulmsShowReloadBanner`) の3ヘルパーを追加
+  - 全コンテンツスクリプト (`assignments.js`, `submit-detect.js`, `textbooks.js`, `top-favbar.js`) の `chrome.storage.local` 呼び出しを安全なラッパーに置換
+  - `chrome.runtime.getManifest()`, `chrome.runtime.onMessage`, `chrome.runtime.sendMessage`, `chrome.storage.onChanged` を try-catch で保護
+  - `popup.js` の各 Chrome API 呼び出しにも個別 try-catch を追加
+  - コンテキスト無効化を検知した初回にページ上部に固定バナーを表示（「KULMS+ が更新されました。ページを再読み込みしてください。」）
+  - バナーには再読み込みボタンと閉じるボタン付き。CSS はインラインスタイルで完結（styles.css が読み込めない状況に対応）
+
 ## v1.11.2
 
 - **未公開クイズが課題一覧に表示される問題を修正 (バグ修正)**
