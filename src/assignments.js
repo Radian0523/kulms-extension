@@ -278,13 +278,34 @@
         let status = "";
         let grade = "";
         if (sub) {
-          if (sub.graded) {
-            status = "評定済";
+          // Sakai status文字列はフローチャート（時間比較含む）に基づく正確な判定。
+          // Boolean フィールド（graded, returned 等）は前回の提出状態が残るため
+          // 単体では状態#11（返却後に作業中）等を正しく判定できない。
+          // 参照: docs/sakai-submission-states.md
+          var subStatusRaw = sub.status || "";
+          var subStatusLower = subStatusRaw.toLowerCase();
+          var statusIndicatesSubmitted =
+            subStatusLower.includes("提出済") || subStatusLower.includes("submitted") ||
+            subStatusLower.includes("再提出") || subStatusLower.includes("resubmitted") ||
+            subStatusLower.includes("評定済") || subStatusLower.includes("graded") ||
+            subStatusLower.includes("採点済") ||
+            subStatusLower.includes("返却") || subStatusLower.includes("returned");
+
+          if (statusIndicatesSubmitted) {
+            if (sub.graded && sub.returned) {
+              // 採点済み + 返却済み → 学生に成績が見える状態
+              status = "評定済";
+            } else {
+              status = "提出済";
+            }
             grade = sub.grade || "";
-          } else if (sub.userSubmission && !sub.draft) {
+          } else if (sub.userSubmission && !sub.draft && !subStatusRaw) {
+            // status文字列がないがBooleanで提出済みと判定できるフォールバック
             status = "提出済";
-          } else if (sub.status && sub.status !== "未開始") {
-            status = sub.status;
+            if (sub.graded) grade = sub.grade || "";
+          } else if (subStatusRaw && subStatusRaw !== "未開始" && subStatusLower !== "not started") {
+            // その他のステータス（取組中、宣誓済み等）をそのまま使用
+            status = subStatusRaw;
           }
         }
 
@@ -408,18 +429,25 @@
   // --- 提出状態の判定 ---
 
   function isSubmitted(status) {
+    if (!status) return false;
     const s = status.toLowerCase();
     return (
       s.includes("提出済") ||
       s.includes("submitted") ||
+      s.includes("再提出") ||
+      s.includes("resubmitted") ||
       s.includes("評定済") ||
-      s.includes("graded")
+      s.includes("graded") ||
+      s.includes("採点済") ||
+      s.includes("返却") ||
+      s.includes("returned")
     );
   }
 
   function isGraded(status) {
+    if (!status) return false;
     const s = status.toLowerCase();
-    return s.includes("評定済") || s.includes("graded");
+    return s.includes("評定済") || s.includes("graded") || s.includes("採点済");
   }
 
   function getStatusBadgeClass(status) {

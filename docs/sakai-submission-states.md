@@ -49,7 +49,7 @@ LATE              - 遅延再提出
 NO_SUBMISSION     - 提出なし（教員ビューのみ）
 UNGRADED          - 未採点（教員ビューのみ）
 RETURNED          - 返却済み
-COMMENTED         - コメント付き
+COMMENTED         - コメント付き（教員ビューのみ。学生ビューには出現しない）
 GRADED            - 採点済み
 RESUBMIT_ALLOWED  - 再提出可
 ```
@@ -94,6 +94,19 @@ submitted == false:
 
 ## API レスポンスの全パターン対応表
 
+### 注意: API エンドポイントによる `submitted` の意味の違い
+
+| エンドポイント | レスポンス形式 | `submitted` フィールドの意味 |
+|---|---|---|
+| `/direct/assignment/site/{siteId}.json` | `SimpleSubmission` | `getSubmitted()`（ドラフトでない） |
+| `/direct/assignment/item/{id}.json` | `submissionToMap` | **`getUserSubmission()`**（学生が操作したか） |
+
+**KULMS+ はサイト一覧API（`SimpleSubmission`）を使用。** 以下の対応表はこの形式を前提とする。
+個別取得APIでは `submitted` と `userSubmission` が同じ値（`getUserSubmission()`）になるため注意。
+
+また、`userSubmission`, `graded`, `returned` は値が `true` のときだけJSONに含まれる。
+`false` の場合はフィールド自体が存在しない（JS では `undefined` = falsy）。
+
 ### 学生ビュー（KULMS+が受け取るデータ）
 
 | # | 状態 | `userSubmission` | `submitted` | `draft` | `graded` | `returned` | `dateSubmitted` | `status` (EN) | `status` (京大) |
@@ -109,7 +122,9 @@ submitted == false:
 | 9 | 再提出済み | `true` | `true` | `false` | `false` | `true`(前回) | 日時あり(新) | "Re-submitted" | "再提出済み" |
 | 10 | 遅延再提出 | `true` | `true` | `false` | `false` | `true`(前回) | 日時あり(期限後) | "Re-submitted {date}- late" | "再提出済み {date}- 遅延" |
 | 11 | 返却後に作業中 | `true` | `false` | varies | `true` | `true` | 前回の日時 | "In progress" | "取組中" |
-| 12 | 誓約のみ+未提出+下書き | varies | `false` | varies | `false` | `false` | `null`/`""` | "Honor Pledge Accepted" | "宣誓済み" |
+| 12 | 誓約同意のみ（submitted=false経路） | `false` | `false` | `false` | `false` | `false` | `null`/`""` | "Honor Pledge Accepted" | "宣誓済み" |
+
+**注意: #12 は `submitted=false` かつ `created == modified`（作成後に変更なし）の場合のみ。** 学生が下書き編集を行うと `created != modified` となり IN_PROGRESS になる。
 
 ### 注意: #2 と #3 の区別
 
@@ -131,9 +146,14 @@ submitted == false:
 | SUBMITTED | "提出日時 {date}" | "提出済み {date}" |
 | HONOR_ACCEPTED | (未翻訳→英語fallback) | "宣誓済み" |
 | IN_PROGRESS | "進行中" | "取組中" |
+| RESUBMITTED | "再提出済み" | "再提出済み" |
+| LATE | "再提出済み {date}- 遅延" | "再提出済み {date}- 遅延" |
 | GRADED | "採点済み" | "評定済" |
 | RETURNED | "返却されました" | "返却済" |
 | RESUBMIT_ALLOWED | (未翻訳→英語fallback) | "再提出可" |
+| COMMENTED | "コメントされました" | - (教員ビューのみ) |
+| NO_SUBMISSION | "未提出" | - (教員ビューのみ) |
+| UNGRADED | "採点しない" | - (教員ビューのみ) |
 
 **→ status 文字列でのマッチングは京大カスタム翻訳に合わせる必要がある**
 
