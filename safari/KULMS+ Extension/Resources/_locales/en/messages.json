@@ -74,6 +74,9 @@
   "expired": {
     "message": "Expired"
   },
+  "resubmitPeriod": {
+    "message": "Resubmit period"
+  },
 
   "statusSubmitted": {
     "message": "Submitted"
@@ -326,11 +329,8 @@
   "feedbackLink": {
     "message": "\uD83D\uDCEC Send Feedback"
   },
-  "supportLink": {
-    "message": "\u2615 Support Development"
-  },
-  "supportDesc": {
-    "message": "It really helps keep development going"
+  "homepageLink": {
+    "message": "\uD83C\uDF10 Homepage"
   },
 
   "textbooksDisabled": {
@@ -388,6 +388,9 @@
   },
   "badgeResubmit": {
     "message": "Resubmit"
+  },
+  "badgeNoResubmit": {
+    "message": "No resubmit"
   },
 
   "sectionAppearance": {

@@ -74,6 +74,9 @@
   "expired": {
     "message": "期限切れ"
   },
+  "resubmitPeriod": {
+    "message": "再提出受付期間"
+  },
 
   "statusSubmitted": {
     "message": "提出済"
@@ -326,11 +329,8 @@
   "feedbackLink": {
     "message": "\uD83D\uDCEC ご意見・要望を送る"
   },
-  "supportLink": {
-    "message": "\u2615 開発を応援する"
-  },
-  "supportDesc": {
-    "message": "開発の励みになります"
+  "homepageLink": {
+    "message": "\uD83C\uDF10 ホームページ"
   },
 
   "textbooksDisabled": {
@@ -388,6 +388,9 @@
   },
   "badgeResubmit": {
     "message": "再提出可能"
+  },
+  "badgeNoResubmit": {
+    "message": "再提出不可"
   },
 
   "sectionAppearance": {

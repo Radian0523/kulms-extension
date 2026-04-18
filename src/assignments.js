@@ -183,10 +183,14 @@
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
-  function formatRemaining(deadline) {
+  function formatRemaining(deadline, closeTime) {
     if (!deadline) return "";
     var diff = deadline - Date.now();
-    if (diff < 0) return t("expired");
+    if (diff < 0) {
+      // 締切過ぎ: closeTime が未過ぎなら再提出受付期間
+      if (closeTime && closeTime > Date.now()) return t("resubmitPeriod");
+      return t("expired");
+    }
     var days = Math.floor(diff / (24 * 60 * 60 * 1000));
     var hours = Math.floor((diff % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
     var mins = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
@@ -321,7 +325,17 @@
           grade: grade || a.gradeDisplay || a.grade || "",
           entityId: a.entityId || a.id || "",
           type: "assignment",
-          allowResubmission: !!(a.allowResubmission || (itemData && itemData.allowResubmission)),
+          // 再提出可能判定: APIフラグ + submission の残り回数
+          // sub.properties.allow_resubmit_number: -1=無制限, 0=枯渇, >0=残りN回
+          allowResubmission: (function () {
+            var flag = !!(a.allowResubmission || (itemData && itemData.allowResubmission));
+            if (!flag) return false;
+            if (sub && sub.properties) {
+              var remain = sub.properties.allow_resubmit_number;
+              if (remain === "0" || remain === 0) return false;
+            }
+            return true;
+          })(),
         };
       });
     } catch (e) {
@@ -565,15 +579,15 @@
       }
     }
 
-    if (isSubmitted(assignment.status) && assignment.allowResubmission) {
-      // 再提出可能 + 提出済み: "active" をトグル
+    if (isSubmitted(assignment.status)) {
+      // 提出済み: "active" をトグル（完了済み↔アクティブ切替）
       if (checkedState[key] === "active") {
-        delete checkedState[key]; // → 完了済みに戻る
+        delete checkedState[key];
       } else {
-        checkedState[key] = "active"; // → アクティブに戻す
+        checkedState[key] = "active";
       }
     } else {
-      // 既存動作
+      // 未提出: 通常のチェックトグル
       if (checkedState[key]) {
         delete checkedState[key];
       } else {
@@ -1284,7 +1298,7 @@
     meta.appendChild(deadlineSpan);
 
     // 残り時間
-    var remaining = formatRemaining(assignment.deadline);
+    var remaining = formatRemaining(assignment.deadline, assignment.closeTime);
     if (remaining) {
       var remainEl = document.createElement("span");
       remainEl.className = "kulms-time-remain";
@@ -1309,8 +1323,13 @@
     }
     if (isResubmitActive) {
       var rBadge = document.createElement("span");
-      rBadge.className = "kulms-badge-resubmit";
-      rBadge.textContent = t("badgeResubmit");
+      if (assignment.allowResubmission) {
+        rBadge.className = "kulms-badge-resubmit";
+        rBadge.textContent = t("badgeResubmit");
+      } else {
+        rBadge.className = "kulms-badge-no-resubmit";
+        rBadge.textContent = t("badgeNoResubmit");
+      }
       badgeRow.appendChild(rBadge);
     }
     body.appendChild(badgeRow);
@@ -2012,22 +2031,17 @@
     feedbackRow.appendChild(feedbackLink);
     settingsView.appendChild(feedbackRow);
 
-    var supportRow = document.createElement("div");
-    supportRow.className = "kulms-settings-row kulms-settings-feedback";
-    supportRow.style.cssText = "flex-direction:column !important;align-items:center !important;gap:4px !important";
-    var supportLink = document.createElement("a");
-    supportLink.href = "https://ko-fi.com/radian0523";
-    supportLink.target = "_blank";
-    supportLink.rel = "noopener";
-    supportLink.className = "kulms-feedback-link";
-    supportLink.style.cssText = "width:100% !important";
-    supportLink.textContent = t("supportLink");
-    var supportDescEl = document.createElement("div");
-    supportDescEl.style.cssText = "font-size:11px;color:#aaa";
-    supportDescEl.textContent = t("supportDesc");
-    supportRow.appendChild(supportDescEl);
-    supportRow.appendChild(supportLink);
-    settingsView.appendChild(supportRow);
+    var homepageRow = document.createElement("div");
+    homepageRow.className = "kulms-settings-row kulms-settings-feedback";
+    var homepageLink = document.createElement("a");
+    homepageLink.href = "https://radian0523.github.io/kulms-extension/";
+    homepageLink.target = "_blank";
+    homepageLink.rel = "noopener";
+    homepageLink.className = "kulms-feedback-link";
+    homepageLink.style.cssText = "width:100% !important";
+    homepageLink.textContent = t("homepageLink");
+    homepageRow.appendChild(homepageLink);
+    settingsView.appendChild(homepageRow);
 
     contentEl.appendChild(settingsView);
   }

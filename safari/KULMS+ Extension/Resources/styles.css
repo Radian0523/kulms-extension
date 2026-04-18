@@ -490,6 +490,16 @@ body {
   color: #e65100 !important;
 }
 
+.kulms-badge-no-resubmit {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #fce4ec !important;
+  color: #c62828 !important;
+}
+
 /* ローディング */
 .kulms-assign-loading {
   display: flex !important;

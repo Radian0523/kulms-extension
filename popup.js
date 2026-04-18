@@ -234,8 +234,13 @@
 
     if (assignment._resubmitActive) {
       var rBadge = document.createElement("span");
-      rBadge.className = "badge-resubmit";
-      rBadge.textContent = t("badgeResubmit");
+      if (assignment.allowResubmission) {
+        rBadge.className = "badge-resubmit";
+        rBadge.textContent = t("badgeResubmit");
+      } else {
+        rBadge.className = "badge-no-resubmit";
+        rBadge.textContent = t("badgeNoResubmit");
+      }
       badgeRow.appendChild(rBadge);
     }
 
