@@ -68,10 +68,13 @@
     return d.getFullYear() + "/" + pad(d.getMonth() + 1) + "/" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
   }
 
-  function formatRemaining(deadline) {
+  function formatRemaining(deadline, closeTime) {
     if (!deadline) return "";
     var diff = deadline - Date.now();
-    if (diff < 0) return t("expired");
+    if (diff < 0) {
+      if (closeTime && closeTime > Date.now()) return t("resubmitPeriod");
+      return t("expired");
+    }
     var days = Math.floor(diff / 86400000);
     var hours = Math.floor((diff % 86400000) / 3600000);
     var mins = Math.floor((diff % 3600000) / 60000);
@@ -268,7 +271,7 @@
     deadlineSpan.textContent = formatDeadline(assignment.deadline);
     meta.appendChild(deadlineSpan);
 
-    var remaining = formatRemaining(assignment.deadline);
+    var remaining = formatRemaining(assignment.deadline, assignment.closeTime);
     if (remaining) {
       var remainEl = document.createElement("span");
       remainEl.className = "time-remain";
