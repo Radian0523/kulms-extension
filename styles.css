@@ -1505,16 +1505,19 @@ body.kulms-panel-pushed .kulms-top-favbar {
   align-items: center;
   gap: 10px;
   padding: 8px 14px;
+  margin: 2px 6px;
+  border-radius: 6px;
   color: #333;
   text-decoration: none !important;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: background 0.12s, color 0.12s;
 }
 .kulms-favbar-dropdown-item:hover {
-  background: rgba(0,0,0,0.06);
-  color: #1a73e8;
+  background: #e8f0fe !important;
+  color: #1a73e8 !important;
 }
 .kulms-favbar-dropdown-item > i {
   flex-shrink: 0;
@@ -1561,8 +1564,8 @@ body.kulms-panel-pushed .kulms-top-favbar {
     color: #e6e6e6;
   }
   .kulms-favbar-dropdown-item:hover {
-    background: rgba(255,255,255,0.08);
-    color: #8ab4f8;
+    background: rgba(138,180,248,0.15) !important;
+    color: #8ab4f8 !important;
   }
   .kulms-favbar-dropdown-other {
     color: #aaa;
