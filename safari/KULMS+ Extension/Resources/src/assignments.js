@@ -19,6 +19,7 @@
   let dismissedState = {};
   let memos = [];
   let lastAssignments = [];
+  let lastCourses = [];
 
   // --- ログイン状態判定 ---
 
@@ -401,6 +402,7 @@
     if (courses.length === 0) {
       throw new Error(t("noCourses"));
     }
+    lastCourses = courses;
 
     // サイドバーから課題/クイズツールURLを取得（この時点では描画済み）
     var toolMap = buildAssignmentToolMapFromDOM();
@@ -1539,17 +1541,30 @@
     defaultOpt.value = "";
     defaultOpt.textContent = t("memoCourseSelect");
     courseSelect.appendChild(defaultOpt);
-    // Populate from lastAssignments' unique courses
+    // Populate from all courses (lastCourses), fallback to lastAssignments
+    var courseList = lastCourses.length > 0 ? lastCourses : [];
     var seenCourses = {};
-    lastAssignments.forEach(function (a) {
-      if (!a.courseId || seenCourses[a.courseId]) return;
-      seenCourses[a.courseId] = true;
+    courseList.forEach(function (c) {
+      if (!c.id || seenCourses[c.id]) return;
+      seenCourses[c.id] = true;
       var opt = document.createElement("option");
-      opt.value = a.courseId;
-      opt.textContent = a.courseName;
-      opt.dataset.courseName = a.courseName;
+      opt.value = c.id;
+      opt.textContent = c.name;
+      opt.dataset.courseName = c.name;
       courseSelect.appendChild(opt);
     });
+    // fallback: lastAssignments から補完（courses が空の場合）
+    if (courseList.length === 0) {
+      lastAssignments.forEach(function (a) {
+        if (!a.courseId || seenCourses[a.courseId]) return;
+        seenCourses[a.courseId] = true;
+        var opt = document.createElement("option");
+        opt.value = a.courseId;
+        opt.textContent = a.courseName;
+        opt.dataset.courseName = a.courseName;
+        courseSelect.appendChild(opt);
+      });
+    }
 
     // 締切日時入力
     var deadlineInput = document.createElement("input");
