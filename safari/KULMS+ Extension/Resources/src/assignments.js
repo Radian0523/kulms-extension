@@ -579,15 +579,16 @@
       }
     }
 
-    if (isSubmitted(assignment.status)) {
-      // 提出済み: "active" をトグル（完了済み↔アクティブ切替）
+    var autoOn = (window.__kulmsSettings || {}).autoComplete !== false;
+    if (autoOn && isSubmitted(assignment.status)) {
+      // autoComplete ON + 提出済み: "active" をトグル（完了済み↔アクティブ切替）
       if (checkedState[key] === "active") {
         delete checkedState[key];
       } else {
         checkedState[key] = "active";
       }
     } else {
-      // 未提出: 通常のチェックトグル
+      // 未提出 or autoComplete OFF: 通常のチェックトグル
       if (checkedState[key]) {
         delete checkedState[key];
       } else {
@@ -946,12 +947,12 @@
       return !isAssignmentDismissed(a);
     });
 
-    // 期限切れ + 完了済みの課題を除外（再提出アクティブは除外しない）
+    // 自動判定で完了 + 期限切れの課題のみ非表示（手動チェック済みは常に表示）
     var visible = notDismissed.filter(function (a) {
       if (isExplicitlyActive(a)) return true;
-      var isCompleted = isAssignmentChecked(a) || (autoCompleteEnabled && isSubmitted(a.status));
+      var isAutoCompleted = autoCompleteEnabled && isSubmitted(a.status);
       var isClosed = a.closeTime && a.closeTime < now;
-      return !(isCompleted && isClosed);
+      return !(isAutoCompleted && isClosed);
     });
 
     // 振り分け: completed (checked or submitted) / active
@@ -1251,7 +1252,8 @@
   function createCard(assignment) {
     var urgency = getUrgencyClass(assignment.deadline);
     var checked = isAssignmentChecked(assignment);
-    var submitted = isSubmitted(assignment.status);
+    var autoOn = (window.__kulmsSettings || {}).autoComplete !== false;
+    var submitted = autoOn && isSubmitted(assignment.status);
     var isResubmitActive = isExplicitlyActive(assignment);
     var isCompleted = !isResubmitActive && (checked || submitted);
 
@@ -2148,9 +2150,10 @@
       "urgency-warning": 2, "urgency-success": 3, "urgency-other": 4
     };
 
+    var autoOnTab = (window.__kulmsSettings || {}).autoComplete !== false;
     assignments.forEach(function (a) {
       if (isExplicitlyActive(a)) { /* 再提出可能: 色付け対象 */ }
-      else if (isSubmitted(a.status) || isAssignmentChecked(a)) return;
+      else if ((autoOnTab && isSubmitted(a.status)) || isAssignmentChecked(a)) return;
       var u = getUrgencyClass(a.deadline);
       var existing = courseUrgency[a.courseId];
       if (!existing || (priority[u] || 99) < (priority[existing] || 99)) {
