@@ -10,6 +10,8 @@
   const MEMO_KEY = "kulms-memos";
   const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
   const DISMISSED_KEY = "kulms-dismissed-assignments";
+  const TESTER_BANNER_DISMISSED_KEY = "kulms-tester-banner-dismissed";
+  var SHOW_TESTER_BANNER = true; // false にするだけでバナー非表示
 
   // --- State ---
   var textbooksEnabled = true;
@@ -1085,6 +1087,8 @@
     renderMemos();
     // メモ追加ボタン
     appendMemoButton();
+    // テスター募集バナー
+    appendTesterBanner();
   }
 
   function renderDeletedSection() {
@@ -1636,6 +1640,48 @@
     wrapper.appendChild(form);
     wrapper.appendChild(addBtn);
     contentEl.appendChild(wrapper);
+  }
+
+  // --- テスター募集バナー ---
+
+  function appendTesterBanner() {
+    if (!SHOW_TESTER_BANNER) return;
+
+    chrome.storage.local.get(TESTER_BANNER_DISMISSED_KEY, function (result) {
+      if (result[TESTER_BANNER_DISMISSED_KEY]) return;
+      if (!contentEl) return;
+
+      var banner = document.createElement("a");
+      banner.href = "https://docs.google.com/forms/d/e/1FAIpQLSeNoCT0U9DD6kdypt1m_4HT8ruHgi0E6S3JqZ9OAOMcDZXokQ/viewform";
+      banner.target = "_blank";
+      banner.rel = "noopener";
+      banner.className = "kulms-tester-banner";
+
+      var icon = document.createElement("span");
+      icon.className = "kulms-tester-banner-icon";
+      icon.textContent = "\uD83E\uDD16"; // 🤖
+
+      var text = document.createElement("span");
+      text.className = "kulms-tester-banner-text";
+      text.innerHTML = "<strong>KULMS+ Android版登場!</strong><br>課題の通知でうっかり忘れも防止。スマホでもKULMS＋が使えます!<br><span style='font-size:10px;opacity:0.8'>※先行体験版は人数限定です</span>";
+
+      var close = document.createElement("span");
+      close.className = "kulms-tester-banner-close";
+      close.textContent = "\u00D7"; // ×
+      close.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        banner.remove();
+        var item = {};
+        item[TESTER_BANNER_DISMISSED_KEY] = Date.now();
+        chrome.storage.local.set(item);
+      });
+
+      banner.appendChild(icon);
+      banner.appendChild(text);
+      banner.appendChild(close);
+      contentEl.appendChild(banner);
+    });
   }
 
   // --- 設定ビュー ---

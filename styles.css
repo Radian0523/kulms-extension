@@ -713,6 +713,58 @@ body {
   color: #fff !important;
 }
 
+/* === テスター募集バナー === */
+
+.kulms-tester-banner {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 8px !important;
+  padding: 10px 14px !important;
+  background: #e8f5e9 !important;
+  border-radius: 8px !important;
+  text-decoration: none !important;
+  color: #2e7d32 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  position: relative !important;
+  transition: background 0.15s !important;
+}
+
+.kulms-tester-banner:hover {
+  background: #c8e6c9 !important;
+  color: #2e7d32 !important;
+}
+
+.kulms-tester-banner-icon {
+  font-size: 22px !important;
+  flex-shrink: 0 !important;
+}
+
+.kulms-tester-banner-text {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.kulms-tester-banner-text strong {
+  font-weight: 700 !important;
+  color: #1b5e20 !important;
+}
+
+.kulms-tester-banner-close {
+  position: absolute !important;
+  top: 4px !important;
+  right: 8px !important;
+  font-size: 16px !important;
+  color: #66bb6a !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+}
+
+.kulms-tester-banner-close:hover {
+  color: #2e7d32 !important;
+}
+
 /* === 教科書コンテンツ === */
 
 /* ローディング */

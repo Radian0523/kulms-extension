@@ -88,10 +88,31 @@ a:hover{text-decoration:underline}
   box-shadow:var(--accent) 0px 0px 0px 0px,var(--accent) 0px 0px 0px 1px;
 }
 .btn-primary:hover{background:var(--accent-hover);text-decoration:none}
+.btn-android{
+  background:#3ddc84;color:#1b3a2a;
+  box-shadow:#3ddc84 0px 0px 0px 0px,#3ddc84 0px 0px 0px 1px;
+}
+.btn-android:hover{background:#32cb75;text-decoration:none}
+.btn-android .badge{color:#1b3a2a;opacity:0.7}
 .btn-disabled{
   background:var(--disabled-bg);color:var(--disabled-fg);
   box-shadow:var(--disabled-bg) 0px 0px 0px 0px,var(--ring) 0px 0px 0px 1px;
   cursor:default;pointer-events:none;
+}
+.android-banner{
+  max-width:740px;margin:0 auto;padding:0 1.5rem;
+  text-align:center;
+}
+.android-banner-inner{
+  display:inline-block;
+  background:#e8f5e9;color:#2e7d32;
+  border-radius:12px;padding:12px 24px;
+  font-size:0.9375rem;line-height:1.6;
+}
+@media(prefers-color-scheme:dark){
+  .android-banner-inner{background:#1b3a2a;color:#81c784}
+  .btn-android{color:#e8f5e9}
+  .btn-android .badge{color:#e8f5e9}
 }
 .btn svg{width:20px;height:20px;flex-shrink:0;fill:currentColor}
 .badge{
@@ -288,10 +309,16 @@ a:hover{text-decoration:underline}
       <svg viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
       iOS<span class="badge">準備中</span>
     </span>
-    <span class="btn btn-disabled">
+    <a class="btn btn-android" href="https://docs.google.com/forms/d/e/1FAIpQLSeNoCT0U9DD6kdypt1m_4HT8ruHgi0E6S3JqZ9OAOMcDZXokQ/viewform" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V7H6v11zM3.5 7C2.67 7 2 7.67 2 8.5v7c0 .83.67 1.5 1.5 1.5S5 16.33 5 15.5v-7C5 7.67 4.33 7 3.5 7zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7c0-.83-.67-1.5-1.5-1.5zm-4.97-5.84l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48A5.84 5.84 0 0 0 12 0c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31A5.98 5.98 0 0 0 6 7h12c0-2.21-1.19-4.15-2.97-5.19l-.5-.65zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/></svg>
-      Android<span class="badge">準備中</span>
-    </span>
+      Android<span class="badge">先行体験</span>
+    </a>
+  </div>
+  <div class="android-banner" style="margin-top:1.25rem">
+    <div class="android-banner-inner">
+      📱 <strong>Android版、先行体験してみませんか?</strong><br>
+      課題の通知でうっかり忘れも防止。人数限定で公開中!
+    </div>
   </div>
 </section>
 
