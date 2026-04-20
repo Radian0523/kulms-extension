@@ -130,6 +130,23 @@
     });
   }
 
+  // --- 曜日・時限ソート (course-name.js と同じロジック) ---
+  var SORT_RE = /\[(?:\d{4}[^\]]*?)?([月火水木金土日])\s*([０-９0-9]+)\s*\]/;
+  var DAY_ORDER = { 月: 1, 火: 2, 水: 3, 木: 4, 金: 5, 土: 6, 日: 7 };
+
+  function toHalfWidth(s) {
+    return parseInt(
+      s.replace(/[０-９]/g, function (ch) {
+        return String.fromCharCode(ch.charCodeAt(0) - 0xff10 + 48);
+      }), 10);
+  }
+
+  function getCourseSortKey(text) {
+    var m = text.match(SORT_RE);
+    if (!m) return Infinity;
+    return (DAY_ORDER[m[1]] || 99) * 100 + toHalfWidth(m[2]);
+  }
+
   function buildAmazonUrl(book) {
     // ISBNがある場合もない場合も検索URLを使用（最も確実）
     var query = book.isbn || book.title;
@@ -171,7 +188,9 @@
     if (!contentEl) return;
     contentEl.innerHTML = "";
 
-    var courseNames = Object.keys(allTextbooks);
+    var courseNames = Object.keys(allTextbooks).sort(function (a, b) {
+      return getCourseSortKey(a) - getCourseSortKey(b);
+    });
     if (courseNames.length === 0) {
       showError("\u767B\u9332\u30B3\u30FC\u30B9\u304C\u898B\u3064\u304B\u308A\u307E\u305B\u3093"); // 登録コースが見つかりません
       return;

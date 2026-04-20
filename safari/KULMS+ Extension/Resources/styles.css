@@ -1130,9 +1130,7 @@ table.resourcesList.kulms-tree-view th {
   border-top: none !important;
 }
 
-/* === サイドバー系スタイル（デスクトップのみ） === */
-
-@media (min-width: 771px) {
+/* === サイドバー系スタイル === */
 
 /* コース行のクリック領域拡大 */
 #portal-nav-sidebar .site-list-item-head {
@@ -1307,13 +1305,12 @@ body.kulms-sidebar-resizing iframe {
 }
 
 /* === 上部ピン留めバー === */
-/* Sakai は CSS Grid レイアウトなので、通常フローで配置すると Grid セルに割り当てられてしまう。
-   position: fixed でヘッダー直下に固定し、#pageBody 側で padding-top を確保する。
+/* position: fixed でヘッダー直下に固定し、#pageBody 側で padding-top を確保する。
    バー高さは JS (ResizeObserver) が --kulms-favbar-height に反映し、
    科目数が多いときは自動で改行されて高さが伸びる */
 .kulms-top-favbar {
   position: fixed !important;
-  top: 63px !important; /* header.portal-header の高さ */
+  top: 63px !important;
   left: 0 !important;
   right: 0 !important;
   z-index: 900 !important;
@@ -1325,7 +1322,7 @@ body.kulms-sidebar-resizing iframe {
   background: var(--sakai-background-color-2, #f4f4f4) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
   box-sizing: border-box !important;
-  transition: right 0.5s ease !important; /* パネル押し出し時の追従 */
+  transition: right 0.5s ease !important;
   /* サイズ CSS 変数: デフォルト (medium) の値 */
   --kulms-favitem-font: 13px;
   --kulms-favitem-py: 4px;
@@ -1366,8 +1363,7 @@ body.kulms-sidebar-resizing iframe {
   --kulms-favitem-dot-size: 12px;
 }
 
-/* バー表示中はヘッダー直下のコンテンツのみバー高さ分下にずらす
-   (ヘッダー自体は top=0 のまま、favbar が top=63 に fixed 配置される) */
+/* バー表示中はヘッダー直下のコンテンツのみバー高さ分下にずらす */
 body.kulms-has-top-favbar #portal-nav-sidebar,
 body.kulms-has-top-favbar .portal-main-container {
   padding-top: var(--kulms-favbar-height, 40px) !important;
@@ -1579,10 +1575,3 @@ body.kulms-panel-pushed .kulms-top-favbar {
   }
 }
 
-} /* end @media (min-width: 771px) */
-
-@media (max-width: 770px) {
-  .kulms-top-favbar { display: none !important; }
-  body.kulms-has-top-favbar #portal-nav-sidebar,
-  body.kulms-has-top-favbar .portal-main-container { padding-top: 0 !important; }
-}

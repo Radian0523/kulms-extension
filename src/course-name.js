@@ -145,7 +145,7 @@
 
   function updateNowBadges() {
     updatingNowBadges = true;
-    var active = (window.innerWidth > 770) ? getActivePeriod() : null;
+    var active = getActivePeriod();
 
     document.querySelectorAll(".site-list-item, .fav-sites-entry").forEach(function (li) {
       var link = li.querySelector('a[href*="/portal/site"]');

@@ -67,6 +67,14 @@
   // --- コース（サイト）一覧取得 ---
 
   // Tier 1: 現ページDOMからサイトリンク抽出
+  // バッジ要素を除外してテキストを取得
+  function getCleanText(el) {
+    var clone = el.cloneNode(true);
+    var badges = clone.querySelectorAll(".kulms-now-badge, .kulms-notification-badge");
+    for (var i = 0; i < badges.length; i++) badges[i].remove();
+    return (clone.textContent || "").trim();
+  }
+
   function extractCoursesFromDOM() {
     const courses = [];
     document.querySelectorAll('a[href*="/portal/site/"]').forEach((a) => {
@@ -77,7 +85,7 @@
       if (/^\/(tool|page|tool-reset|page-reset)/.test(rest)) return;
       courses.push({
         id: match[1],
-        name: a.textContent.trim(),
+        name: getCleanText(a),
         url: a.href,
       });
     });
@@ -2145,7 +2153,7 @@
         "#portal-nav-sidebar.kulms-color-border li.site-list-item.is-current-site.cs-tab-other { border-left: 4px solid var(--kulms-color-other) !important; }";
     }
 
-    style.textContent = "@media (min-width: 771px) {" + common + modeCSS + "}";
+    style.textContent = common + modeCSS;
     document.head.appendChild(style);
   }
 
@@ -2232,7 +2240,7 @@
         var siteId = match[1];
         if (newByCourse[siteId]) {
           var head = li.querySelector(".site-list-item-head") || li;
-          if (window.innerWidth > 770) head.style.position = "relative";
+          head.style.position = "relative";
           var badge = document.createElement("span");
           badge.className = "kulms-notification-badge";
           head.appendChild(badge);

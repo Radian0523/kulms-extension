@@ -7,8 +7,6 @@
 
   var BAR_ID = "kulms-top-favbar";
   var HAS_BAR_CLASS = "kulms-has-top-favbar";
-  var MIN_WIDTH = 770;
-
   var syncScheduled = false;
   var observer = null;
   var resizeObserver = null;
@@ -68,6 +66,14 @@
   function applyDropdownMode(bar) {
     if (!bar) return;
     bar.classList.toggle("kulms-favbar-dropdown-mode", isCourseRowClickEnabled());
+  }
+
+  // バッジ要素を除外してテキストを取得
+  function getCleanText(el) {
+    var clone = el.cloneNode(true);
+    var badges = clone.querySelectorAll(".kulms-now-badge, .kulms-notification-badge");
+    for (var i = 0; i < badges.length; i++) badges[i].remove();
+    return (clone.textContent || "").trim();
   }
 
   function getToolConfig() {
@@ -241,10 +247,6 @@
     if (e.key === "Escape" && dropdownEl) closeDropdown();
   }
 
-  function isPCWidth() {
-    return window.innerWidth >= MIN_WIDTH;
-  }
-
   function buildBar() {
     var bar = document.createElement("nav");
     bar.id = BAR_ID;
@@ -260,8 +262,6 @@
   function ensureBarInserted() {
     var existing = document.getElementById(BAR_ID);
     if (existing) return existing;
-    // Sakai の #pageBody は CSS Grid レイアウトなので、そこに挿入すると
-    // Grid セルに取り込まれてしまう。body 直下に position:fixed で配置する
     if (!document.body) return null;
     var bar = buildBar();
     document.body.appendChild(bar);
@@ -315,11 +315,12 @@
       });
 
       item.href = link.href;
-      item.title = link.title || (link.textContent || "").trim();
+      var cleanName = getCleanText(link);
+      item.title = link.title || cleanName;
 
       var nameSpan = document.createElement("span");
       nameSpan.className = "kulms-top-favbar-name";
-      nameSpan.textContent = (link.textContent || "").trim();
+      nameSpan.textContent = cleanName;
       item.appendChild(nameSpan);
 
       // NOW / NEXT バッジをクローン
@@ -383,7 +384,7 @@
   }
 
   function apply() {
-    var shouldShow = isEnabled() && isPCWidth();
+    var shouldShow = isEnabled();
     if (shouldShow) {
       var bar = ensureBarInserted();
       if (bar) {
@@ -453,7 +454,7 @@
 
     // ヘッダー挿入タイミングに備えて、body 変化でも再試行
     new MutationObserver(function () {
-      if (!isEnabled() || !isPCWidth()) return;
+      if (!isEnabled()) return;
       if (!document.getElementById(BAR_ID)) {
         apply();
       }

@@ -210,7 +210,7 @@
     "message": "Top Pinned Bar"
   },
   "featTopFavbarDesc": {
-    "message": "Show pinned courses as a horizontal bar below the header (PC only)"
+    "message": "Show pinned courses as a horizontal bar below the header"
   },
   "settingsTopFavbarSize": {
     "message": "Top Bar Size"

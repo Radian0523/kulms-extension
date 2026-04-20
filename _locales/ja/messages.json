@@ -210,7 +210,7 @@
     "message": "ピン留め上部バー"
   },
   "featTopFavbarDesc": {
-    "message": "ヘッダー直下にピン留め科目のバーを表示 (PC のみ)"
+    "message": "ヘッダー直下にピン留め科目のバーを表示"
   },
   "settingsTopFavbarSize": {
     "message": "上部バーのサイズ"
