@@ -213,6 +213,29 @@ a:hover{text-decoration:underline}
   font-size:0.9375rem;color:var(--fg2);
 }
 
+/* Changelog tabs */
+.changelog-tabs{
+  display:flex;gap:0;
+  margin-bottom:1.5rem;
+  border-bottom:1px solid var(--border-strong);
+}
+.changelog-tab{
+  flex:1;padding:0.625rem 0;
+  background:none;border:none;
+  font-size:0.9375rem;font-weight:400;
+  color:var(--fg3);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:color 0.15s,border-color 0.15s;
+  text-align:center;font-family:inherit;
+}
+.changelog-tab:hover{color:var(--fg2)}
+.changelog-tab.active{
+  color:var(--accent);border-bottom-color:var(--accent);
+  font-weight:500;
+}
+.changelog-panel{display:none}
+.changelog-panel.active{display:block}
+
 /* Footer */
 .footer{
   text-align:center;padding:3rem 1.5rem;
@@ -340,7 +363,7 @@ a:hover{text-decoration:underline}
       <div class="slide">
         <div class="slide-text">
           <h3>ピン留め上部バー</h3>
-          <p>ヘッダー直下にピン留め科目を横並びで常時表示（PC のみ）。サイズ 4 段階、色分けスタイルに対応。タブクリックでツール一覧をドロップダウン表示（コース行クリック展開 ON 時）。</p>
+          <p>ヘッダー直下にピン留め科目を横並びで常時表示。サイズ 4 段階、色分けスタイルに対応。タブクリックでツール一覧をドロップダウン表示（コース行クリック展開 ON 時）。</p>
         </div>
         <img src="images/top-favbar.png" alt="ピン留め上部バーのスクリーンショット">
       </div>
@@ -351,11 +374,77 @@ a:hover{text-decoration:underline}
 
 <section class="section" id="changelog">
   <h2>更新履歴</h2>
+  <div class="changelog-tabs">
+    <button class="changelog-tab active" data-target="cl-extension">拡張機能</button>
+    <button class="changelog-tab" data-target="cl-ios">iOS</button>
+    <button class="changelog-tab" data-target="cl-android">Android</button>
+  </div>
+
+  <div class="changelog-panel active" id="cl-extension">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.12</span>
+      <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>モバイル対応: PC限定機能の画面幅制限を撤廃</strong>
+        <ul>
+          <li>サイドバー系機能と上部ピン留めバーを全画面幅で表示</li>
+          <li>モバイル WebView アプリでも全機能が利用可能に</li>
+        </ul>
+      </li>
+      <li>教科書タブの科目順を曜日・時限順にソート</li>
+      <li>NOW/NEXT バッジのテキストが科目名に混入するバグを修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.11</span>
+    </div>
+    <ul>
+      <li><strong>メモのコース選択に全科目を表示</strong></li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.10</span>
+    </div>
+    <ul>
+      <li><strong>上部タブバーのドロップダウンにホバー効果を追加</strong></li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.9</span>
+    </div>
+    <ul>
+      <li><strong>autoComplete=OFF 時のバグ修正</strong>
+        <ul>
+          <li>提出済み課題がグレーアウト/チェック済み表示される問題を修正</li>
+          <li>遅延提出の課題をチェックしても完了済みセクションに移動しない問題を修正</li>
+        </ul>
+      </li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.8</span>
+    </div>
+    <ul>
+      <li><strong>再提出受付期間の表示</strong></li>
+      <li>再提出可否の正確な判定</li>
+      <li>「再提出不可」バッジの追加</li>
+    </ul>
+  </article>
 
   <article class="release">
     <div class="release-head">
       <span class="release-version">v1.11.7</span>
-      <span class="release-latest">最新</span>
     </div>
     <ul>
       <li><strong>Firefox 版を Firefox Add-ons に公開</strong></li>
@@ -482,7 +571,7 @@ a:hover{text-decoration:underline}
       <span class="release-version">v1.10.0</span>
     </div>
     <ul>
-      <li><strong>ピン留め上部バー機能を追加</strong>（PC のみ）
+      <li><strong>ピン留め上部バー機能を追加</strong>
         <ul>
           <li>ヘッダー直下にピン留め科目を横並びで常時表示（<code>position: fixed</code>）</li>
           <li>サイズ 4 段階（小 / 中 / 大 / 特大）から選択可能</li>
@@ -598,6 +687,94 @@ a:hover{text-decoration:underline}
   <p class="changelog-more">
     すべての更新履歴は <a href="https://github.com/Radian0523/kulms-extension/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
   </p>
+  </div>
+
+  <div class="changelog-panel" id="cl-ios">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.0.1</span>
+      <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li>拡張機能の画面幅制限を撤廃し、モバイルでも全機能を表示</li>
+      <li>教科書タブの科目順を曜日・時限順にソート</li>
+      <li>NOW/NEXT バッジのテキストが科目名に混入するバグを修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.0.0</span>
+    </div>
+    <ul>
+      <li><strong>WebView版として再構築</strong></li>
+      <li>拡張機能スクリプト全機能対応</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.0.0</span>
+    </div>
+    <ul>
+      <li>初回リリース</li>
+      <li>WKWebView ベースの LMS 表示</li>
+      <li>拡張機能スクリプト注入 (kulms-shim)</li>
+      <li>ECS-ID / SPS-ID ログイン（2FA 対応）</li>
+      <li>パスワード暗号化保存</li>
+      <li>課題の締切通知</li>
+    </ul>
+  </article>
+
+  <p class="changelog-more">
+    すべての更新履歴は <a href="https://github.com/Radian0523/kulms-ios-webview/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
+  </p>
+  </div>
+
+  <div class="changelog-panel" id="cl-android">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.0.1</span>
+      <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li>拡張機能の画面幅制限を撤廃し、モバイルでも全機能を表示</li>
+      <li>教科書タブの科目順を曜日・時限順にソート</li>
+      <li>NOW/NEXT バッジのテキストが科目名に混入するバグを修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.0.0</span>
+    </div>
+    <ul>
+      <li><strong>WebView版として再構築</strong></li>
+      <li>拡張機能スクリプト全機能対応</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.0.0</span>
+    </div>
+    <ul>
+      <li>初回リリース</li>
+      <li>WebView ベースの LMS 表示</li>
+      <li>拡張機能スクリプト注入 (kulms-shim)</li>
+      <li>ECS-ID / SPS-ID ログイン（2FA 対応）</li>
+      <li>パスワード暗号化保存</li>
+      <li>課題の締切通知</li>
+    </ul>
+  </article>
+
+  <p class="changelog-more">
+    すべての更新履歴は <a href="https://github.com/Radian0523/kulms-android-webview/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
+  </p>
+  </div>
+
 </section>
 
 <footer class="footer">
@@ -649,6 +826,19 @@ a:hover{text-decoration:underline}
   document.getElementById('next').addEventListener('click',function(){
     var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
     goTo(Math.min(n-1,idx+1));
+  });
+})();
+// Changelog tabs
+(function(){
+  var tabs=document.querySelectorAll('.changelog-tab');
+  var panels=document.querySelectorAll('.changelog-panel');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      tabs.forEach(function(t){t.classList.remove('active')});
+      panels.forEach(function(p){p.classList.remove('active')});
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
   });
 })();
 </script>
