@@ -863,16 +863,6 @@
     if (isPushMode()) {
       document.body.style.marginRight = "300px";
       document.body.classList.add("kulms-panel-pushed");
-    } else {
-      // オーバーレイモード: クリック外閉じ用
-      var cover = document.getElementById("kulms-cover");
-      if (!cover) {
-        cover = document.createElement("div");
-        cover.id = "kulms-cover";
-        cover.addEventListener("click", closePanel);
-        document.body.appendChild(cover);
-      }
-      cover.classList.add("visible");
     }
 
     sessionStorage.setItem("kulms-panel-open", "1");
@@ -888,8 +878,6 @@
     panelEl.classList.remove("open");
     document.body.style.marginRight = "";
     document.body.classList.remove("kulms-panel-pushed");
-    var cover = document.getElementById("kulms-cover");
-    if (cover) cover.classList.remove("visible");
     sessionStorage.removeItem("kulms-panel-open");
   }
 
@@ -2426,6 +2414,16 @@
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }
+
+    // オーバーレイモード: パネル外クリックで閉じる
+    document.addEventListener("mousedown", function (e) {
+      if (isPushMode()) return;
+      if (!panelEl || !panelEl.classList.contains("open")) return;
+      var btn = document.getElementById("kulms-assign-toggle");
+      if (panelEl.contains(e.target)) return;
+      if (btn && btn.contains(e.target)) return;
+      closePanel();
+    }, true);
 
     // タブがアクティブに戻った時 or 提出後に課題を自動更新
     document.addEventListener("visibilitychange", function () {

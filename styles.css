@@ -16,20 +16,6 @@ body {
 
 /* === クリック外閉じオーバーレイ === */
 
-#kulms-cover {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  z-index: 99999 !important;
-  background: transparent !important;
-  display: none !important;
-}
-
-#kulms-cover.visible {
-  display: block !important;
-}
 
 /* === ハンバーガーボタン === */
 
