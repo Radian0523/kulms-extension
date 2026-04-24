@@ -58,10 +58,7 @@
     }
     const ct = res.headers.get("content-type") || "";
     if (ct && ct.indexOf("json") === -1) {
-      if (/\/portal\/(x?login|relogin|logout)/.test(res.url)) {
-        throw LoggedOutError();
-      }
-      throw new Error(`API ${path} returned non-JSON (status ${res.status})`);
+      throw LoggedOutError();
     }
     if (!res.ok) {
       throw new Error(`API ${path} returned ${res.status}`);
