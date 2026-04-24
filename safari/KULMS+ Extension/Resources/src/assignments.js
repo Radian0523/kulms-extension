@@ -2585,8 +2585,9 @@
     injectUrgencyColors(window.__kulmsSettings || {});
 
     // ページ読み込み時にキャッシュからサイドバー色分け・バッジを適用
+    // TTL を無視して読み込み、期限切れでも即座に色分けを反映する
     try {
-      var cached = await loadCache();
+      var cached = await loadStaleCache();
       if (cached && cached.assignments) {
         colorSidebarTabs(cached.assignments);
         checkNotificationBadges(cached.assignments);
