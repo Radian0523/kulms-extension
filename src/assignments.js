@@ -1292,6 +1292,9 @@
       var a = document.createElement("a");
       a.href = assignment.url;
       a.textContent = assignment.name;
+      if (window.matchMedia("(pointer: coarse)").matches) {
+        a.addEventListener("click", function () { closePanel(); });
+      }
       nameDiv.appendChild(a);
     } else {
       nameDiv.textContent = assignment.name;
