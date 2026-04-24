@@ -361,6 +361,12 @@ a:hover{text-decoration:underline}
       </div>
       <div class="slide">
         <div class="slide-text">
+          <h3>モバイル版メモ入力</h3>
+          <p>タッチデバイスではモーダルオーバーレイでメモを入力。締切日時は select ドロップダウン式ピッカーで設定でき、Android WebView でも快適に操作できます。</p>
+        </div>
+      </div>
+      <div class="slide">
+        <div class="slide-text">
           <h3>サイドバー色分け</h3>
           <p>サイドバーの各科目を、最も近い締切の緊急度に応じて色分け表示。</p>
         </div>
@@ -411,8 +417,24 @@ a:hover{text-decoration:underline}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.11.13</span>
+      <span class="release-version">v1.12.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>メモ入力: モバイル（タッチデバイス）でモーダルオーバーレイ表示に切替</strong>
+        <ul>
+          <li>タッチデバイスではメモの追加・編集をモーダルオーバーレイで表示（PC はインラインフォームのまま変更なし）</li>
+          <li>モーダル内の締切日時入力を select ドロップダウン式カスタムピッカーに変更（Android WebView で datetime-local が動かない問題を解決）</li>
+          <li>初期値に現在日時をセット</li>
+          <li>モーダル UI の CSS を追加</li>
+        </ul>
+      </li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.11.13</span>
     </div>
     <ul>
       <li><strong>Android版テスター募集バナーを追加</strong>

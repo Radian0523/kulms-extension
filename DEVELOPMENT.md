@@ -396,6 +396,12 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 | 緊急度カスタマイズ | 閾値（時間/日）、カラーピッカー |
 | 開発者 | プレビューモード |
 
+### 14. Android WebView の `<input type="datetime-local">` 非対応
+
+**問題**: メモ機能の締切日時入力に `<input type="datetime-local">` を使用していたが、Android WebView ではネイティブの日時ピッカーが表示されず、日時を入力できなかった。
+
+**解決策**: モバイル（タッチデバイス）ではメモ入力をモーダルオーバーレイに切り替え、締切日時の入力を `<select>` ドロップダウン式のカスタムピッカーに変更した。年・月・日・時・分をそれぞれ独立した `<select>` 要素で構成し、全ブラウザ・WebView で一貫した動作を実現。PC（非タッチデバイス）は従来のインラインフォーム + `datetime-local` のまま変更なし。タッチデバイスの判定には `'ontouchstart' in window` または `navigator.maxTouchPoints > 0` を使用。
+
 ## 対応環境
 
 - **LMS**: Sakai (京都大学KULMS)
