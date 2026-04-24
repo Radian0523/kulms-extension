@@ -58,7 +58,8 @@
     }
     const ct = res.headers.get("content-type") || "";
     if (ct && ct.indexOf("json") === -1) {
-      throw LoggedOutError();
+      // throw LoggedOutError();
+      throw new Error(`API ${path} returned ${res.status}`);
     }
     if (!res.ok) {
       throw new Error(`API ${path} returned ${res.status}`);
