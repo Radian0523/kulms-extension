@@ -3,6 +3,11 @@
 
 console.log("[KULMS Extension] loaded on:", window.location.href);
 
+// /portal 配下以外では何もしない
+if (window.location.pathname.indexOf("/portal") !== 0) {
+  window.__kulmsSettingsReady = new Promise(function () {});
+}
+
 // === コンテキスト無効化対策 ===
 
 window.__kulmsAlive = function () {
@@ -73,7 +78,7 @@ window.__kulmsDefaults = {
   language: "auto"
 };
 
-window.__kulmsSettingsReady = new Promise(function (resolve) {
+if (!window.__kulmsSettingsReady) window.__kulmsSettingsReady = new Promise(function (resolve) {
   var DEFAULTS = window.__kulmsDefaults;
   window.__kulmsSafeStorage.get("kulms-settings", function (result) {
     var saved = result["kulms-settings"] || {};

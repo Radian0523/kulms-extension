@@ -659,6 +659,85 @@ body {
   color: #e85555 !important;
 }
 
+/* モバイル: メモ入力モーダル */
+.kulms-memo-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.55) !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  padding: 48px 16px 0 !important;
+  box-sizing: border-box !important;
+}
+
+.kulms-memo-modal {
+  background: #fff !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.25) !important;
+  box-sizing: border-box !important;
+}
+
+.kulms-memo-modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 12px !important;
+}
+
+.kulms-memo-modal-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+}
+
+.kulms-memo-modal-close {
+  border: none !important;
+  background: transparent !important;
+  font-size: 20px !important;
+  color: #999 !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.kulms-memo-modal-input {
+  font-size: 15px !important;
+  padding: 10px !important;
+  margin-top: 10px !important;
+}
+
+.kulms-memo-dt-picker {
+  margin-top: 10px !important;
+}
+
+.kulms-memo-dt-row {
+  display: flex !important;
+  gap: 6px !important;
+  margin-bottom: 6px !important;
+}
+
+.kulms-memo-dt-sel {
+  flex: 1 !important;
+  min-width: 0 !important;
+  border: 1px solid #ccc !important;
+  border-radius: 6px !important;
+  padding: 8px 4px !important;
+  font-size: 14px !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+  color: #333 !important;
+}
+
 /* カード削除ボタン */
 .kulms-card-delete {
   position: absolute !important;

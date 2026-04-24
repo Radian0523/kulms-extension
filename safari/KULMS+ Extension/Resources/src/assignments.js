@@ -863,16 +863,6 @@
     if (isPushMode()) {
       document.body.style.marginRight = "300px";
       document.body.classList.add("kulms-panel-pushed");
-    } else {
-      // オーバーレイモード: クリック外閉じ用
-      var cover = document.getElementById("kulms-cover");
-      if (!cover) {
-        cover = document.createElement("div");
-        cover.id = "kulms-cover";
-        cover.addEventListener("click", closePanel);
-        document.body.appendChild(cover);
-      }
-      cover.classList.add("visible");
     }
 
     sessionStorage.setItem("kulms-panel-open", "1");
@@ -888,8 +878,6 @@
     panelEl.classList.remove("open");
     document.body.style.marginRight = "";
     document.body.classList.remove("kulms-panel-pushed");
-    var cover = document.getElementById("kulms-cover");
-    if (cover) cover.classList.remove("visible");
     sessionStorage.removeItem("kulms-panel-open");
   }
 
@@ -1532,113 +1520,294 @@
 
   function appendMemoButton() {
     if (window.__kulmsSettings && window.__kulmsSettings.memos === false) return;
-    var wrapper = document.createElement("div");
-    wrapper.className = "kulms-memo-area";
 
-    // メモ入力フォーム (初期非表示)
-    var form = document.createElement("div");
-    form.className = "kulms-memo-form";
-    form.style.display = "none";
-
-    var textarea = document.createElement("textarea");
-    textarea.className = "kulms-memo-input";
-    textarea.placeholder = t("memoPlaceholder");
-    textarea.rows = 3;
-
-    // コース選択ドロップダウン
-    var courseSelect = document.createElement("select");
-    courseSelect.className = "kulms-memo-input";
-    courseSelect.style.cssText = "margin-top:6px !important;padding:4px 8px !important";
-    var defaultOpt = document.createElement("option");
-    defaultOpt.value = "";
-    defaultOpt.textContent = t("memoCourseSelect");
-    courseSelect.appendChild(defaultOpt);
-    // Populate from all courses (lastCourses), fallback to lastAssignments
-    var courseList = lastCourses.length > 0 ? lastCourses : [];
-    var seenCourses = {};
-    courseList.forEach(function (c) {
-      if (!c.id || seenCourses[c.id]) return;
-      seenCourses[c.id] = true;
-      var opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.name;
-      opt.dataset.courseName = c.name;
-      courseSelect.appendChild(opt);
-    });
-    // fallback: lastAssignments から補完（courses が空の場合）
-    if (courseList.length === 0) {
-      lastAssignments.forEach(function (a) {
-        if (!a.courseId || seenCourses[a.courseId]) return;
-        seenCourses[a.courseId] = true;
+    // コース選択肢を select 要素に追加する共通ヘルパー
+    function buildCourseOptions(selectEl) {
+      var defaultOpt = document.createElement("option");
+      defaultOpt.value = "";
+      defaultOpt.textContent = t("memoCourseSelect");
+      selectEl.appendChild(defaultOpt);
+      var courseList = lastCourses.length > 0 ? lastCourses : [];
+      var seenCourses = {};
+      courseList.forEach(function (c) {
+        if (!c.id || seenCourses[c.id]) return;
+        seenCourses[c.id] = true;
         var opt = document.createElement("option");
-        opt.value = a.courseId;
-        opt.textContent = a.courseName;
-        opt.dataset.courseName = a.courseName;
-        courseSelect.appendChild(opt);
+        opt.value = c.id;
+        opt.textContent = c.name;
+        opt.dataset.courseName = c.name;
+        selectEl.appendChild(opt);
       });
+      if (courseList.length === 0) {
+        lastAssignments.forEach(function (a) {
+          if (!a.courseId || seenCourses[a.courseId]) return;
+          seenCourses[a.courseId] = true;
+          var opt = document.createElement("option");
+          opt.value = a.courseId;
+          opt.textContent = a.courseName;
+          opt.dataset.courseName = a.courseName;
+          selectEl.appendChild(opt);
+        });
+      }
     }
 
-    // 締切日時入力
-    var deadlineInput = document.createElement("input");
-    deadlineInput.type = "datetime-local";
-    deadlineInput.className = "kulms-memo-input";
-    deadlineInput.style.cssText = "margin-top:6px !important;padding:4px 8px !important";
-    deadlineInput.placeholder = "締切日時（任意）";
-
-    var actions = document.createElement("div");
-    actions.className = "kulms-memo-form-actions";
-
-    var saveBtn = document.createElement("button");
-    saveBtn.className = "kulms-memo-save";
-    saveBtn.textContent = t("memoSave");
-    saveBtn.addEventListener("click", function () {
-      var text = textarea.value.trim();
-      if (!text) return;
+    // フォームの値からメモを保存する共通ヘルパー
+    // getDeadlineMs: 締切タイムスタンプ(ms)を返す関数。未設定なら 0 を返す
+    function saveMemoFromForm(taEl, csEl, getDeadlineMs) {
+      var text = taEl.value.trim();
+      if (!text) return false;
       var memo = { id: Date.now(), text: text, created: Date.now() };
-      if (courseSelect.value) {
-        memo.courseId = courseSelect.value;
-        var selectedOpt = courseSelect.options[courseSelect.selectedIndex];
+      if (csEl.value) {
+        memo.courseId = csEl.value;
+        var selectedOpt = csEl.options[csEl.selectedIndex];
         memo.courseName = selectedOpt.dataset.courseName || selectedOpt.textContent;
       }
-      if (deadlineInput.value) {
-        memo.deadline = new Date(deadlineInput.value).getTime();
-      }
+      var deadlineMs = getDeadlineMs();
+      if (deadlineMs) memo.deadline = deadlineMs;
       memos.push(memo);
       saveMemos();
       renderAssignments(lastAssignments);
-    });
+      return true;
+    }
 
-    var cancelBtn = document.createElement("button");
-    cancelBtn.className = "kulms-memo-cancel";
-    cancelBtn.textContent = t("memoCancel");
-    cancelBtn.addEventListener("click", function () {
-      form.style.display = "none";
-      addBtn.style.display = "";
-      textarea.value = "";
-      courseSelect.value = "";
-      deadlineInput.value = "";
-    });
-
-    actions.appendChild(saveBtn);
-    actions.appendChild(cancelBtn);
-    form.appendChild(textarea);
-    form.appendChild(courseSelect);
-    form.appendChild(deadlineInput);
-    form.appendChild(actions);
+    var wrapper = document.createElement("div");
+    wrapper.className = "kulms-memo-area";
 
     // ＋ボタン
     var addBtn = document.createElement("button");
     addBtn.className = "kulms-memo-btn";
     addBtn.textContent = "\uFF0B"; // ＋
     addBtn.title = t("memoAdd");
-    addBtn.addEventListener("click", function () {
-      addBtn.style.display = "none";
-      form.style.display = "block";
-      textarea.focus();
-    });
 
-    wrapper.appendChild(form);
-    wrapper.appendChild(addBtn);
+    var isMobile = window.matchMedia("(pointer: coarse)").matches;
+
+    if (isMobile) {
+      // ---- モバイル: モーダル ----
+      addBtn.addEventListener("click", function () {
+        var overlay = document.createElement("div");
+        overlay.className = "kulms-memo-modal-overlay";
+
+        var modal = document.createElement("div");
+        modal.className = "kulms-memo-modal";
+
+        // ヘッダー
+        var header = document.createElement("div");
+        header.className = "kulms-memo-modal-header";
+        var titleEl = document.createElement("span");
+        titleEl.className = "kulms-memo-modal-title";
+        titleEl.textContent = t("memoAdd");
+        var closeBtn = document.createElement("button");
+        closeBtn.className = "kulms-memo-modal-close";
+        closeBtn.textContent = "✕";
+        header.appendChild(titleEl);
+        header.appendChild(closeBtn);
+
+        // 入力フィールド
+        var ta = document.createElement("textarea");
+        ta.className = "kulms-memo-input kulms-memo-modal-input";
+        ta.placeholder = t("memoPlaceholder");
+        ta.rows = 4;
+
+        var cs = document.createElement("select");
+        cs.className = "kulms-memo-input kulms-memo-modal-input";
+        buildCourseOptions(cs);
+
+        // 締切日時: Android WebView では date/time input が動かないため
+        // select ドロップダウンで年月日時分を選択するカスタムピッカーを使う
+        var dlPicker = (function () {
+          var now = new Date();
+          function makeSel(placeholder, items) {
+            var sel = document.createElement("select");
+            sel.className = "kulms-memo-dt-sel";
+            var empty = document.createElement("option");
+            empty.value = "";
+            empty.textContent = placeholder;
+            sel.appendChild(empty);
+            items.forEach(function (item) {
+              var o = document.createElement("option");
+              o.value = item.v;
+              o.textContent = item.l;
+              sel.appendChild(o);
+            });
+            return sel;
+          }
+          var years = [];
+          for (var y = now.getFullYear(); y <= now.getFullYear() + 2; y++) {
+            years.push({ v: y, l: y + "年" });
+          }
+          var months = [];
+          for (var m = 1; m <= 12; m++) months.push({ v: m, l: m + "月" });
+          var hours = [];
+          for (var h = 0; h <= 23; h++) {
+            hours.push({ v: h, l: (h < 10 ? "0" : "") + h + "時" });
+          }
+          var mins = [];
+          for (var mi = 0; mi < 60; mi += 5) {
+            mins.push({ v: mi, l: (mi < 10 ? "0" : "") + mi + "分" });
+          }
+          var yearSel = makeSel("年", years);
+          var monthSel = makeSel("月", months);
+          var daySel = makeSel("日", []);
+          var hourSel = makeSel("時", hours);
+          var minSel = makeSel("分", mins);
+
+          // 現在日時を初期値としてセット
+          yearSel.value = now.getFullYear();
+          monthSel.value = now.getMonth() + 1;
+          hourSel.value = now.getHours();
+          // 分は5分刻みなので切り捨て
+          minSel.value = Math.floor(now.getMinutes() / 5) * 5;
+
+          function updateDays() {
+            var y = parseInt(yearSel.value) || now.getFullYear();
+            var mo = parseInt(monthSel.value) || 1;
+            var maxD = new Date(y, mo, 0).getDate();
+            var prev = daySel.value;
+            while (daySel.options.length > 1) daySel.remove(1);
+            for (var d = 1; d <= maxD; d++) {
+              var o = document.createElement("option");
+              o.value = d;
+              o.textContent = d + "日";
+              daySel.appendChild(o);
+            }
+            if (prev && parseInt(prev) <= maxD) daySel.value = prev;
+          }
+          updateDays();
+          daySel.value = now.getDate(); // updateDays() で選択肢が生成された後にセット
+          yearSel.addEventListener("change", updateDays);
+          monthSel.addEventListener("change", updateDays);
+
+          var row1 = document.createElement("div");
+          row1.className = "kulms-memo-dt-row";
+          row1.appendChild(yearSel);
+          row1.appendChild(monthSel);
+          row1.appendChild(daySel);
+
+          var row2 = document.createElement("div");
+          row2.className = "kulms-memo-dt-row";
+          row2.appendChild(hourSel);
+          row2.appendChild(minSel);
+
+          var wrap = document.createElement("div");
+          wrap.className = "kulms-memo-dt-picker";
+          wrap.appendChild(row1);
+          wrap.appendChild(row2);
+
+          wrap.getTimestamp = function () {
+            if (!yearSel.value || !monthSel.value || !daySel.value) return 0;
+            return new Date(
+              parseInt(yearSel.value),
+              parseInt(monthSel.value) - 1,
+              parseInt(daySel.value),
+              parseInt(hourSel.value) || 0,
+              parseInt(minSel.value) || 0
+            ).getTime();
+          };
+          return wrap;
+        })();
+
+        // アクション
+        var actions = document.createElement("div");
+        actions.className = "kulms-memo-form-actions";
+        var saveBtn = document.createElement("button");
+        saveBtn.className = "kulms-memo-save";
+        saveBtn.textContent = t("memoSave");
+        var cancelBtn = document.createElement("button");
+        cancelBtn.className = "kulms-memo-cancel";
+        cancelBtn.textContent = t("memoCancel");
+        actions.appendChild(cancelBtn);
+        actions.appendChild(saveBtn);
+
+        modal.appendChild(header);
+        modal.appendChild(ta);
+        modal.appendChild(cs);
+        modal.appendChild(dlPicker);
+        modal.appendChild(actions);
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+        ta.focus();
+
+        function getDeadlineMs() {
+          return dlPicker.getTimestamp();
+        }
+
+        function closeModal() {
+          if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }
+        closeBtn.addEventListener("click", closeModal);
+        cancelBtn.addEventListener("click", closeModal);
+        overlay.addEventListener("click", function (e) {
+          if (e.target === overlay) closeModal();
+        });
+        saveBtn.addEventListener("click", function () {
+          if (saveMemoFromForm(ta, cs, getDeadlineMs)) closeModal();
+        });
+      });
+
+      wrapper.appendChild(addBtn);
+
+    } else {
+      // ---- PC: インライン フォーム ----
+      var form = document.createElement("div");
+      form.className = "kulms-memo-form";
+      form.style.display = "none";
+
+      var textarea = document.createElement("textarea");
+      textarea.className = "kulms-memo-input";
+      textarea.placeholder = t("memoPlaceholder");
+      textarea.rows = 3;
+
+      var courseSelect = document.createElement("select");
+      courseSelect.className = "kulms-memo-input";
+      courseSelect.style.cssText = "margin-top:6px !important;padding:4px 8px !important";
+      buildCourseOptions(courseSelect);
+
+      var deadlineInput = document.createElement("input");
+      deadlineInput.type = "datetime-local";
+      deadlineInput.className = "kulms-memo-input";
+      deadlineInput.style.cssText = "margin-top:6px !important;padding:4px 8px !important";
+      deadlineInput.placeholder = "締切日時（任意）";
+
+      var actions = document.createElement("div");
+      actions.className = "kulms-memo-form-actions";
+
+      var saveBtn = document.createElement("button");
+      saveBtn.className = "kulms-memo-save";
+      saveBtn.textContent = t("memoSave");
+      saveBtn.addEventListener("click", function () {
+        saveMemoFromForm(textarea, courseSelect, function () {
+          return deadlineInput.value ? new Date(deadlineInput.value).getTime() : 0;
+        });
+      });
+
+      var cancelBtn = document.createElement("button");
+      cancelBtn.className = "kulms-memo-cancel";
+      cancelBtn.textContent = t("memoCancel");
+      cancelBtn.addEventListener("click", function () {
+        form.style.display = "none";
+        addBtn.style.display = "";
+        textarea.value = "";
+        courseSelect.value = "";
+        deadlineInput.value = "";
+      });
+
+      actions.appendChild(saveBtn);
+      actions.appendChild(cancelBtn);
+      form.appendChild(textarea);
+      form.appendChild(courseSelect);
+      form.appendChild(deadlineInput);
+      form.appendChild(actions);
+
+      addBtn.addEventListener("click", function () {
+        addBtn.style.display = "none";
+        form.style.display = "block";
+        textarea.focus();
+      });
+
+      wrapper.appendChild(form);
+      wrapper.appendChild(addBtn);
+    }
+
     contentEl.appendChild(wrapper);
   }
 
@@ -2426,6 +2595,16 @@
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }
+
+    // オーバーレイモード: パネル外クリックで閉じる
+    document.addEventListener("mousedown", function (e) {
+      if (isPushMode()) return;
+      if (!panelEl || !panelEl.classList.contains("open")) return;
+      var btn = document.getElementById("kulms-assign-toggle");
+      if (panelEl.contains(e.target)) return;
+      if (btn && btn.contains(e.target)) return;
+      closePanel();
+    }, true);
 
     // タブがアクティブに戻った時 or 提出後に課題を自動更新
     document.addEventListener("visibilitychange", function () {
