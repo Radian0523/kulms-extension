@@ -1061,6 +1061,10 @@
     if (other.length > 0) {
       contentEl.appendChild(createSection(t("sectionOther"), other, "other", false));
     }
+
+    // Plain memos (no deadline)
+    renderMemos();
+
     if (completed.length > 0) {
       completed.sort(function (a, b) {
         if (a.deadline && b.deadline) return b.deadline - a.deadline;
@@ -1073,9 +1077,6 @@
 
     // 削除済みセクション
     renderDeletedSection();
-
-    // Plain memos (no deadline)
-    renderMemos();
     // メモ追加ボタン
     appendMemoButton();
     // テスター募集バナー
