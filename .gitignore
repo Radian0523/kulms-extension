@@ -1,6 +1,7 @@
 .DS_Store
 .claude/
 *.zip
+node_modules/
 # Xcode
 safari/KULMS+.xcodeproj/xcuserdata/
 safari/KULMS+.xcodeproj/project.xcworkspace/xcuserdata/

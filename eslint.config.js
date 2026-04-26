@@ -1,0 +1,56 @@
+export default [
+  {
+    files: ["src/**/*.js", "background.js", "popup.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: {
+        // Browser APIs
+        window: "readonly",
+        document: "readonly",
+        console: "readonly",
+        navigator: "readonly",
+        location: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        fetch: "readonly",
+        setTimeout: "readonly",
+        setInterval: "readonly",
+        clearInterval: "readonly",
+        clearTimeout: "readonly",
+        Date: "readonly",
+        Promise: "readonly",
+        URL: "readonly",
+        URLSearchParams: "readonly",
+        MutationObserver: "readonly",
+        ResizeObserver: "readonly",
+        HTMLElement: "readonly",
+        Event: "readonly",
+        NodeFilter: "readonly",
+        DOMParser: "readonly",
+        TextDecoder: "readonly",
+        Notification: "readonly",
+        matchMedia: "readonly",
+        requestAnimationFrame: "readonly",
+        getComputedStyle: "readonly",
+        alert: "readonly",
+        confirm: "readonly",
+        // Chrome extension API
+        chrome: "readonly",
+        // Third-party (LMS)
+        bootstrap: "readonly",
+        // Cross-file globals (settings.js defines these, loaded before other scripts)
+        t: "readonly",
+        __kulmsOverrideMessages: "writable",
+      },
+    },
+    rules: {
+      "no-undef": "error",
+      "no-unused-vars": ["warn", { vars: "local", args: "none" }],
+      "no-dupe-keys": "error",
+      "no-duplicate-case": "error",
+      "no-unreachable": "error",
+      "eqeqeq": "off",
+    },
+  },
+];
