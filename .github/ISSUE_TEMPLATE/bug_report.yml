@@ -17,7 +17,7 @@ body:
       description: 本来どう動くべきかを教えてください。
       placeholder: "例: 全科目の課題一覧が表示される"
     validations:
-      required: true
+      required: false
   - type: textarea
     id: steps
     attributes:
