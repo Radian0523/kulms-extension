@@ -1427,7 +1427,7 @@ body.kulms-sidebar-resizing iframe {
    科目数が多いときは自動で改行されて高さが伸びる */
 .kulms-top-favbar {
   position: fixed !important;
-  top: 63px !important;
+  top: var(--kulms-favbar-top, 63px) !important;
   left: 0 !important;
   right: 0 !important;
   z-index: 900 !important;

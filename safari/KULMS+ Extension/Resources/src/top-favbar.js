@@ -10,6 +10,7 @@
   var syncScheduled = false;
   var observer = null;
   var resizeObserver = null;
+  var bannerObserver = null;
 
   // ドロップダウン状態
   var dropdownEl = null;
@@ -276,10 +277,36 @@
     if (document.body) {
       document.body.classList.remove(HAS_BAR_CLASS);
       document.body.style.removeProperty("--kulms-favbar-height");
+      document.body.style.removeProperty("--kulms-favbar-top");
     }
     if (resizeObserver) {
       resizeObserver.disconnect();
       resizeObserver = null;
+    }
+    stopBannerObserver();
+  }
+
+  function updateBarTop() {
+    if (!document.body) return;
+    var header = document.querySelector("header.portal-header");
+    if (!header) return;
+    var bottom = header.getBoundingClientRect().bottom;
+    document.body.style.setProperty("--kulms-favbar-top", bottom + "px");
+  }
+
+  function startBannerObserver() {
+    if (bannerObserver) return;
+    // 警告バナー領域 (.portal-pasystem) の高さ変動を監視
+    var bannerArea = document.querySelector(".portal-pasystem");
+    if (!bannerArea) return;
+    bannerObserver = new ResizeObserver(function () { updateBarTop(); });
+    bannerObserver.observe(bannerArea);
+  }
+
+  function stopBannerObserver() {
+    if (bannerObserver) {
+      bannerObserver.disconnect();
+      bannerObserver = null;
     }
   }
 
@@ -388,19 +415,23 @@
     if (shouldShow) {
       var bar = ensureBarInserted();
       if (bar) {
+        updateBarTop();
+        startBannerObserver();
         syncBarContent(bar);
         startObserver();
         startResizeObserver(bar);
       }
     } else {
       stopObserver();
+      stopBannerObserver();
       removeBar();
     }
   }
 
   function onResize() {
     apply();
-    // バー表示中ならリサイズで折り返し位置が変わるので高さを再計算
+    // バー表示中ならリサイズで折り返し位置が変わるので高さ・位置を再計算
+    updateBarTop();
     updateBarHeight();
     // ドロップダウンが開いているなら位置を追従
     if (dropdownEl && currentDropdownAnchor) {
