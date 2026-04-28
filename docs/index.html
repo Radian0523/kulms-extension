@@ -261,11 +261,111 @@ a:hover{text-decoration:underline}
 .footer{
   text-align:center;padding:3rem 1.5rem;
   color:var(--fg3);font-size:0.85rem;
-  border-top:1px solid var(--border);
   max-width:740px;margin:1rem auto 0;
 }
 .footer a{color:var(--fg3)}
 .footer a:hover{color:var(--accent)}
+
+/* === Animations === */
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(24px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes heroFadeIn{
+  from{opacity:0;transform:translateY(16px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Hero decorative blobs */
+.header{position:relative;overflow:hidden}
+.header::before,.header::after{
+  content:"";position:absolute;border-radius:50%;
+  pointer-events:none;opacity:0.18;
+  z-index:0;
+}
+.header::before{
+  width:340px;height:340px;
+  top:-80px;left:-60px;
+  background:radial-gradient(circle,var(--accent),transparent 70%);
+}
+.header::after{
+  width:260px;height:260px;
+  bottom:-40px;right:-40px;
+  background:radial-gradient(circle,var(--accent),transparent 70%);
+}
+.header>*{position:relative;z-index:1}
+
+/* Hero icon float */
+.header img{animation:float 4s ease-in-out infinite}
+
+/* Hero text fade-in on load */
+.header h1{animation:heroFadeIn 0.8s ease-out both;animation-delay:0.15s}
+.header p{animation:heroFadeIn 0.8s ease-out both;animation-delay:0.35s}
+
+/* Scroll-reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease-out,transform 0.6s ease-out}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal .reveal-child{
+  opacity:0;transform:translateY(16px);
+  transition:opacity 0.5s ease-out,transform 0.5s ease-out;
+}
+.reveal.visible .reveal-child{opacity:1;transform:translateY(0)}
+
+/* Download button hover lift + glow */
+.btn{transition:background 0.15s,transform 0.2s,box-shadow 0.2s}
+.btn-primary:hover,.btn-android:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 16px rgba(201,100,66,0.25);
+}
+
+/* Carousel card hover lift */
+.slide{transition:transform 0.25s ease,box-shadow 0.25s ease}
+.slide:hover{transform:translateY(-3px);box-shadow:var(--shadow) 0px 8px 32px}
+
+/* Changelog card hover lift */
+.release{transition:transform 0.2s ease,box-shadow 0.2s ease}
+.release:hover{transform:translateY(-2px);box-shadow:var(--shadow) 0px 6px 20px}
+
+/* Changelog tab fade transition */
+.changelog-panel{transition:opacity 0.3s ease}
+.changelog-panel.active{display:block;animation:fadeInUp 0.35s ease-out}
+
+/* Dot indicator transition */
+.dot{transition:background 0.25s,transform 0.25s,box-shadow 0.25s}
+.dot.active{box-shadow:0 0 0 3px rgba(201,100,66,0.2)}
+
+/* Link hover transition */
+a{transition:color 0.2s ease}
+
+/* Section dividers */
+.section-divider{
+  display:block;height:2px;border:none;margin:0 auto;
+  max-width:740px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:0.2;
+}
+
+/* Footer top gradient */
+.footer{
+  border-top:none;
+  border-image:linear-gradient(90deg,transparent,var(--accent),transparent) 1;
+  border-top-width:2px;border-top-style:solid;
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  .header img{animation:none}
+  .header h1,.header p{animation:none;opacity:1}
+  .reveal{opacity:1;transform:none;transition:none}
+  .reveal .reveal-child{opacity:1;transform:none;transition:none}
+  .slide,.release,.btn{transition:none}
+  .changelog-panel.active{animation:none}
+  .dot{transition:none}
+}
 
 /* Responsive */
 @media(max-width:640px){
@@ -286,7 +386,7 @@ a:hover{text-decoration:underline}
   <p>京都大学LMSをもっと便利に</p>
 </header>
 
-<section class="section">
+<section class="section reveal">
   <h2>ダウンロード</h2>
   <div class="downloads">
     <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb" target="_blank" rel="noopener">
@@ -322,7 +422,9 @@ a:hover{text-decoration:underline}
   </div>
 </section>
 
-<section class="section">
+<hr class="section-divider">
+
+<section class="section reveal">
   <h2>主な機能</h2>
   <div class="carousel-nav">
     <button class="carousel-nav-btn" id="prev" aria-label="前へ">&#8249;</button>
@@ -405,7 +507,9 @@ a:hover{text-decoration:underline}
   <p class="carousel-note">※ 画像はイメージです。実際の表示とは異なる場合があります。</p>
 </section>
 
-<section class="section" id="changelog">
+<hr class="section-divider">
+
+<section class="section reveal" id="changelog">
   <h2>更新履歴</h2>
   <div class="changelog-tabs">
     <button class="changelog-tab active" data-target="cl-extension">拡張機能</button>
@@ -922,6 +1026,38 @@ a:hover{text-decoration:underline}
       document.getElementById(tab.dataset.target).classList.add('active');
     });
   });
+})();
+// Scroll-reveal with stagger
+(function(){
+  var reducedMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var reveals=document.querySelectorAll('.reveal');
+  if(reducedMotion){
+    reveals.forEach(function(el){el.classList.add('visible')});
+    return;
+  }
+  // Mark stagger children: .downloads > .btn, .release
+  document.querySelectorAll('.downloads > .btn, .downloads > a').forEach(function(el){
+    el.classList.add('reveal-child');
+  });
+  document.querySelectorAll('.release').forEach(function(el){
+    el.classList.add('reveal-child');
+  });
+  // Assign stagger delays within each .reveal
+  reveals.forEach(function(section){
+    var children=section.querySelectorAll('.reveal-child');
+    children.forEach(function(child,i){
+      child.style.transitionDelay=(i*0.08)+'s';
+    });
+  });
+  var observer=new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  },{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
+  reveals.forEach(function(el){observer.observe(el)});
 })();
 </script>
 
