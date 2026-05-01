@@ -724,6 +724,7 @@
   let cacheInfoEl = null;
 
   function createFloatingButton() {
+    if (document.getElementById("kulms-assign-toggle")) return;
     var btn = document.createElement("button");
     btn.id = "kulms-assign-toggle";
     btn.title = "KULMS Extension";
@@ -738,6 +739,8 @@
   }
 
   function createPanel() {
+    var existing = document.getElementById("kulms-assign-panel");
+    if (existing) { panelEl = existing; return; }
     panelEl = document.createElement("div");
     panelEl.id = "kulms-assign-panel";
 
