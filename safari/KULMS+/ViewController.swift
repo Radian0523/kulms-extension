@@ -9,7 +9,7 @@ import Cocoa
 import SafariServices
 import WebKit
 
-let extensionBundleIdentifier = "com.kulms-plus.extension.Extension"
+let extensionBundleIdentifier = "com.radian0523.kulms-plus-for-safari.Extension"
 
 class ViewController: NSViewController, WKNavigationDelegate, WKScriptMessageHandler {
 

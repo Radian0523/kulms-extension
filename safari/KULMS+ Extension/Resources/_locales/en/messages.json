@@ -361,6 +361,15 @@
   "deleteConfirm": {
     "message": "Delete?"
   },
+  "deleteConfirmRepeat": {
+    "message": "Stop recurring?"
+  },
+  "memoRepeat": {
+    "message": "Repeat"
+  },
+  "memoRepeatWeekly": {
+    "message": "Repeat weekly"
+  },
   "dismissAssignment": {
     "message": "Hide"
   },

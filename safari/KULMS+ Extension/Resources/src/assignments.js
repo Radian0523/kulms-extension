@@ -10,8 +10,8 @@
   const MEMO_KEY = "kulms-memos";
   const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
   const DISMISSED_KEY = "kulms-dismissed-assignments";
-  const TESTER_BANNER_DISMISSED_KEY = "kulms-tester-banner-dismissed";
-  var SHOW_TESTER_BANNER = true; // false にするだけでバナー非表示
+  const IOS_BANNER_DISMISSED_KEY = "kulms-ios-banner-dismissed";
+  var SHOW_IOS_BANNER = true; // false にするだけでバナー非表示
 
   // --- State ---
   var textbooksEnabled = true;
@@ -670,7 +670,8 @@
       url: assignment.url || "",
       type: assignment.type || "assignment",
       entityId: assignment.entityId || "",
-      _memoId: assignment._memoId || null
+      _memoId: assignment._memoId || null,
+      _repeat: assignment._repeat || null
     };
     saveDismissedState();
   }
@@ -693,6 +694,27 @@
 
   function saveMemos() {
     window.__kulmsSafeStorage.set({ [MEMO_KEY]: memos });
+  }
+
+  function generateNextRecurringMemo(memoId) {
+    var source = null;
+    for (var i = 0; i < memos.length; i++) {
+      var m = normalizeMemo(memos[i]);
+      if (m.id === memoId) { source = m; break; }
+    }
+    if (!source || !source.deadline || !source.repeat) return;
+    var nextDeadline = source.deadline + 7 * 24 * 60 * 60 * 1000;
+    var newMemo = {
+      id: Date.now(),
+      text: source.text,
+      created: Date.now(),
+      deadline: nextDeadline,
+      repeat: source.repeat
+    };
+    if (source.courseId) newMemo.courseId = source.courseId;
+    if (source.courseName) newMemo.courseName = source.courseName;
+    memos.push(newMemo);
+    saveMemos();
   }
 
   // --- UI ---
@@ -1020,6 +1042,7 @@
           entityId: "memo-" + memo.id,
           type: "memo",
           _memoId: memo.id,
+          _repeat: memo.repeat || null,
         };
         // Dismissed memos are hidden
         if (isAssignmentDismissed(memoItem)) return;
@@ -1079,8 +1102,8 @@
     renderDeletedSection();
     // メモ追加ボタン
     appendMemoButton();
-    // テスター募集バナー
-    appendTesterBanner();
+    // iOS版バナー
+    appendIosBanner();
   }
 
   function renderDeletedSection() {
@@ -1272,7 +1295,11 @@
     checkbox.className = "kulms-checkbox" + (isCompleted ? " checked" : "");
     checkbox.addEventListener("click", function (e) {
       e.stopPropagation();
+      var wasChecked = isAssignmentChecked(assignment);
       toggleChecked(assignment);
+      if (!wasChecked && assignment.type === "memo" && assignment._repeat) {
+        generateNextRecurringMemo(assignment._memoId);
+      }
       renderAssignments(lastAssignments);
     });
 
@@ -1332,6 +1359,12 @@
       memoBadge.textContent = t("memoLabel");
       badgeRow.appendChild(memoBadge);
     }
+    if (assignment._repeat) {
+      var repeatBadge = document.createElement("span");
+      repeatBadge.className = "kulms-badge-repeat";
+      repeatBadge.textContent = t("memoRepeat");
+      badgeRow.appendChild(repeatBadge);
+    }
     if (isResubmitActive) {
       var rBadge = document.createElement("span");
       if (assignment.allowResubmission) {
@@ -1357,7 +1390,7 @@
       e.stopPropagation();
       if (!confirmPending) {
         confirmPending = true;
-        delBtn.textContent = t("deleteConfirm");
+        delBtn.textContent = (assignment.type === "memo" && assignment._repeat) ? t("deleteConfirmRepeat") : t("deleteConfirm");
         delBtn.classList.add("kulms-card-delete-confirm");
         // 3秒後に自動リセット
         setTimeout(function () {
@@ -1464,6 +1497,13 @@
     badge.textContent = t("memoLabel");
     card.appendChild(badge);
 
+    if (memo.repeat) {
+      var repeatBadge = document.createElement("span");
+      repeatBadge.className = "kulms-badge-repeat";
+      repeatBadge.textContent = t("memoRepeat");
+      card.appendChild(repeatBadge);
+    }
+
     var text = document.createElement("div");
     text.className = "kulms-memo-text";
     text.textContent = memo.text;
@@ -1496,7 +1536,7 @@
       e.stopPropagation();
       if (!confirmPending) {
         confirmPending = true;
-        delBtn.textContent = t("deleteConfirm");
+        delBtn.textContent = memo.repeat ? t("deleteConfirmRepeat") : t("deleteConfirm");
         delBtn.classList.add("kulms-card-delete-confirm");
         setTimeout(function () {
           if (confirmPending) {
@@ -1514,7 +1554,8 @@
           url: "",
           entityId: "memo-" + memo.id,
           type: "memo",
-          _memoId: memo.id
+          _memoId: memo.id,
+          _repeat: memo.repeat || null
         };
         dismissAssignment(memoAsItem);
         renderAssignments(lastAssignments);
@@ -1560,7 +1601,7 @@
 
     // フォームの値からメモを保存する共通ヘルパー
     // getDeadlineMs: 締切タイムスタンプ(ms)を返す関数。未設定なら 0 を返す
-    function saveMemoFromForm(taEl, csEl, getDeadlineMs) {
+    function saveMemoFromForm(taEl, csEl, getDeadlineMs, isRepeat) {
       var text = taEl.value.trim();
       if (!text) return false;
       var memo = { id: Date.now(), text: text, created: Date.now() };
@@ -1570,7 +1611,10 @@
         memo.courseName = selectedOpt.dataset.courseName || selectedOpt.textContent;
       }
       var deadlineMs = getDeadlineMs();
-      if (deadlineMs) memo.deadline = deadlineMs;
+      if (deadlineMs) {
+        memo.deadline = deadlineMs;
+        if (isRepeat) memo.repeat = "weekly";
+      }
       memos.push(memo);
       saveMemos();
       renderAssignments(lastAssignments);
@@ -1713,6 +1757,14 @@
           return wrap;
         })();
 
+        // 繰り返しチェックボックス
+        var repeatLabel = document.createElement("label");
+        repeatLabel.className = "kulms-memo-repeat-label";
+        var repeatCb = document.createElement("input");
+        repeatCb.type = "checkbox";
+        repeatLabel.appendChild(repeatCb);
+        repeatLabel.appendChild(document.createTextNode(t("memoRepeatWeekly")));
+
         // アクション
         var actions = document.createElement("div");
         actions.className = "kulms-memo-form-actions";
@@ -1729,6 +1781,7 @@
         modal.appendChild(ta);
         modal.appendChild(cs);
         modal.appendChild(dlPicker);
+        modal.appendChild(repeatLabel);
         modal.appendChild(actions);
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
@@ -1747,7 +1800,7 @@
           if (e.target === overlay) closeModal();
         });
         saveBtn.addEventListener("click", function () {
-          if (saveMemoFromForm(ta, cs, getDeadlineMs)) closeModal();
+          if (saveMemoFromForm(ta, cs, getDeadlineMs, repeatCb.checked)) closeModal();
         });
       });
 
@@ -1775,6 +1828,26 @@
       deadlineInput.style.cssText = "margin-top:6px !important;padding:4px 8px !important";
       deadlineInput.placeholder = "締切日時（任意）";
 
+      // 繰り返しチェックボックス
+      var repeatLabel = document.createElement("label");
+      repeatLabel.className = "kulms-memo-repeat-label disabled";
+      var repeatCb = document.createElement("input");
+      repeatCb.type = "checkbox";
+      repeatCb.disabled = true;
+      repeatLabel.appendChild(repeatCb);
+      repeatLabel.appendChild(document.createTextNode(t("memoRepeatWeekly")));
+
+      deadlineInput.addEventListener("input", function () {
+        if (deadlineInput.value) {
+          repeatCb.disabled = false;
+          repeatLabel.classList.remove("disabled");
+        } else {
+          repeatCb.disabled = true;
+          repeatCb.checked = false;
+          repeatLabel.classList.add("disabled");
+        }
+      });
+
       var actions = document.createElement("div");
       actions.className = "kulms-memo-form-actions";
 
@@ -1784,7 +1857,7 @@
       saveBtn.addEventListener("click", function () {
         saveMemoFromForm(textarea, courseSelect, function () {
           return deadlineInput.value ? new Date(deadlineInput.value).getTime() : 0;
-        });
+        }, repeatCb.checked);
       });
 
       var cancelBtn = document.createElement("button");
@@ -1796,6 +1869,9 @@
         textarea.value = "";
         courseSelect.value = "";
         deadlineInput.value = "";
+        repeatCb.checked = false;
+        repeatCb.disabled = true;
+        repeatLabel.classList.add("disabled");
       });
 
       actions.appendChild(saveBtn);
@@ -1803,6 +1879,7 @@
       form.appendChild(textarea);
       form.appendChild(courseSelect);
       form.appendChild(deadlineInput);
+      form.appendChild(repeatLabel);
       form.appendChild(actions);
 
       addBtn.addEventListener("click", function () {
@@ -1818,28 +1895,28 @@
     contentEl.appendChild(wrapper);
   }
 
-  // --- テスター募集バナー ---
+  // --- iOS版バナー ---
 
-  function appendTesterBanner() {
-    if (!SHOW_TESTER_BANNER) return;
+  function appendIosBanner() {
+    if (!SHOW_IOS_BANNER) return;
 
-    chrome.storage.local.get(TESTER_BANNER_DISMISSED_KEY, function (result) {
-      if (result[TESTER_BANNER_DISMISSED_KEY]) return;
+    chrome.storage.local.get(IOS_BANNER_DISMISSED_KEY, function (result) {
+      if (result[IOS_BANNER_DISMISSED_KEY]) return;
       if (!contentEl) return;
 
       var banner = document.createElement("a");
-      banner.href = "https://docs.google.com/forms/d/e/1FAIpQLSeNoCT0U9DD6kdypt1m_4HT8ruHgi0E6S3JqZ9OAOMcDZXokQ/viewform";
+      banner.href = "https://apps.apple.com/jp/app/kulms-mobile/id6762236865";
       banner.target = "_blank";
       banner.rel = "noopener";
       banner.className = "kulms-tester-banner";
 
       var icon = document.createElement("span");
       icon.className = "kulms-tester-banner-icon";
-      icon.textContent = "\uD83E\uDD16"; // 🤖
+      icon.textContent = "\uD83D\uDCF1"; // 📱
 
       var text = document.createElement("span");
       text.className = "kulms-tester-banner-text";
-      text.innerHTML = "<strong>KULMS+ Android版登場!</strong><br>課題の通知でうっかり忘れも防止。スマホでもKULMS＋が使えます!<br><span style='font-size:10px;opacity:0.8'>※先行体験版は人数限定です</span>";
+      text.innerHTML = "<strong>KULMS+ iOS版登場!</strong><br>通知機能で課題の出し忘れをゼロに。";
 
       var close = document.createElement("span");
       close.className = "kulms-tester-banner-close";
@@ -1849,7 +1926,7 @@
         e.stopPropagation();
         banner.remove();
         var item = {};
-        item[TESTER_BANNER_DISMISSED_KEY] = Date.now();
+        item[IOS_BANNER_DISMISSED_KEY] = Date.now();
         chrome.storage.local.set(item);
       });
 
@@ -2270,7 +2347,13 @@
     var feedbackRow = document.createElement("div");
     feedbackRow.className = "kulms-settings-row kulms-settings-feedback";
     var feedbackLink = document.createElement("a");
-    feedbackLink.href = "https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform";
+    var feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform";
+    if (window.__kulmsPlatform === "ios") {
+      feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdmc4tCHa98mzt1j4Wxu9IJo88wKz3-VQHVYAQjbtJ3Jo_CPw/viewform?usp=dialog";
+    } else if (window.__kulmsPlatform === "android") {
+      feedbackUrl = "https://docs.google.com/forms/d/e/1FAIpQLScLn4G2IF1w0-QOWPKZ7R1LXjOq7OocYUmGJLoNA6JBuA20EA/viewform?usp=dialog";
+    }
+    feedbackLink.href = feedbackUrl;
     feedbackLink.target = "_blank";
     feedbackLink.rel = "noopener";
     feedbackLink.className = "kulms-feedback-link";

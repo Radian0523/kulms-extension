@@ -625,6 +625,36 @@ body {
   gap: 4px !important;
 }
 
+.kulms-badge-repeat {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  background: #43a047 !important;
+  color: #fff !important;
+}
+
+.kulms-memo-repeat-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: 6px !important;
+  font-size: 12px !important;
+  color: #555 !important;
+  cursor: pointer !important;
+}
+
+.kulms-memo-repeat-label input[type="checkbox"] {
+  margin: 0 !important;
+  cursor: pointer !important;
+}
+
+.kulms-memo-repeat-label.disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
 .kulms-badge-memo {
   display: inline-block !important;
   padding: 1px 8px !important;

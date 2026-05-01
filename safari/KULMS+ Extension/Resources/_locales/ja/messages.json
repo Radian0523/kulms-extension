@@ -361,6 +361,15 @@
   "deleteConfirm": {
     "message": "削除しますか？"
   },
+  "deleteConfirmRepeat": {
+    "message": "繰り返しを停止しますか？"
+  },
+  "memoRepeat": {
+    "message": "繰り返し"
+  },
+  "memoRepeatWeekly": {
+    "message": "毎週繰り返し"
+  },
   "dismissAssignment": {
     "message": "非表示"
   },

@@ -8,6 +8,7 @@
   var CACHE_KEY = "kulms-assignments";
   var CHECKED_KEY = "kulms-checked-assignments";
   var DISMISSED_KEY = "kulms-dismissed-assignments";
+  var MEMO_KEY = "kulms-memos";
   var SETTINGS_KEY = "kulms-settings";
 
   var settings = {};
@@ -114,6 +115,13 @@
   function isAssignmentDismissed(dismissedState, assignment) {
     var key = getCheckedKey(assignment);
     return !!dismissedState[key];
+  }
+
+  // --- Memo helpers ---
+
+  function normalizeMemo(memo) {
+    if (typeof memo === "string") return { id: Date.now(), text: memo, created: Date.now() };
+    return memo;
   }
 
   // --- Refresh ---
@@ -228,6 +236,22 @@
     pill.textContent = assignment.courseName;
     badgeRow.appendChild(pill);
 
+    if (assignment.type === "memo") {
+      pill.style.background = "#26a69a";
+      pill.classList.remove(urgency);
+      var mBadge = document.createElement("span");
+      mBadge.className = "badge-memo";
+      mBadge.textContent = t("memoLabel");
+      badgeRow.appendChild(mBadge);
+    }
+
+    if (assignment._repeat) {
+      var rptBadge = document.createElement("span");
+      rptBadge.className = "badge-repeat";
+      rptBadge.textContent = t("memoRepeat");
+      badgeRow.appendChild(rptBadge);
+    }
+
     if (assignment.type === "quiz") {
       var qBadge = document.createElement("span");
       qBadge.className = "badge-quiz";
@@ -286,7 +310,7 @@
     return card;
   }
 
-  function render(cache, checkedState, dismissedState) {
+  function render(cache, checkedState, dismissedState, memos) {
     var content = document.getElementById("content");
     var cacheInfo = document.getElementById("cache-info");
     content.innerHTML = "";
@@ -314,17 +338,6 @@
     }
 
     var assignments = cache.assignments;
-    if (assignments.length === 0) {
-      var emptyMsg = document.createElement("div");
-      emptyMsg.className = "empty";
-      var emptyText = document.createElement("div");
-      emptyText.className = "empty-text";
-      emptyText.textContent = t("noAssignments");
-      emptyMsg.appendChild(emptyText);
-      content.appendChild(emptyMsg);
-      return;
-    }
-
     var now = Date.now();
 
     // Filter dismissed
@@ -372,6 +385,54 @@
     var success = active.filter(function (a) { return getUrgencyClass(a.deadline) === "urgency-success"; });
     var other = active.filter(function (a) { return getUrgencyClass(a.deadline) === "urgency-other"; });
 
+    // Integrate deadline memos into urgency groups
+    var plainMemos = [];
+    if (settings.memos !== false && memos && memos.length > 0) {
+      memos.forEach(function (m) {
+        var memo = normalizeMemo(m);
+        if (dismissedState["memo-" + memo.id]) return;
+        if (!memo.deadline) {
+          plainMemos.push(memo);
+          return;
+        }
+        var memoItem = {
+          courseName: memo.courseName || "",
+          courseId: memo.courseId || "",
+          name: memo.text,
+          url: "",
+          deadline: memo.deadline,
+          closeTime: memo.deadline,
+          deadlineText: formatDeadline(memo.deadline),
+          status: "",
+          grade: "",
+          entityId: "memo-" + memo.id,
+          type: "memo",
+          _memoId: memo.id,
+          _repeat: memo.repeat || null,
+        };
+        if (isAssignmentChecked(checkedState, memoItem)) {
+          memoItem._completed = true;
+          completed.push(memoItem);
+          return;
+        }
+        var u = getUrgencyClass(memo.deadline);
+        if (u === "urgency-overdue") overdue.push(memoItem);
+        else if (u === "urgency-danger") danger.push(memoItem);
+        else if (u === "urgency-warning") warning.push(memoItem);
+        else if (u === "urgency-success") success.push(memoItem);
+        else other.push(memoItem);
+      });
+      // Re-sort after adding memo items
+      [overdue, danger, warning, success, other].forEach(function (arr) {
+        arr.sort(function (a, b) {
+          if (a.deadline && b.deadline) return a.deadline - b.deadline;
+          if (a.deadline) return -1;
+          if (b.deadline) return 1;
+          return 0;
+        });
+      });
+    }
+
     var dangerLabel = t("sectionDanger", [String(settings.dangerHours || 24)]);
     var warningLabel = t("sectionWarning", [String(settings.warningDays || 5)]);
     var successLabel = t("sectionSuccess", [String(settings.successDays || 14)]);
@@ -381,6 +442,11 @@
     if (warning.length > 0) content.appendChild(createSection(warningLabel, warning, "warning", false));
     if (success.length > 0) content.appendChild(createSection(successLabel, success, "success", false));
     if (other.length > 0) content.appendChild(createSection(t("sectionOther"), other, "other", false));
+
+    // Plain memos (no deadline)
+    if (plainMemos.length > 0) {
+      content.appendChild(createMemoSection(plainMemos));
+    }
 
     if (completed.length > 0) {
       completed.sort(function (a, b) {
@@ -392,7 +458,8 @@
       content.appendChild(createSection(t("sectionCompleted"), completed, "checked", true));
     }
 
-    if (active.length === 0 && completed.length === 0) {
+    var totalActive = overdue.length + danger.length + warning.length + success.length + other.length;
+    if (totalActive === 0 && completed.length === 0 && plainMemos.length === 0 && assignments.length === 0) {
       var noItems = document.createElement("div");
       noItems.className = "empty";
       var noText = document.createElement("div");
@@ -403,12 +470,87 @@
     }
   }
 
+  function createMemoSection(plainMemos) {
+    var collapsed = "memo" in sectionCollapsedState ? sectionCollapsedState["memo"] : false;
+
+    var section = document.createElement("div");
+    section.className = "section";
+
+    var header = document.createElement("div");
+    header.className = "section-header section-memo";
+
+    var toggle = document.createElement("span");
+    toggle.className = "section-toggle" + (collapsed ? " collapsed" : "");
+    toggle.textContent = "\u25BC";
+
+    var titleSpan = document.createElement("span");
+    titleSpan.textContent = t("sectionMemo");
+
+    var count = document.createElement("span");
+    count.className = "section-count";
+    count.textContent = "(" + plainMemos.length + ")";
+
+    header.appendChild(toggle);
+    header.appendChild(titleSpan);
+    header.appendChild(count);
+
+    var itemsContainer = document.createElement("div");
+    itemsContainer.className = "section-items" + (collapsed ? " collapsed" : "");
+
+    plainMemos.forEach(function (memo) {
+      var card = document.createElement("div");
+      card.className = "card";
+      card.style.borderColor = "#26a69a";
+
+      var badgeRow = document.createElement("div");
+      badgeRow.className = "badge-row";
+
+      if (memo.courseName) {
+        var pill = document.createElement("span");
+        pill.className = "course-pill";
+        pill.style.background = "#26a69a";
+        pill.textContent = memo.courseName;
+        badgeRow.appendChild(pill);
+      }
+
+      var badge = document.createElement("span");
+      badge.className = "badge-memo";
+      badge.textContent = t("memoLabel");
+      badgeRow.appendChild(badge);
+
+      if (memo.repeat) {
+        var rptBadge = document.createElement("span");
+        rptBadge.className = "badge-repeat";
+        rptBadge.textContent = t("memoRepeat");
+        badgeRow.appendChild(rptBadge);
+      }
+
+      var nameDiv = document.createElement("div");
+      nameDiv.className = "card-name";
+      nameDiv.textContent = memo.text;
+
+      card.appendChild(badgeRow);
+      card.appendChild(nameDiv);
+      itemsContainer.appendChild(card);
+    });
+
+    header.addEventListener("click", function () {
+      toggle.classList.toggle("collapsed");
+      itemsContainer.classList.toggle("collapsed");
+      sectionCollapsedState["memo"] = toggle.classList.contains("collapsed");
+    });
+
+    section.appendChild(header);
+    section.appendChild(itemsContainer);
+    return section;
+  }
+
   function reloadFromStorage() {
     try {
       chrome.storage.local.get(
-        [CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
+        [CACHE_KEY, CHECKED_KEY, DISMISSED_KEY, MEMO_KEY],
         function (result) {
-          render(result[CACHE_KEY] || null, result[CHECKED_KEY] || {}, result[DISMISSED_KEY] || {});
+          render(result[CACHE_KEY] || null, result[CHECKED_KEY] || {}, result[DISMISSED_KEY] || {}, result[MEMO_KEY] || []);
         }
       );
     } catch (e) { /* extension context invalidated */ }
@@ -419,7 +561,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     try {
       chrome.storage.local.get(
-        [SETTINGS_KEY, CACHE_KEY, CHECKED_KEY, DISMISSED_KEY],
+        [SETTINGS_KEY, CACHE_KEY, CHECKED_KEY, DISMISSED_KEY, MEMO_KEY],
         function (result) {
           var DEFAULTS = {
             dangerHours: 24, warningDays: 5, successDays: 14,
@@ -449,7 +591,8 @@
             var cache = result[CACHE_KEY] || null;
             var checkedState = result[CHECKED_KEY] || {};
             var dismissedState = result[DISMISSED_KEY] || {};
-            render(cache, checkedState, dismissedState);
+            var memoState = result[MEMO_KEY] || [];
+            render(cache, checkedState, dismissedState, memoState);
           });
         }
       );
@@ -465,7 +608,7 @@
     // Re-render when storage changes (after refresh completes)
     try {
       chrome.storage.onChanged.addListener(function (changes) {
-        if (changes[CACHE_KEY] || changes[CHECKED_KEY] || changes[DISMISSED_KEY]) {
+        if (changes[CACHE_KEY] || changes[CHECKED_KEY] || changes[DISMISSED_KEY] || changes[MEMO_KEY]) {
           reloadFromStorage();
         }
       });
