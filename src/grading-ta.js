@@ -399,14 +399,29 @@
       lastBackdropless = backdropless;
     }
 
-    var observer = new MutationObserver(check);
+    var observedGrader = null;
+    var graderObserver = new MutationObserver(check);
+
+    function observeGrader() {
+      var grader = document.getElementById("grader");
+      if (grader === observedGrader) return;
+      graderObserver.disconnect();
+      observedGrader = grader;
+      if (grader) {
+        graderObserver.observe(grader, {
+          attributes: true,
+          attributeFilter: ["class"]
+        });
+      }
+      check();
+    }
+
+    var observer = new MutationObserver(observeGrader);
     observer.observe(document.body, {
       childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class"]
+      subtree: true
     });
-    check();
+    observeGrader();
     window.addEventListener("resize", check);
   }
 
@@ -558,8 +573,7 @@
     });
     listObserver.observe(document.body, {
       childList: true,
-      subtree: true,
-      characterData: true
+      subtree: true
     });
   }
 
@@ -836,14 +850,6 @@
     return true;
   }
 
-  function isGraderOpen() {
-    var grader = document.getElementById("grader");
-    return !!(grader && (
-      grader.classList.contains("show") ||
-      grader.classList.contains("showing")
-    ));
-  }
-
   function isDirtyNavigationControl(control) {
     if (!control) return false;
     var tag = control.tagName;
@@ -882,7 +888,6 @@
       if (!graderDirty) return;
       var control = e.target && e.target.closest ? e.target.closest("a, button, input[type='button'], input[type='submit']") : null;
       if (!control || control.closest("#grader") || control.closest(".kulms-ta-jump")) return;
-      if (!isGraderOpen() && control.tagName !== "A") return;
       if (!isDirtyNavigationControl(control)) return;
       if (!confirmLeaveIfDirty()) {
         e.preventDefault();
