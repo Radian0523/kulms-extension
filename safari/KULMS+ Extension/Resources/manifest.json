@@ -34,7 +34,8 @@
         "src/tool-visibility.js",
         "src/textbooks.js",
         "src/sidebar-resize.js",
-        "src/top-favbar.js"
+        "src/top-favbar.js",
+        "src/grading-ta.js"
       ],
       "run_at": "document_idle",
       "all_frames": true
@@ -42,7 +43,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["_locales/*/messages.json"],
+      "resources": ["_locales/*/messages.json", "src/grading-ta-page.js"],
       "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"]
     }
   ],
