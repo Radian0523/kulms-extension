@@ -26,6 +26,7 @@ const submissions = grader.originalSubmissions;
 | `status` / `submissionStatus` | Sakai の表示状態文字列。再提出済みなど、boolean だけで区別しにくい状態の分類に使う |
 | `draft` | true なら「未採点 - 取組中」 |
 | `submittedTime` / `submitted` | `draft` でなければ「未採点 - 提出済み」 |
+| `hasHistory` | 再提出系の判定補助。前回返却状態が残る再提出済みを未採点扱いにする |
 | `grade` / `graded` | 採点済み |
 | `returned` | 返却済み |
 

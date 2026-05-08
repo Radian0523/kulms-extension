@@ -31,6 +31,7 @@
       submittedTime: submission.submittedTime || "",
       submitted: !!submission.submitted,
       draft: !!submission.draft,
+      hasHistory: !!submission.hasHistory,
       grade: serializeGrade(submission.grade),
       graded: !!submission.graded,
       returned: !!submission.returned
