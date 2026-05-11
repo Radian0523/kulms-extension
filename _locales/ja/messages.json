@@ -462,6 +462,24 @@
   "popupRefreshFailed": {
     "message": "更新に失敗しました"
   },
+  "featTreeViewEnhanced": {
+    "message": "ツリービュー拡張"
+  },
+  "featTreeViewEnhancedDesc": {
+    "message": "授業資料をインデント・ガイド線・矢印キー操作付きのツリー表示に変更"
+  },
+  "featFileDrop": {
+    "message": "ファイル D&D"
+  },
+  "featFileDropDesc": {
+    "message": "課題提出ページにドラッグ＆ドロップでファイルを添付できるエリアを追加"
+  },
+  "fileDropHint": {
+    "message": "ここにファイルをドラッグ＆ドロップ"
+  },
+  "fileDropActive": {
+    "message": "ドロップしてファイルを添付"
+  },
 
   "gradingJumpNext": {
     "message": "次の未採点へ"

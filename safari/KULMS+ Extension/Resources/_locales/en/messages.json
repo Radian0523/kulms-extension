@@ -462,6 +462,24 @@
   "popupRefreshFailed": {
     "message": "Refresh failed"
   },
+  "featTreeViewEnhanced": {
+    "message": "Enhanced Tree View"
+  },
+  "featTreeViewEnhancedDesc": {
+    "message": "Show resources with indentation, guide lines, and arrow key navigation"
+  },
+  "featFileDrop": {
+    "message": "File Drag & Drop"
+  },
+  "featFileDropDesc": {
+    "message": "Add a drag-and-drop area to attach files on the assignment submission page"
+  },
+  "fileDropHint": {
+    "message": "Drop files here"
+  },
+  "fileDropActive": {
+    "message": "Drop to attach"
+  },
 
   "gradingJumpNext": {
     "message": "Next ungraded"

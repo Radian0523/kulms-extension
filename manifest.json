@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.13.1",
+  "version": "1.15.0",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://radian0523.github.io/kulms-extension/",
   "default_locale": "ja",
@@ -28,6 +28,7 @@
         "src/settings.js",
         "src/assignments.js",
         "src/submit-detect.js",
+        "src/file-drop.js",
         "src/tree-view.js",
         "src/course-name.js",
         "src/course-click.js",

@@ -61,10 +61,10 @@ window.__kulmsSafeStorage = {
 
 window.__kulmsDefaults = {
   textbooks: true, tabColoring: true, tabColorStyle: "bold",
-  folderExpand: false, autoExpandAll: false, hideResourceColumns: false, courseNameCleanup: false, pinSort: false,
+  folderExpand: false, autoExpandAll: false, hideResourceColumns: false, treeViewEnhanced: false, courseNameCleanup: false, pinSort: false,
   courseRowClick: false, toolVisibility: false, sidebarResize: false,
   notificationBadge: false, sidebarStyle: false, memos: true,
-  panelPush: false, previewMode: false, autoComplete: true, currentPeriodHighlight: false,
+  panelPush: false, previewMode: false, autoComplete: true, currentPeriodHighlight: false, fileDrop: true,
   topFavbar: false,
   topFavbarSize: "medium",
   fetchInterval: 120,

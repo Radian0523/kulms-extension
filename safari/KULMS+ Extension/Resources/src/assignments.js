@@ -1304,6 +1304,7 @@
         generateNextRecurringMemo(assignment._memoId);
       }
       renderAssignments(lastAssignments);
+      colorSidebarTabs(lastAssignments);
     });
 
     // カード本体
@@ -1406,6 +1407,7 @@
       } else {
         dismissAssignment(assignment);
         renderAssignments(lastAssignments);
+        colorSidebarTabs(lastAssignments);
       }
     });
 
@@ -1562,6 +1564,7 @@
         };
         dismissAssignment(memoAsItem);
         renderAssignments(lastAssignments);
+        colorSidebarTabs(lastAssignments);
       }
     });
     card.appendChild(delBtn);
@@ -1966,6 +1969,8 @@
       { key: "folderExpand", labelKey: "featFolderExpand", descKey: "featFolderExpandDesc" },
       { key: "autoExpandAll", labelKey: "featAutoExpandAll", descKey: "featAutoExpandAllDesc" },
       { key: "hideResourceColumns", labelKey: "featHideResourceColumns", descKey: "featHideResourceColumnsDesc" },
+      { key: "treeViewEnhanced", labelKey: "featTreeViewEnhanced", descKey: "featTreeViewEnhancedDesc" },
+      { key: "fileDrop", labelKey: "featFileDrop", descKey: "featFileDropDesc" },
     ]},
   ];
 
@@ -2483,6 +2488,7 @@
 
     var autoOnTab = (window.__kulmsSettings || {}).autoComplete !== false;
     assignments.forEach(function (a) {
+      if (isAssignmentDismissed(a)) return;
       if (isExplicitlyActive(a)) { /* 再提出可能: 色付け対象 */ }
       else if ((autoOnTab && isSubmitted(a.status)) || isAssignmentChecked(a)) return;
       var u = getUrgencyClass(a.deadline);
