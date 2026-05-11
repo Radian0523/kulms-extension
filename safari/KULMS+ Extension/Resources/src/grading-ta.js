@@ -832,6 +832,7 @@
       if (!button.closest || !button.closest("#grader")) return;
       var text = ((button.textContent || button.value || "") + " " + (button.getAttribute("aria-label") || "")).trim();
       if (/保存|Save|返却|Return|提出|Submit/.test(text)) {
+        graderDirty = false;
         allowNextUnload = true;
         window.setTimeout(function () { allowNextUnload = false; }, 3000);
         if (currentState.ctx || ctx) clearStatusCache(currentState.ctx || ctx);
