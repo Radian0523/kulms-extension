@@ -860,6 +860,24 @@ body {
   color: #2e7d32 !important;
 }
 
+.kulms-tester-banner--android {
+  background: #e3f2fd !important;
+  color: #1565c0 !important;
+}
+.kulms-tester-banner--android:hover {
+  background: #bbdefb !important;
+  color: #1565c0 !important;
+}
+.kulms-tester-banner--android .kulms-tester-banner-text strong {
+  color: #0d47a1 !important;
+}
+.kulms-tester-banner--android .kulms-tester-banner-close {
+  color: #64b5f6 !important;
+}
+.kulms-tester-banner--android .kulms-tester-banner-close:hover {
+  color: #1565c0 !important;
+}
+
 /* === 教科書コンテンツ === */
 
 /* ローディング */

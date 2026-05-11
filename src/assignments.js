@@ -12,6 +12,8 @@
   const DISMISSED_KEY = "kulms-dismissed-assignments";
   const IOS_BANNER_DISMISSED_KEY = "kulms-ios-banner-dismissed";
   var SHOW_IOS_BANNER = true; // false にするだけでバナー非表示
+  const ANDROID_BANNER_DISMISSED_KEY = "kulms-android-banner-dismissed";
+  var SHOW_ANDROID_BANNER = true;
 
   // --- State ---
   var textbooksEnabled = true;
@@ -1105,6 +1107,8 @@
     renderDeletedSection();
     // メモ追加ボタン
     appendMemoButton();
+    // Android版バナー
+    appendAndroidBanner();
     // iOS版バナー
     appendIosBanner();
   }
@@ -1899,6 +1903,48 @@
     }
 
     contentEl.appendChild(wrapper);
+  }
+
+  // --- Android版バナー ---
+
+  function appendAndroidBanner() {
+    if (!SHOW_ANDROID_BANNER) return;
+
+    chrome.storage.local.get(ANDROID_BANNER_DISMISSED_KEY, function (result) {
+      if (result[ANDROID_BANNER_DISMISSED_KEY]) return;
+      if (!contentEl) return;
+
+      var banner = document.createElement("a");
+      banner.href = "https://play.google.com/store/apps/details?id=com.radian0523.kulms_plus_for_android";
+      banner.target = "_blank";
+      banner.rel = "noopener";
+      banner.className = "kulms-tester-banner kulms-tester-banner--android";
+
+      var icon = document.createElement("span");
+      icon.className = "kulms-tester-banner-icon";
+      icon.textContent = "\uD83E\uDD16"; // 🤖
+
+      var text = document.createElement("span");
+      text.className = "kulms-tester-banner-text";
+      text.innerHTML = "<strong>KULMS+ Android\u7248\u767B\u5834\uFF01</strong><br>\u901A\u77E5\u6A5F\u80FD\u3067\u8AB2\u984C\u306E\u51FA\u3057\u5FD8\u308C\u3092\u30BC\u30ED\u306B\u3002";
+
+      var close = document.createElement("span");
+      close.className = "kulms-tester-banner-close";
+      close.textContent = "\u00D7"; // ×
+      close.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        banner.remove();
+        var item = {};
+        item[ANDROID_BANNER_DISMISSED_KEY] = Date.now();
+        chrome.storage.local.set(item);
+      });
+
+      banner.appendChild(icon);
+      banner.appendChild(text);
+      banner.appendChild(close);
+      contentEl.appendChild(banner);
+    });
   }
 
   // --- iOS版バナー ---
