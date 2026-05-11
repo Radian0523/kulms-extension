@@ -1969,6 +1969,7 @@
       { key: "folderExpand", labelKey: "featFolderExpand", descKey: "featFolderExpandDesc" },
       { key: "autoExpandAll", labelKey: "featAutoExpandAll", descKey: "featAutoExpandAllDesc" },
       { key: "hideResourceColumns", labelKey: "featHideResourceColumns", descKey: "featHideResourceColumnsDesc" },
+      { key: "treeViewEnhanced", labelKey: "featTreeViewEnhanced", descKey: "featTreeViewEnhancedDesc" },
       { key: "fileDrop", labelKey: "featFileDrop", descKey: "featFileDropDesc" },
     ]},
   ];

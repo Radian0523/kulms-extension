@@ -462,6 +462,12 @@
   "popupRefreshFailed": {
     "message": "Refresh failed"
   },
+  "featTreeViewEnhanced": {
+    "message": "Enhanced Tree View"
+  },
+  "featTreeViewEnhancedDesc": {
+    "message": "Show resources with indentation, guide lines, and arrow key navigation"
+  },
   "featFileDrop": {
     "message": "File Drag & Drop"
   },

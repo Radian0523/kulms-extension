@@ -462,6 +462,12 @@
   "popupRefreshFailed": {
     "message": "更新に失敗しました"
   },
+  "featTreeViewEnhanced": {
+    "message": "ツリービュー拡張"
+  },
+  "featTreeViewEnhancedDesc": {
+    "message": "授業資料をインデント・ガイド線・矢印キー操作付きのツリー表示に変更"
+  },
   "featFileDrop": {
     "message": "ファイル D&D"
   },
