@@ -461,5 +461,17 @@
   },
   "popupRefreshFailed": {
     "message": "Refresh failed"
+  },
+  "featFileDrop": {
+    "message": "File Drag & Drop"
+  },
+  "featFileDropDesc": {
+    "message": "Add a drag-and-drop area to attach files on the assignment submission page"
+  },
+  "fileDropHint": {
+    "message": "Drop files here"
+  },
+  "fileDropActive": {
+    "message": "Drop to attach"
   }
 }
