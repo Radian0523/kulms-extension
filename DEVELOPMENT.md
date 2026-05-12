@@ -62,7 +62,9 @@ src/
 ├── tool-visibility.js   # IIFE: ツール表示管理
 ├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携)
 ├── sidebar-resize.js    # IIFE: サイドバーリサイズ
-└── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
+├── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
+├── grading-ta.js        # IIFE: TA 採点支援 (状態分類・ジャンプ・未採点数・一覧アイコン・未保存ガード)
+└── grading-ta-page.js   # page-world bridge: <sakai-grader> の originalSubmissions を取得
 ```
 
 Manifest V3の `content_scripts.js` 配列で上記の順序通り注入される。各ファイルはIIFE（即時実行関数式）で機能を分離しており、`settings.js` で定義されるグローバル変数（`window.__kulmsSettingsReady`, `t()` 関数）を共有インターフェースとして疎結合を実現している。
@@ -402,6 +404,20 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 **問題**: メモ機能の締切日時入力に `<input type="datetime-local">` を使用していたが、Android WebView ではネイティブの日時ピッカーが表示されず、日時を入力できなかった。
 
 **解決策**: モバイル（タッチデバイス）ではメモ入力をモーダルオーバーレイに切り替え、締切日時の入力を `<select>` ドロップダウン式のカスタムピッカーに変更した。年・月・日・時・分をそれぞれ独立した `<select>` 要素で構成し、全ブラウザ・WebView で一貫した動作を実現。PC（非タッチデバイス）は従来のインラインフォーム + `datetime-local` のまま変更なし。タッチデバイスの判定には `'ontouchstart' in window` または `navigator.maxTouchPoints > 0` を使用。
+
+### 15. TA 採点支援の page-world bridge
+
+**問題**: Sakai の新 Grader UI は `<sakai-grader>` Web Component (lit-html) で実装されており、`originalSubmissions` プロパティに全受講者の提出・採点状態が格納されている。しかし Content Script の isolated world からは Web Component のプロパティに直接アクセスできない。
+
+**解決策**: `grading-ta-page.js` を `web_accessible_resources` に登録し、Content Script から `<script>` タグで page world に注入。`CustomEvent` を介したリクエスト/レスポンスパターンで通信:
+
+1. Content Script → `kulms-ta-get-submissions` イベントを dispatch（requestId 付き）
+2. Page Script → `<sakai-grader>.originalSubmissions` を読み取り、安全にシリアライズ
+3. Page Script → `kulms-ta-submissions` イベントで応答（requestId で照合）
+
+300ms タイムアウト付きで、page bridge が応答しない場合は採点一覧ページの HTML パースにフォールバック。状態マップは `sessionStorage` にキャッシュし、保存ボタンクリック後に自動更新。
+
+**起動条件**: ページに `#grader-submitter-select` または `#submissionList` が存在する場合のみ起動。学生ロールでは Sakai サーバー側でこれらの要素が生成されないため、学生への影響はゼロ（実機検証済み）。
 
 ## 対応環境
 

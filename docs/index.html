@@ -546,6 +546,12 @@ a{transition:color 0.2s ease}
           <p>授業資料をFinder/VSCode風のツリー表示に変更。インデント・矢印・フォルダ太字で階層を見やすく。↑↓←→キーでナビゲーション、Enterでファイルを開けます。</p>
         </div>
       </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>TA 採点支援</h3>
+          <p>TAロール専用の採点効率化機能。未採点の学生へワンクリックでジャンプ、受講者一覧に状態アイコンを表示、未採点件数をリアルタイム表示。採点パネルを開いたまま背景の資料を操作可能に。</p>
+        </div>
+      </div>
     </div>
   </div>
   <p class="carousel-note">※ 画像はイメージです。実際の表示とは異なる場合があります。</p>
@@ -565,8 +571,26 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.15.1</span>
+      <span class="release-version">v1.16.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>TA 採点支援機能を追加</strong>（TAロール専用・学生には非表示）
+        <ul>
+          <li>個別採点画面に「次/前の未採点へ」ジャンプボタンを追加</li>
+          <li>受講者選択ドロップダウンに提出/採点状態アイコンを付与</li>
+          <li>ヘッダーに「未採点提出 N 件」の残数バッジを表示</li>
+          <li>採点一覧テーブルの状態列にアイコンを付与</li>
+          <li>採点パネルを開いたまま背景の PDF 等を操作可能に</li>
+          <li>未保存の採点内容がある場合、ページ離脱前に確認ダイアログを表示</li>
+        </ul>
+      </li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.15.1</span>
     </div>
     <ul>
       <li>ランディングページに Android ダウンロードボタン（Google Play リンク）を追加</li>
@@ -920,16 +944,25 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.6.1</span>
+      <span class="release-version">v2.6.2</span>
       <span class="release-latest">最新</span>
     </div>
     <ul>
-      <li>Android 版リリースバナーを追加（拡張機能スクリプト同期）</li>
+      <li>拡張機能スクリプト同期（TA 採点支援の CSS / i18n）</li>
     </ul>
   </article>
 
   <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
   <div class="changelog-older">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.6.1</span>
+    </div>
+    <ul>
+      <li>Android 版リリースバナーを追加（拡張機能スクリプト同期）</li>
+    </ul>
+  </article>
 
   <article class="release">
     <div class="release-head">
@@ -995,16 +1028,25 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.6.1</span>
+      <span class="release-version">v2.6.2</span>
       <span class="release-latest">最新</span>
     </div>
     <ul>
-      <li>Android 版リリースバナーを追加（拡張機能スクリプト同期）</li>
+      <li>拡張機能スクリプト同期（TA 採点支援の CSS / i18n）</li>
     </ul>
   </article>
 
   <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
   <div class="changelog-older">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.6.1</span>
+    </div>
+    <ul>
+      <li>Android 版リリースバナーを追加（拡張機能スクリプト同期）</li>
+    </ul>
+  </article>
 
   <article class="release">
     <div class="release-head">
