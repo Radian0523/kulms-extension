@@ -1881,3 +1881,189 @@ body.kulms-panel-pushed .kulms-top-favbar {
   }
 }
 
+/* === TA 採点支援 === */
+
+/* F4: Grader Offcanvas を開いたまま背景を操作可能にする */
+body.kulms-grader-backdropless .offcanvas-backdrop.show {
+  display: none !important;
+}
+body.kulms-grader-unblocked {
+  overflow: auto !important;
+  padding-right: 0 !important;
+}
+body.kulms-grader-unblocked header.portal-header,
+body.kulms-grader-unblocked .portal-header {
+  width: calc(100% - var(--kulms-ta-grader-width, 420px)) !important;
+  max-width: calc(100% - var(--kulms-ta-grader-width, 420px)) !important;
+  box-sizing: border-box !important;
+}
+body.kulms-grader-unblocked .kulms-top-favbar {
+  right: var(--kulms-ta-grader-width, 420px) !important;
+}
+body.kulms-grader-unblocked .portal-main-container {
+  width: calc(100% - var(--kulms-ta-grader-width, 420px)) !important;
+  max-width: calc(100% - var(--kulms-ta-grader-width, 420px)) !important;
+  margin-right: var(--kulms-ta-grader-width, 420px) !important;
+  box-sizing: border-box !important;
+}
+body.kulms-grader-backdropless #grader {
+  transition: none !important;
+}
+body.kulms-grader-unblocked #grader {
+  width: var(--kulms-ta-grader-width, 420px) !important;
+  max-width: var(--kulms-ta-grader-width, 420px) !important;
+  transform: none !important;
+  visibility: visible !important;
+  pointer-events: auto;
+  box-shadow: none !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+@media (max-width: 1100px) {
+  body.kulms-grader-unblocked header.portal-header,
+  body.kulms-grader-unblocked .portal-header {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.kulms-grader-unblocked .kulms-top-favbar {
+    right: 0 !important;
+  }
+  body.kulms-grader-unblocked .portal-main-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-right: 0 !important;
+  }
+  body.kulms-grader-unblocked #grader {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* F1: ジャンプボタン */
+.kulms-ta-jump {
+  min-width: 34px !important;
+  height: 30px !important;
+  padding: 0 10px !important;
+  margin-left: 4px !important;
+  border: 1px solid rgba(255, 193, 7, 0.68) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 193, 7, 0.16) !important;
+  color: #ffe7a3 !important;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.28) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  vertical-align: middle !important;
+}
+.kulms-ta-jump:hover {
+  background: #ffc107 !important;
+  border-color: #ffd45c !important;
+  color: #16181b !important;
+  transform: translateY(-1px);
+}
+.kulms-ta-jump:focus {
+  outline: 2px solid rgba(255, 212, 92, 0.85) !important;
+  outline-offset: 2px !important;
+}
+.kulms-ta-jump:active {
+  transform: translateY(0);
+}
+
+/* F5: 残数表示バッジ */
+.kulms-ta-pending-count {
+  margin-left: 4px;
+  color: #ffe082;
+  font-size: 0.9em;
+  font-weight: 700;
+  opacity: 1;
+}
+
+/* F2: 状態アイコン凡例 */
+.kulms-ta-legend {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: 6px !important;
+  vertical-align: middle !important;
+  z-index: 20 !important;
+}
+.kulms-ta-legend-trigger {
+  width: 24px !important;
+  height: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.38) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.11) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  cursor: help !important;
+}
+.kulms-ta-legend:hover .kulms-ta-legend-trigger,
+.kulms-ta-legend:focus .kulms-ta-legend-trigger,
+.kulms-ta-legend:focus-within .kulms-ta-legend-trigger {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: rgba(255, 255, 255, 0.7) !important;
+}
+.kulms-ta-legend-panel {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  right: 0 !important;
+  min-width: 210px !important;
+  padding: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 8px !important;
+  background: #1f242a !important;
+  color: #f1f3f5 !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-3px) !important;
+  transition: opacity 0.12s ease, transform 0.12s ease !important;
+  white-space: nowrap !important;
+}
+.kulms-ta-legend:hover .kulms-ta-legend-panel,
+.kulms-ta-legend:focus .kulms-ta-legend-panel,
+.kulms-ta-legend:focus-within .kulms-ta-legend-panel {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translateY(0) !important;
+}
+.kulms-ta-legend-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 24px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+.kulms-ta-legend-icon {
+  width: 34px !important;
+  flex: 0 0 34px !important;
+  text-align: center !important;
+}
+.kulms-ta-legend-action {
+  color: #ffe7a3 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+.kulms-ta-legend-label {
+  color: #f1f3f5 !important;
+}
+
+/* F6: 採点一覧の状態アイコン */
+.kulms-ta-list-status-cell {
+  vertical-align: middle !important;
+}
+.kulms-ta-list-status-icon {
+  display: inline-block !important;
+  min-width: 1.35em !important;
+  margin-right: 2px !important;
+  text-align: center !important;
+  vertical-align: -0.05em !important;
+}

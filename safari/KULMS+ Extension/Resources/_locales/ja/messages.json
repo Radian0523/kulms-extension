@@ -479,5 +479,57 @@
   },
   "fileDropActive": {
     "message": "ドロップしてファイルを添付"
+  },
+
+  "gradingJumpNext": {
+    "message": "次の未採点へ"
+  },
+  "gradingJumpPrev": {
+    "message": "前の未採点へ"
+  },
+  "gradingJumpNextShort": {
+    "message": "次"
+  },
+  "gradingJumpPrevShort": {
+    "message": "前"
+  },
+  "gradingJumpNextAria": {
+    "message": "次の提出済み未採点の受講者へジャンプ"
+  },
+  "gradingJumpPrevAria": {
+    "message": "前の提出済み未採点の受講者へジャンプ"
+  },
+  "gradingPendingCount": {
+    "message": "$COUNT$ 採点待ち",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "gradingLegendAria": {
+    "message": "状態アイコンの凡例"
+  },
+  "gradingLegendPending": {
+    "message": "未採点 - 提出済み"
+  },
+  "gradingLegendInProgress": {
+    "message": "未採点 - 取組中"
+  },
+  "gradingLegendNotSubmitted": {
+    "message": "未提出"
+  },
+  "gradingLegendGraded": {
+    "message": "採点済み"
+  },
+  "gradingLegendReturned": {
+    "message": "返却済み"
+  },
+  "gradingLegendPrev": {
+    "message": "前の提出済み未採点へ移動"
+  },
+  "gradingLegendNext": {
+    "message": "次の提出済み未採点へ移動"
+  },
+  "gradingUnsavedConfirm": {
+    "message": "未保存の採点内容があります。移動すると変更が失われる可能性があります。移動しますか？"
   }
 }

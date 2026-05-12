@@ -479,5 +479,57 @@
   },
   "fileDropActive": {
     "message": "Drop to attach"
+  },
+
+  "gradingJumpNext": {
+    "message": "Next ungraded"
+  },
+  "gradingJumpPrev": {
+    "message": "Previous ungraded"
+  },
+  "gradingJumpNextShort": {
+    "message": "Next"
+  },
+  "gradingJumpPrevShort": {
+    "message": "Prev"
+  },
+  "gradingJumpNextAria": {
+    "message": "Jump to next submitted but ungraded student"
+  },
+  "gradingJumpPrevAria": {
+    "message": "Jump to previous submitted but ungraded student"
+  },
+  "gradingPendingCount": {
+    "message": "$COUNT$ awaiting grade",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "gradingLegendAria": {
+    "message": "Status icon legend"
+  },
+  "gradingLegendPending": {
+    "message": "Submitted, awaiting grade"
+  },
+  "gradingLegendInProgress": {
+    "message": "In progress"
+  },
+  "gradingLegendNotSubmitted": {
+    "message": "Not submitted"
+  },
+  "gradingLegendGraded": {
+    "message": "Graded"
+  },
+  "gradingLegendReturned": {
+    "message": "Returned"
+  },
+  "gradingLegendPrev": {
+    "message": "Previous submitted but ungraded student"
+  },
+  "gradingLegendNext": {
+    "message": "Next submitted but ungraded student"
+  },
+  "gradingUnsavedConfirm": {
+    "message": "There are unsaved grading changes. Moving away may discard them. Continue?"
   }
 }
