@@ -171,10 +171,10 @@
   function classifySubmission(submission) {
     var statusKind = classifyStatus(submission.status);
     if (statusKind !== "unknown") return statusKind;
+    if (submission.draft) return "inProgress";
     if (submission.hasHistory && submission.submitted && !submission.draft && submission.returned) return "pendingGrade";
     if (submission.returned) return "returned";
     if (submission.graded || submission.grade) return "graded";
-    if (submission.draft) return "inProgress";
     if (submission.submittedTime || submission.submitted) return "pendingGrade";
     return "notSubmitted";
   }
