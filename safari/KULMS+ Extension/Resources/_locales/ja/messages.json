@@ -531,5 +531,30 @@
   },
   "gradingUnsavedConfirm": {
     "message": "未保存の採点内容があります。移動すると変更が失われる可能性があります。移動しますか？"
+  },
+
+  "totpSectionTitle": {
+    "message": "2段階認証 (TOTP)"
+  },
+  "totpConfigured": {
+    "message": "設定済み"
+  },
+  "totpDelete": {
+    "message": "削除"
+  },
+  "totpSave": {
+    "message": "保存"
+  },
+  "totpDescription": {
+    "message": "TOTP シークレットキーを設定すると、ログイン時に OTP コードが自動入力されます。"
+  },
+  "totpPlaceholder": {
+    "message": "Base32 シークレットキー"
+  },
+  "totpInvalidMessage": {
+    "message": "有効な Base32 形式のシークレットキーを入力してください。"
+  },
+  "totpSecurityNote": {
+    "message": "シークレットキーはブラウザのローカルストレージに保存され、外部には送信されません。"
   }
 }

@@ -531,5 +531,30 @@
   },
   "gradingUnsavedConfirm": {
     "message": "There are unsaved grading changes. Moving away may discard them. Continue?"
+  },
+
+  "totpSectionTitle": {
+    "message": "Two-Factor Auth (TOTP)"
+  },
+  "totpConfigured": {
+    "message": "Configured"
+  },
+  "totpDelete": {
+    "message": "Delete"
+  },
+  "totpSave": {
+    "message": "Save"
+  },
+  "totpDescription": {
+    "message": "Set a TOTP secret key to auto-fill OTP codes during login."
+  },
+  "totpPlaceholder": {
+    "message": "Base32 secret key"
+  },
+  "totpInvalidMessage": {
+    "message": "Please enter a valid Base32 secret key."
+  },
+  "totpSecurityNote": {
+    "message": "Your secret key is stored in the browser's local storage and is never sent externally."
   }
 }

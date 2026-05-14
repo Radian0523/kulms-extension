@@ -134,6 +134,101 @@ body {
 
 .footer a:hover { text-decoration: underline; }
 
+/* TOTP Settings */
+.totp-section {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+}
+
+.totp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.totp-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+}
+
+.totp-toggle {
+  font-size: 9px;
+  color: #999;
+  transition: transform 0.2s;
+}
+
+.totp-toggle.expanded { transform: rotate(180deg); }
+
+.totp-body { display: none; margin-top: 6px; }
+.totp-body.visible { display: block; }
+
+.totp-status {
+  font-size: 11px;
+  color: #62b665;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.totp-input-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.totp-input {
+  flex: 1;
+  font-size: 11px;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.totp-btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.totp-btn-save {
+  background: #4a6fa5;
+  color: #fff;
+}
+
+.totp-btn-save:hover { background: #3a5f95; }
+.totp-btn-save:disabled { opacity: 0.4; cursor: default; }
+
+.totp-btn-delete {
+  background: #e85555;
+  color: #fff;
+}
+
+.totp-btn-delete:hover { background: #d04040; }
+
+.totp-desc {
+  font-size: 10px;
+  color: #999;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.totp-security-note {
+  font-size: 10px;
+  color: #888;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #eee;
+  line-height: 1.4;
+}
+
 /* Section */
 .section { margin-bottom: 6px; }
 
@@ -337,6 +432,11 @@ body {
   .section-memo { background: #1a3a38; color: #80cbc4; }
   .badge-memo { background: #1a3a38; color: #80cbc4; }
   .badge-repeat { background: #1a3a1a; color: #81c784; }
+  .totp-section { background: #2a2a2a; border-color: #444; }
+  .totp-title { color: #aaa; }
+  .totp-input { background: #333; border-color: #555; color: #e0e0e0; }
+  .totp-desc { color: #777; }
+  .totp-security-note { color: #666; border-color: #444; }
 }
 </style>
 </head>
@@ -352,6 +452,26 @@ body {
     </div>
   </div>
   <div id="content" class="content"></div>
+  <div class="totp-section" id="totp-section">
+    <div class="totp-header" id="totp-header">
+      <span class="totp-title" id="totp-title">TOTP</span>
+      <span class="totp-toggle" id="totp-toggle">&#x25BC;</span>
+    </div>
+    <div class="totp-body" id="totp-body">
+      <div id="totp-configured" style="display:none">
+        <div class="totp-status" id="totp-status-text"></div>
+        <button class="totp-btn totp-btn-delete" id="totp-delete-btn"></button>
+      </div>
+      <div id="totp-unconfigured" style="display:none">
+        <div class="totp-input-row">
+          <input type="text" class="totp-input" id="totp-input" placeholder="Base32 secret key" spellcheck="false" autocomplete="off">
+          <button class="totp-btn totp-btn-save" id="totp-save-btn" disabled></button>
+        </div>
+        <div class="totp-desc" id="totp-desc-text"></div>
+      </div>
+      <div class="totp-security-note" id="totp-security-note"></div>
+    </div>
+  </div>
   <div class="footer">
     <a href="#" id="open-lms">LMS を開く</a>
   </div>

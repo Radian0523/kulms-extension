@@ -605,6 +605,9 @@
       try { chrome.tabs.create({ url: LMS_URL }); } catch (ex) { /* context invalidated */ }
     });
 
+    // --- TOTP Settings ---
+    initTotpSection();
+
     // Re-render when storage changes (after refresh completes)
     try {
       chrome.storage.onChanged.addListener(function (changes) {
@@ -614,4 +617,85 @@
       });
     } catch (e) { /* extension context invalidated */ }
   });
+
+  // --- TOTP Settings ---
+
+  var BASE32_RE = /^[A-Z2-7=\s-]+$/i;
+
+  function initTotpSection() {
+    var header = document.getElementById("totp-header");
+    var body = document.getElementById("totp-body");
+    var toggleIcon = document.getElementById("totp-toggle");
+    var input = document.getElementById("totp-input");
+    var saveBtn = document.getElementById("totp-save-btn");
+    var deleteBtn = document.getElementById("totp-delete-btn");
+
+    // i18n
+    document.getElementById("totp-title").textContent = t("totpSectionTitle");
+    document.getElementById("totp-status-text").textContent = t("totpConfigured");
+    deleteBtn.textContent = t("totpDelete");
+    saveBtn.textContent = t("totpSave");
+    document.getElementById("totp-desc-text").textContent = t("totpDescription");
+    document.getElementById("totp-security-note").textContent = t("totpSecurityNote");
+    input.placeholder = t("totpPlaceholder");
+
+    // Toggle expand/collapse
+    header.addEventListener("click", function () {
+      var visible = body.classList.toggle("visible");
+      if (visible) {
+        toggleIcon.classList.add("expanded");
+      } else {
+        toggleIcon.classList.remove("expanded");
+      }
+    });
+
+    // Load current state
+    try {
+      chrome.runtime.sendMessage({ type: "kulms-totp-has" }, function (response) {
+        renderTotpState(!!(response && response.exists));
+      });
+    } catch (e) { /* context invalidated */ }
+
+    // Input validation
+    input.addEventListener("input", function () {
+      saveBtn.disabled = !input.value.trim();
+    });
+
+    // Save
+    saveBtn.addEventListener("click", function () {
+      var cleaned = input.value.replace(/[\s-]/g, "").toUpperCase();
+      if (!cleaned || !BASE32_RE.test(cleaned)) {
+        showRefreshToast(t("totpInvalidMessage"));
+        return;
+      }
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-save", secret: cleaned }, function () {
+          input.value = "";
+          saveBtn.disabled = true;
+          renderTotpState(true);
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+
+    // Delete
+    deleteBtn.addEventListener("click", function () {
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-delete" }, function () {
+          renderTotpState(false);
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+  }
+
+  function renderTotpState(hasSecret) {
+    var configured = document.getElementById("totp-configured");
+    var unconfigured = document.getElementById("totp-unconfigured");
+    if (hasSecret) {
+      configured.style.display = "block";
+      unconfigured.style.display = "none";
+    } else {
+      configured.style.display = "none";
+      unconfigured.style.display = "block";
+    }
+  }
 })();

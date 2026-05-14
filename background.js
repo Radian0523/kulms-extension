@@ -1,8 +1,23 @@
 // KULMS Background Service Worker
 
-// インストール/更新時にキャッシュをクリア
-chrome.runtime.onInstalled.addListener(() => {
+// インストール/更新時にキャッシュをクリア & TOTP 平文マイグレーション
+chrome.runtime.onInstalled.addListener(async () => {
   chrome.storage.local.remove(["kulms-syllabus-catalog", "kulms-textbooks"]);
+
+  // 旧キー kulms-totp-secret（平文）が残っていれば暗号化して移行
+  try {
+    const result = await chrome.storage.local.get(["kulms-totp-secret"]);
+    const plainSecret = result["kulms-totp-secret"];
+    if (plainSecret) {
+      const key = await getOrCreateTotpKey();
+      const encrypted = await encryptSecret(key, plainSecret);
+      await chrome.storage.local.set({ "kulms-totp-encrypted": encrypted });
+      await chrome.storage.local.remove(["kulms-totp-secret"]);
+      console.log("[KULMS] migrated TOTP secret from plaintext to encrypted");
+    }
+  } catch (e) {
+    console.warn("[KULMS] TOTP migration error:", e.message);
+  }
 });
 
 // === シラバス教科書取得ハンドラ ===
@@ -521,4 +536,134 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   })();
 
   return true; // 非同期レスポンスを示す
+});
+
+// === TOTP シークレット暗号化ストア ===
+
+const TOTP_DB_NAME = "kulms-totp-db";
+const TOTP_DB_STORE = "keys";
+const TOTP_KEY_ID = "totp-aes-key";
+
+function openTotpDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(TOTP_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(TOTP_DB_STORE)) {
+        db.createObjectStore(TOTP_DB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function getOrCreateTotpKey() {
+  const db = await openTotpDB();
+
+  // 既存キーを取得
+  const existing = await new Promise((resolve, reject) => {
+    const tx = db.transaction(TOTP_DB_STORE, "readonly");
+    const store = tx.objectStore(TOTP_DB_STORE);
+    const req = store.get(TOTP_KEY_ID);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  if (existing) {
+    db.close();
+    return existing;
+  }
+
+  // 新規 AES-GCM-256 キーを生成（非抽出）
+  const key = await crypto.subtle.generateKey(
+    { name: "AES-GCM", length: 256 },
+    false, // extractable: false
+    ["encrypt", "decrypt"]
+  );
+
+  // IndexedDB に保存
+  await new Promise((resolve, reject) => {
+    const tx = db.transaction(TOTP_DB_STORE, "readwrite");
+    const store = tx.objectStore(TOTP_DB_STORE);
+    const req = store.put(key, TOTP_KEY_ID);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+
+  db.close();
+  return key;
+}
+
+async function encryptSecret(key, plaintext) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(plaintext);
+  const cipherBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    encoded
+  );
+  return {
+    data: btoa(String.fromCharCode(...new Uint8Array(cipherBuffer))),
+    iv: btoa(String.fromCharCode(...iv)),
+  };
+}
+
+async function decryptSecret(key, data, iv) {
+  const cipherBytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+  const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+  const plainBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: ivBytes },
+    key,
+    cipherBytes
+  );
+  return new TextDecoder().decode(plainBuffer);
+}
+
+// TOTP メッセージハンドラ
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || !message.type || !message.type.startsWith("kulms-totp-")) return false;
+
+  (async () => {
+    try {
+      switch (message.type) {
+        case "kulms-totp-save": {
+          const key = await getOrCreateTotpKey();
+          const encrypted = await encryptSecret(key, message.secret);
+          await chrome.storage.local.set({ "kulms-totp-encrypted": encrypted });
+          sendResponse({ ok: true });
+          break;
+        }
+        case "kulms-totp-load": {
+          const result = await chrome.storage.local.get(["kulms-totp-encrypted"]);
+          const stored = result["kulms-totp-encrypted"];
+          if (!stored) {
+            sendResponse({ secret: null });
+            break;
+          }
+          const key = await getOrCreateTotpKey();
+          const secret = await decryptSecret(key, stored.data, stored.iv);
+          sendResponse({ secret });
+          break;
+        }
+        case "kulms-totp-delete": {
+          await chrome.storage.local.remove(["kulms-totp-encrypted"]);
+          sendResponse({ ok: true });
+          break;
+        }
+        case "kulms-totp-has": {
+          const result = await chrome.storage.local.get(["kulms-totp-encrypted"]);
+          sendResponse({ exists: !!result["kulms-totp-encrypted"] });
+          break;
+        }
+        default:
+          sendResponse({ error: "unknown type" });
+      }
+    } catch (e) {
+      console.warn("[KULMS] TOTP message handler error:", e.message);
+      sendResponse({ error: e.message });
+    }
+  })();
+
+  return true; // 非同期レスポンス
 });
