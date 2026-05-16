@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extName__",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "description": "__MSG_extDescription__",
   "homepage_url": "https://radian0523.github.io/kulms-extension/",
   "default_locale": "ja",
@@ -19,7 +19,7 @@
     }
   },
   "permissions": ["storage", "scripting", "activeTab"],
-  "host_permissions": ["https://www.k.kyoto-u.ac.jp/*", "https://lms.gakusei.kyoto-u.ac.jp/*", "https://auth.iimc.kyoto-u.ac.jp/*"],
+  "host_permissions": ["https://www.k.kyoto-u.ac.jp/*", "https://lms.gakusei.kyoto-u.ac.jp/*", "https://auth.iimc.kyoto-u.ac.jp/*", "https://radian0523.github.io/*"],
   "content_scripts": [
     {
       "matches": ["https://auth.iimc.kyoto-u.ac.jp/*/otplogin.cgi*"],

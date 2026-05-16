@@ -581,5 +581,14 @@
   },
   "tipsEmpty": {
     "message": "Tips はまだありません"
+  },
+  "tipsShowAll": {
+    "message": "すべて表示 ($COUNT$)",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "tipsShowDaily": {
+    "message": "今日のTipsだけ表示"
   }
 }

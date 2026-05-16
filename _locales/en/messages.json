@@ -581,5 +581,14 @@
   },
   "tipsEmpty": {
     "message": "No tips available yet"
+  },
+  "tipsShowAll": {
+    "message": "Show all ($COUNT$)",
+    "placeholders": {
+      "count": { "content": "$1" }
+    }
+  },
+  "tipsShowDaily": {
+    "message": "Show today's tips only"
   }
 }

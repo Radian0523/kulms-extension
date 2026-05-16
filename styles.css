@@ -1168,6 +1168,24 @@ body {
   text-decoration: none !important;
 }
 
+.kulms-tips-toggle-btn {
+  display: block !important;
+  width: 100% !important;
+  padding: 8px !important;
+  margin-top: 4px !important;
+  border: 1px dashed #ccc !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  color: #777 !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  transition: background 0.15s, color 0.15s !important;
+}
+.kulms-tips-toggle-btn:hover {
+  background: #f0f0f0 !important;
+  color: #333 !important;
+}
+
 /* === 設定ビュー === */
 
 .kulms-settings-view {

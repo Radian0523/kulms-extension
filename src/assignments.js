@@ -782,7 +782,16 @@
       else if (currentView === "textbooks" && window.__kulmsTextbookAPI) {
         window.__kulmsTextbookAPI.loadInto(contentEl, true);
       } else if (currentView === "tips") {
-        showTipsView(true);
+        if (tipsShowAll) {
+          showTipsView(true);
+        } else {
+          tipsShuffleCount++;
+          if (_lastTipsData) {
+            renderTips(_lastTipsData);
+          } else {
+            showTipsView(true);
+          }
+        }
       }
     });
 
@@ -853,8 +862,8 @@
     if (textbooksEnabled) {
       tabBar.appendChild(tabTextbook);
     }
-    tabBar.appendChild(tabSettings);
     tabBar.appendChild(tabTips);
+    tabBar.appendChild(tabSettings);
 
     tabAssign.classList.add("active");
 
@@ -2046,6 +2055,30 @@
   }, []);
 
   var currentView = "assignments";
+  var tipsShowAll = false;
+  var tipsShuffleCount = 0;
+  var TIPS_DAILY_COUNT = 2;
+
+  function tipsDailySeed() {
+    var d = new Date();
+    var str = d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate();
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+  }
+
+  function shuffleTips(tips, seed) {
+    var arr = tips.slice();
+    var s = seed;
+    function rand() { s = (s * 1664525 + 1013904223) & 0x7fffffff; return s / 0x7fffffff; }
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(rand() * (i + 1));
+      var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    }
+    return arr;
+  }
 
   function showSettingsView() {
     if (currentView === "settings") return;
@@ -2544,6 +2577,7 @@
   function showTipsView(forceRefresh) {
     if (!forceRefresh && currentView === "tips") return;
     currentView = "tips";
+    if (!forceRefresh) tipsShowAll = false;
     if (window.__kulmsTextbookAPI && window.__kulmsTextbookAPI.detach) {
       window.__kulmsTextbookAPI.detach();
     }
@@ -2600,8 +2634,11 @@
     }
   }
 
+  var _lastTipsData = null;
+
   function renderTips(data) {
     if (!contentEl || currentView !== "tips") return;
+    _lastTipsData = data;
     contentEl.innerHTML = "";
 
     var tips = (data && data.tips) || [];
@@ -2618,6 +2655,14 @@
       return (b.addedAt || "").localeCompare(a.addedAt || "");
     });
 
+    var totalCount = tips.length;
+    var displayTips;
+    if (tipsShowAll) {
+      displayTips = tips;
+    } else {
+      displayTips = shuffleTips(tips, tipsDailySeed() + tipsShuffleCount).slice(0, TIPS_DAILY_COUNT);
+    }
+
     var container = document.createElement("div");
     container.className = "kulms-tips-container";
 
@@ -2628,7 +2673,7 @@
       announcement: "Info"
     };
 
-    tips.forEach(function (tip) {
+    displayTips.forEach(function (tip) {
       var catClass = tip.category ? "tips-cat-" + tip.category : "";
 
       // 課題カードと同じ構造: card > card-body
@@ -2687,6 +2732,20 @@
     });
 
     contentEl.appendChild(container);
+
+    // トグルボタン
+    var toggleBtn = document.createElement("button");
+    toggleBtn.className = "kulms-tips-toggle-btn";
+    if (tipsShowAll) {
+      toggleBtn.textContent = t("tipsShowDaily");
+    } else {
+      toggleBtn.textContent = t("tipsShowAll", [String(totalCount)]);
+    }
+    toggleBtn.addEventListener("click", function () {
+      tipsShowAll = !tipsShowAll;
+      renderTips(_lastTipsData);
+    });
+    contentEl.appendChild(toggleBtn);
   }
 
   function renderTipsError() {
