@@ -518,7 +518,7 @@
     "message": "Not submitted"
   },
   "gradingLegendGraded": {
-    "message": "Graded"
+    "message": "Graded, not returned"
   },
   "gradingLegendReturned": {
     "message": "Returned"

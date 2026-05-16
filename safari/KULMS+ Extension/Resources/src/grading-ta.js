@@ -21,13 +21,13 @@
   var GRADED_LABEL = "採点済み";
   var RETURNED_LABEL = "返却済み";
   var PROGRESS_RE = /(?:採点済み|Graded)\s*\d+\s*\/\s*\d+/i;
-  var STATUS_ICON_PREFIX_RE = /^(?:\uD83D[\uDFE0-\uDFE2]|⚪|✅)\s*/;
+  var STATUS_ICON_PREFIX_RE = /^(?:(?:\uD83D[\uDFE0-\uDFE2\uDFE8]|⚪|✅)\s*)+/;
 
   var ICONS = {
     pendingGrade: "🟡",   // 🟡
     inProgress: "🟠",     // 🟠
     notSubmitted: "⚪",         // ⚪
-    graded: "🟢",         // 🟢
+    graded: "🟨",         // 🟨
     returned: "✅",             // ✅
     unknown: ""
   };
@@ -130,42 +130,75 @@
 
   // === 状態マップ取得層 ===
 
+  function parseGradeLinkIds(href) {
+    var assignmentMatch = String(href || "").match(/assignmentId=\/assignment\/a\/([^/]+)\/([^/&]+)/);
+    var submissionMatch = String(href || "").match(/submissionId=\/assignment\/s\/([^/]+)\/([^/]+)\/([0-9a-f-]+)/);
+    return {
+      siteId: decodeURIComponent((submissionMatch && submissionMatch[1]) || (assignmentMatch && assignmentMatch[1]) || ""),
+      assignmentId: decodeURIComponent((submissionMatch && submissionMatch[2]) || (assignmentMatch && assignmentMatch[2]) || ""),
+      submissionId: (submissionMatch && submissionMatch[3]) || ""
+    };
+  }
+
+  function findSubmissionListSubmitColumn(table) {
+    var headerCells = getSubmissionListHeaderCells(table);
+    for (var i = 0; i < headerCells.length; i++) {
+      var text = (headerCells[i].textContent || "").trim();
+      if (/提出日時|Submitted/.test(text)) return i;
+    }
+    return -1;
+  }
+
+  function parseSubmissionListGroups(table, statusColIdx, submitColIdx) {
+    var groups = {};
+    var rows = table.querySelectorAll("tbody tr");
+    if (!rows.length) rows = table.querySelectorAll("tr");
+
+    for (var r = 0; r < rows.length; r++) {
+      var row = rows[r];
+      if (row.parentElement && row.parentElement.tagName === "THEAD") continue;
+      var cells = row.children;
+      if (cells.length <= statusColIdx) continue;
+
+      var nameLink = row.querySelector('a[href*="doGrade_submission"]');
+      if (!nameLink) continue;
+      var ids = parseGradeLinkIds(nameLink.getAttribute("href") || "");
+      if (!ids.siteId || !ids.assignmentId || !ids.submissionId) continue;
+
+      var groupKey = ids.siteId + ":" + ids.assignmentId;
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          siteId: ids.siteId,
+          assignmentId: ids.assignmentId,
+          map: {}
+        };
+      }
+
+      var status = stripStatusIcon(cells[statusColIdx].textContent || "");
+      var name = (nameLink.textContent || "").trim();
+      var submitTime = submitColIdx >= 0 ? (cells[submitColIdx].textContent || "").trim().replace(/\s+/g, " ") : "";
+      groups[groupKey].map[ids.submissionId] = {
+        name: name,
+        status: status,
+        kind: classifyStatus(status),
+        submitTime: submitTime,
+        source: "submissionList",
+        cachedAt: Date.now()
+      };
+    }
+
+    return groups;
+  }
+
   function parseSubmissionList(doc) {
     var table = doc.getElementById("submissionList");
     if (!table) return null;
 
-    var headerCells = table.querySelectorAll("thead th, thead td");
-    var statusColIdx = -1;
-    var submitColIdx = -1;
-    for (var i = 0; i < headerCells.length; i++) {
-      var ht = (headerCells[i].textContent || "").trim();
-      if (/状態|Status/.test(ht)) statusColIdx = i;
-      if (/提出日時|Submitted/.test(ht)) submitColIdx = i;
-    }
+    var statusColIdx = findSubmissionListStatusColumn(table);
     if (statusColIdx < 0) return null;
-
-    var map = {};
-    var rows = table.querySelectorAll("tbody tr");
-    for (var r = 0; r < rows.length; r++) {
-      var cells = rows[r].children;
-      if (cells.length <= statusColIdx) continue;
-      var nameLink = rows[r].querySelector('a[href*="doGrade_submission"]');
-      if (!nameLink) continue;
-      var href = nameLink.getAttribute("href") || "";
-      var sm = href.match(/submissionId=\/assignment\/s\/[^/]+\/[^/]+\/([0-9a-f-]+)/);
-      if (!sm) continue;
-      var submissionId = sm[1];
-      var status = stripStatusIcon(cells[statusColIdx].textContent || "");
-      var name = (nameLink.textContent || "").trim();
-      var submitTime = submitColIdx >= 0 ? (cells[submitColIdx].textContent || "").trim().replace(/\s+/g, " ") : "";
-      map[submissionId] = {
-        name: name,
-        status: status,
-        kind: classifyStatus(status),
-        submitTime: submitTime
-      };
-    }
-    return Object.keys(map).length > 0 ? map : null;
+    var groups = parseSubmissionListGroups(table, statusColIdx, findSubmissionListSubmitColumn(table));
+    var keys = Object.keys(groups);
+    return keys.length > 0 ? groups[keys[0]].map : null;
   }
 
   function classifySubmission(submission) {
@@ -263,11 +296,14 @@
     submissions.forEach(function (submission) {
       if (!submission || !submission.id) return;
       var kind = classifySubmission(submission);
+      var hasExplicitStatus = !!submission.status;
       map[submission.id] = {
         name: submission.firstSubmitterName || "",
         status: submission.status || buildStatusLabel(kind, submission),
         kind: kind,
-        submitTime: submission.submittedTime || ""
+        submitTime: submission.submittedTime || "",
+        source: "originalSubmissions",
+        statusSource: hasExplicitStatus ? "explicit" : "derived"
       };
     });
     return Object.keys(map).length > 0 ? map : null;
@@ -322,7 +358,28 @@
     Object.keys(cached).forEach(function (sid) {
       var cachedEntry = cached[sid];
       var currentEntry = merged[sid];
-      if (!cachedEntry || cachedEntry.kind !== "pendingGrade" || !currentEntry) return;
+      if (!cachedEntry || !currentEntry) return;
+
+      if (
+        cachedEntry.source === "submissionList" &&
+        cachedEntry.kind === "returned" &&
+        currentEntry.kind === "graded"
+      ) {
+        merged[sid] = cachedEntry;
+        return;
+      }
+
+      if (
+        cachedEntry.source === "submissionList" &&
+        cachedEntry.kind === "inProgress" &&
+        currentEntry.kind === "pendingGrade" &&
+        currentEntry.statusSource === "derived"
+      ) {
+        merged[sid] = cachedEntry;
+        return;
+      }
+
+      if (cachedEntry.kind !== "pendingGrade") return;
       if (currentEntry.kind === "graded" || currentEntry.kind === "returned") return;
       if (currentEntry.kind !== "pendingGrade") merged[sid] = cachedEntry;
     });
@@ -529,6 +586,17 @@
     return true;
   }
 
+  function saveSubmissionListStatusCache(table, statusColIdx) {
+    var groups = parseSubmissionListGroups(table, statusColIdx, findSubmissionListSubmitColumn(table));
+    Object.keys(groups).forEach(function (key) {
+      var group = groups[key];
+      saveStatusCache({
+        siteId: group.siteId,
+        assignmentId: group.assignmentId
+      }, group.map);
+    });
+  }
+
   function applySubmissionListIcons() {
     var tables = findSubmissionListTables();
     if (!tables.length) return false;
@@ -538,6 +606,7 @@
       var table = tables[tIdx];
       var statusColIdx = findSubmissionListStatusColumn(table);
       if (!isGradingSubmissionListTable(table, statusColIdx)) continue;
+      saveSubmissionListStatusCache(table, statusColIdx);
 
       var rows = table.querySelectorAll("tbody tr");
       if (!rows.length) rows = table.querySelectorAll("tr");
