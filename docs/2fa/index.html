@@ -274,21 +274,15 @@ a:hover{text-decoration:underline}
   <h2>よくある質問</h2>
 
   <div class="card">
-    <h3>京大の規約に違反していませんか？</h3>
-    <p>京都大学の情報環境機構は、多要素認証の手段として「TOTP 表示アプリ」を案内しており、その中に<strong>「Web ブラウザのプラグイン版」</strong>も含まれています（<a href="https://www.iimc.kyoto-u.ac.jp/ja/services/account/mfa/" target="_blank" rel="noopener">多要素認証について</a>）。</p>
-    <p>KULMS+ は Google Authenticator 等と同じ標準規格（<a href="https://datatracker.ietf.org/doc/html/rfc6238" target="_blank" rel="noopener">RFC 6238</a>）に基づいて OTP を生成するブラウザ拡張機能 / モバイルアプリであり、京大が案内している利用形態に該当します。不正アクセスや認証の迂回を行うものではなく、正規の認証フローに沿って OTP を入力しています。</p>
-  </div>
-
-  <div class="card">
     <h3>「ワンタイムパスワードが異なります」と表示されます</h3>
-    <p>京大の認証サーバーに登録できる TOTP シークレットキーは <strong>1 つだけ</strong> です。<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>で新しい QR コードを読み取って「登録」を行うと、以前のシークレットキーは上書きされます。</p>
+    <p>京大の認証サーバーに登録できる TOTP シークレットキーは <strong>1 つだけ</strong> です。<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>にアクセスするたびに<strong>新しいシークレットキーが発行</strong>され、「登録」を完了すると以前のキーは上書きされて無効になります。</p>
     <p>よくある原因:</p>
     <ul>
-      <li>Google Authenticator 等の別アプリで再登録を行い、京大サーバー側のシークレットキーが更新された（KULMS+ 側は古いキーのまま）</li>
-      <li>KULMS+ でシークレットキーを保存したが、京大側の「登録」ボタンをクリックしていないため、サーバーにシークレットが反映されていない</li>
-      <li>複数端末でそれぞれ別の QR コードを登録したため、最後に登録した端末のキーだけが有効になっている</li>
+      <li>KULMS+ の設定後に、Google Authenticator 等で設定ページを開いて再登録した — 京大サーバーのシークレットキーがその時点で新しく発行されたものに上書きされ、KULMS+ に保存されているキーと一致しなくなっています。</li>
+      <li>KULMS+ を設定するために設定ページを開いたが、京大側の「登録」ボタンを押さなかった — KULMS+ は表示された QR コードから新しいキーを保存しますが、「登録」を完了しないと京大サーバーには古いキーが残ったままです。KULMS+ が生成する OTP とサーバーが期待する OTP が異なります。</li>
+      <li>複数の端末・アプリでそれぞれ設定ページを開いて登録した — 設定ページを開くたびに新しいキーが発行されるため、端末ごとに異なるキーが保存されます。最後に「登録」した端末のキーだけが有効です。</li>
     </ul>
-    <p><strong>解決方法:</strong> <a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>で QR コードを再表示し、KULMS+ に再登録してください。すべての端末で同じシークレットキーを使用する必要があります。拡張機能で登録済みの場合は、ポップアップの「QR」ボタンで生成した QR をモバイル端末でスキャンすると、同一キーを共有できます。</p>
+    <p><strong>解決方法:</strong> <a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>を開いて KULMS+ に再登録し、「登録」ボタンを押してください。他の端末にも同じキーを共有するには、設定ページを再度開くのではなく、KULMS+ 拡張機能のポップアップにある「QR」ボタンで生成した QR をスキャンしてください。</p>
   </div>
 
   <div class="card">
