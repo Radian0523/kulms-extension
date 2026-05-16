@@ -278,11 +278,11 @@ a:hover{text-decoration:underline}
     <p>京大の認証サーバーに登録できる TOTP シークレットキーは <strong>1 つだけ</strong> です。<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>にアクセスするたびに<strong>新しいシークレットキーが発行</strong>され、「登録」を完了すると以前のキーは上書きされて無効になります。</p>
     <p>よくある原因:</p>
     <ul>
-      <li>KULMS+ の設定後に、Google Authenticator 等で設定ページを開いて再登録した — 京大サーバーのシークレットキーがその時点で新しく発行されたものに上書きされ、KULMS+ に保存されているキーと一致しなくなっています。</li>
-      <li>KULMS+ を設定するために設定ページを開いたが、京大側の「登録」ボタンを押さなかった — KULMS+ は表示された QR コードから新しいキーを保存しますが、「登録」を完了しないと京大サーバーには古いキーが残ったままです。KULMS+ が生成する OTP とサーバーが期待する OTP が異なります。</li>
-      <li>複数の端末・アプリでそれぞれ設定ページを開いて登録した — 設定ページを開くたびに新しいキーが発行されるため、端末ごとに異なるキーが保存されます。最後に「登録」した端末のキーだけが有効です。</li>
+      <li>KULMS+ の設定後に、Google Authenticator 等で多要素認証設定ページを開いて再登録した — 京大サーバーのシークレットキーがその時点で新しく発行されたものに上書きされ、KULMS+ に保存されているキーと一致しなくなっています。</li>
+      <li>KULMS+ を設定するために多要素認証設定ページを開いたが、京大側の「登録」ボタンを押さなかった — KULMS+ は表示された QR コードから新しいキーを保存しますが、「登録」を完了しないと京大サーバーには古いキーが残ったままです。KULMS+ が生成する OTP とサーバーが期待する OTP が異なります。</li>
+      <li>複数の端末・アプリでそれぞれ多要素認証設定ページを開いて登録した — 多要素認証設定ページを開くたびに新しいキーが発行されるため、端末ごとに異なるキーが保存されます。最後に「登録」した端末のキーだけが有効です。</li>
     </ul>
-    <p><strong>解決方法:</strong> <a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>を開いて KULMS+ に再登録し、「登録」ボタンを押してください。他の端末にも同じキーを共有するには、設定ページを再度開くのではなく、KULMS+ 拡張機能のポップアップにある「QR」ボタンで生成した QR をスキャンしてください。</p>
+    <p><strong>解決方法:</strong> <a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>を開いて KULMS+ に再登録し、「登録」ボタンを押してください。他の端末にも同じキーを共有するには、多要素認証設定ページを再度開くのではなく、KULMS+ 拡張機能のポップアップにある「QR」ボタンで生成した QR をスキャンしてください。</p>
   </div>
 
   <div class="card">
