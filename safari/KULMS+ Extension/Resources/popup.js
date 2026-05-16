@@ -620,7 +620,51 @@
 
   // --- TOTP Settings ---
 
+  var BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
   var BASE32_RE = /^[A-Z2-7=\s-]+$/i;
+  var totpDebugTimer = null;
+
+  function base32DecodePopup(input) {
+    var cleaned = input.replace(/[\s-]/g, "").replace(/=+$/, "").toUpperCase();
+    if (!cleaned) return null;
+    var output = [];
+    var buffer = 0;
+    var bitsLeft = 0;
+    for (var i = 0; i < cleaned.length; i++) {
+      var idx = BASE32_ALPHABET.indexOf(cleaned[i]);
+      if (idx < 0) return null;
+      buffer = (buffer << 5) | idx;
+      bitsLeft += 5;
+      if (bitsLeft >= 8) {
+        bitsLeft -= 8;
+        output.push((buffer >> bitsLeft) & 0xff);
+      }
+    }
+    return new Uint8Array(output);
+  }
+
+  async function generateTOTPPopup(secret) {
+    var key = base32DecodePopup(secret);
+    if (!key) return null;
+    var counter = Math.floor(Date.now() / 1000 / 30);
+    var counterBytes = new ArrayBuffer(8);
+    var view = new DataView(counterBytes);
+    view.setUint32(0, Math.floor(counter / 0x100000000), false);
+    view.setUint32(4, counter & 0xffffffff, false);
+    var cryptoKey = await crypto.subtle.importKey(
+      "raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]
+    );
+    var hmacBuffer = await crypto.subtle.sign("HMAC", cryptoKey, counterBytes);
+    var hmac = new Uint8Array(hmacBuffer);
+    var offset = hmac[19] & 0x0f;
+    var code =
+      ((hmac[offset] & 0x7f) << 24) |
+      (hmac[offset + 1] << 16) |
+      (hmac[offset + 2] << 8) |
+      hmac[offset + 3];
+    var otp = code % 1000000;
+    return String(otp).padStart(6, "0");
+  }
 
   function initTotpSection() {
     var header = document.getElementById("totp-header");
@@ -630,6 +674,8 @@
     var saveBtn = document.getElementById("totp-save-btn");
     var deleteBtn = document.getElementById("totp-delete-btn");
 
+    var qrBtn = document.getElementById("totp-qr-btn");
+
     // i18n
     document.getElementById("totp-title").textContent = t("totpSectionTitle");
     document.getElementById("totp-status-text").textContent = t("totpConfigured");
@@ -638,6 +684,7 @@
     document.getElementById("totp-desc-text").textContent = t("totpDescription");
     document.getElementById("totp-security-note").textContent = t("totpSecurityNote");
     input.placeholder = t("totpPlaceholder");
+    document.getElementById("totp-qr-btn-text").textContent = t("totpScanFromPage");
 
     // Toggle expand/collapse
     header.addEventListener("click", function () {
@@ -677,14 +724,199 @@
       } catch (e) { /* context invalidated */ }
     });
 
+    // Show OTP & secret
+    var showBtn = document.getElementById("totp-show-btn");
+    showBtn.textContent = t("totpShowCode") || "コードを表示";
+    showBtn.addEventListener("click", function () {
+      var debugEl = document.getElementById("totp-debug");
+      if (debugEl.style.display !== "none") {
+        debugEl.style.display = "none";
+        if (totpDebugTimer) { clearInterval(totpDebugTimer); totpDebugTimer = null; }
+        return;
+      }
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-load" }, function (response) {
+          var secret = response && response.secret;
+          if (!secret) return;
+          debugEl.style.display = "block";
+          document.getElementById("totp-debug-secret").textContent = "Secret: " + secret;
+          function updateCode() {
+            generateTOTPPopup(secret).then(function (code) {
+              if (code) {
+                document.getElementById("totp-debug-otp").textContent = code;
+                var remaining = 30 - Math.floor(Date.now() / 1000) % 30;
+                document.getElementById("totp-debug-countdown").textContent = "(" + remaining + "s)";
+              }
+            });
+          }
+          updateCode();
+          if (totpDebugTimer) clearInterval(totpDebugTimer);
+          totpDebugTimer = setInterval(updateCode, 1000);
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+
     // Delete
     deleteBtn.addEventListener("click", function () {
+      if (totpDebugTimer) { clearInterval(totpDebugTimer); totpDebugTimer = null; }
       try {
         chrome.runtime.sendMessage({ type: "kulms-totp-delete" }, function () {
+          document.getElementById("totp-debug").style.display = "none";
+          document.getElementById("totp-qr-display").style.display = "none";
+          document.getElementById("totp-qr-canvas").innerHTML = "";
           renderTotpState(false);
         });
       } catch (e) { /* context invalidated */ }
     });
+
+    // QR Code generation (show QR from stored secret)
+    var qrgenBtn = document.getElementById("totp-qrgen-btn");
+    qrgenBtn.addEventListener("click", function () {
+      var qrDisplay = document.getElementById("totp-qr-display");
+      var qrCanvas = document.getElementById("totp-qr-canvas");
+      if (qrDisplay.style.display !== "none") {
+        qrDisplay.style.display = "none";
+        qrCanvas.innerHTML = "";
+        return;
+      }
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-load" }, function (response) {
+          var secret = response && response.secret;
+          if (!secret) return;
+          var uri = "otpauth://totp/KULMS%2B?secret=" + encodeURIComponent(secret) + "&issuer=KULMS%2B";
+          try {
+            var qr = qrcode(0, "M");
+            qr.addData(uri);
+            qr.make();
+            qrCanvas.innerHTML = qr.createSvgTag(4, 2);
+            qrDisplay.style.display = "block";
+          } catch (e) {
+            qrCanvas.innerHTML = "";
+            qrDisplay.style.display = "none";
+          }
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+
+    // QR Scan from page
+    qrBtn.addEventListener("click", function () {
+      qrBtn.disabled = true;
+      try {
+        chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+          if (!tabs || tabs.length === 0) {
+            showRefreshToast(t("totpScanNotFound"));
+            qrBtn.disabled = false;
+            return;
+          }
+          var tabId = tabs[0].id;
+
+          // First inject jsQR library, then run the scan function
+          chrome.scripting.executeScript(
+            { target: { tabId: tabId }, files: ["vendor/jsqr.min.js"] },
+            function () {
+              if (chrome.runtime.lastError) {
+                showRefreshToast(t("totpScanNotFound"));
+                qrBtn.disabled = false;
+                return;
+              }
+              chrome.scripting.executeScript(
+                { target: { tabId: tabId }, func: scanPageForQR },
+                function (results) {
+                  qrBtn.disabled = false;
+                  if (chrome.runtime.lastError || !results || !results[0]) {
+                    showRefreshToast(t("totpScanNotFound"));
+                    return;
+                  }
+                  var secret = results[0].result;
+                  if (secret) {
+                    input.value = secret;
+                    saveBtn.disabled = false;
+                    showRefreshToast(t("totpScanSuccess"));
+                  } else {
+                    showRefreshToast(t("totpScanNotFound"));
+                  }
+                }
+              );
+            }
+          );
+        });
+      } catch (e) {
+        qrBtn.disabled = false;
+        showRefreshToast(t("totpScanNotFound"));
+      }
+    });
+  }
+
+  // This function runs inside the active tab via chrome.scripting.executeScript
+  function scanPageForQR() {
+    function extractSecret(uri) {
+      if (!uri || !uri.startsWith("otpauth://")) return null;
+      try {
+        var url = new URL(uri);
+        var secret = url.searchParams.get("secret");
+        if (secret && /^[A-Z2-7=]+$/i.test(secret.replace(/[\s-]/g, ""))) {
+          return secret.replace(/[\s-]/g, "").toUpperCase();
+        }
+      } catch (e) { /* ignore */ }
+      return null;
+    }
+
+    function tryDecodeImageData(imageData) {
+      if (typeof jsQR !== "function") return null;
+      var result = jsQR(imageData.data, imageData.width, imageData.height);
+      if (result && result.data) return extractSecret(result.data);
+      return null;
+    }
+
+    // Scan <img> elements
+    var images = document.querySelectorAll("img");
+    for (var i = 0; i < images.length; i++) {
+      var img = images[i];
+      if (img.naturalWidth < 20 || img.naturalHeight < 20) continue;
+      try {
+        var canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        var secret = tryDecodeImageData(imageData);
+        if (secret) return secret;
+      } catch (e) { /* cross-origin tainted canvas - skip */ }
+    }
+
+    // Scan <canvas> elements
+    var canvases = document.querySelectorAll("canvas");
+    for (var j = 0; j < canvases.length; j++) {
+      try {
+        var c = canvases[j];
+        if (c.width < 20 || c.height < 20) continue;
+        var cCtx = c.getContext("2d");
+        var cData = cCtx.getImageData(0, 0, c.width, c.height);
+        var cSecret = tryDecodeImageData(cData);
+        if (cSecret) return cSecret;
+      } catch (e) { /* tainted or inaccessible - skip */ }
+    }
+
+    // Scan <svg> elements (render to canvas)
+    var svgs = document.querySelectorAll("svg");
+    for (var k = 0; k < svgs.length; k++) {
+      try {
+        var svg = svgs[k];
+        var rect = svg.getBoundingClientRect();
+        if (rect.width < 20 || rect.height < 20) continue;
+        var svgData = new XMLSerializer().serializeToString(svg);
+        var svgCanvas = document.createElement("canvas");
+        svgCanvas.width = rect.width;
+        svgCanvas.height = rect.height;
+        var svgCtx = svgCanvas.getContext("2d");
+        var svgImg = new Image();
+        svgImg.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgData);
+        // SVG rendering is async, skip if not immediately available
+      } catch (e) { /* skip */ }
+    }
+
+    return null;
   }
 
   function renderTotpState(hasSecret) {

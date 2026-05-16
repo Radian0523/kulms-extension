@@ -556,5 +556,17 @@
   },
   "totpSecurityNote": {
     "message": "Your secret key is stored in the browser's local storage and is never sent externally."
+  },
+  "totpScanFromPage": {
+    "message": "Read QR code from page"
+  },
+  "totpScanNotFound": {
+    "message": "No QR code found on this page"
+  },
+  "totpScanSuccess": {
+    "message": "Secret key detected"
+  },
+  "totpShowCode": {
+    "message": "Show code"
   }
 }

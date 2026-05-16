@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>セキュリティと仕組み — KULMS+</title>
+<link rel="icon" href="../icon128.png" type="image/png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4ed;
+  --bg-card:#faf9f5;
+  --fg:#141413;
+  --fg2:#5e5d59;
+  --fg3:#87867f;
+  --accent:#c96442;
+  --accent-hover:#b85838;
+  --border:#f0eee6;
+  --border-strong:#e8e6dc;
+  --shadow:rgba(0,0,0,0.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141413;
+    --bg-card:#30302e;
+    --fg:#faf9f5;
+    --fg2:#b0aea5;
+    --fg3:#87867f;
+    --accent:#d97757;
+    --accent-hover:#e08a6c;
+    --border:#30302e;
+    --border-strong:#3d3d3a;
+    --shadow:rgba(0,0,0,0.15);
+  }
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{text-align:center;padding:5rem 1.5rem 2rem}
+.header img{
+  width:64px;height:64px;border-radius:12px;
+  box-shadow:var(--shadow) 0px 4px 24px;
+}
+.header h1{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:2.25rem;font-weight:500;
+  margin:1rem 0 0.25rem;line-height:1.1;
+  color:var(--fg);
+}
+.header p{font-size:1rem;color:var(--fg3)}
+.content{
+  max-width:680px;margin:0 auto;padding:0 1.5rem 3rem;
+}
+.content h2{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.4rem;font-weight:500;
+  margin:2.5rem 0 0.75rem;color:var(--fg);
+}
+.content p,.content ul{
+  font-size:0.9375rem;color:var(--fg2);
+  margin-bottom:0.75rem;
+}
+.content ul{padding-left:1.5rem}
+.content li{margin-bottom:0.35rem}
+.content code{
+  font-size:0.85em;
+  background:var(--border);
+  padding:0.15em 0.4em;border-radius:4px;
+  color:var(--fg);
+}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1.25rem 1.5rem;
+  margin-bottom:1rem;
+  box-shadow:var(--shadow) 0px 2px 12px;
+}
+.card h3{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.15rem;font-weight:500;
+  color:var(--fg);margin:0 0 0.5rem;
+}
+.card p{
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.7;margin-bottom:0.5rem;
+}
+.card p:last-child{margin-bottom:0}
+.card table{
+  width:100%;border-collapse:collapse;
+  margin:0.75rem 0;font-size:0.9375rem;
+}
+.card th,.card td{
+  text-align:left;padding:0.5rem 0.75rem;
+  border-bottom:1px solid var(--border-strong);
+  color:var(--fg2);
+}
+.card th{
+  font-weight:500;color:var(--fg);
+  font-size:0.875rem;
+}
+.card tr:last-child td{border-bottom:none}
+.notice{
+  border-left:3px solid var(--accent);
+}
+.footer{
+  text-align:center;padding:2rem 1.5rem;
+  color:var(--fg3);font-size:0.85rem;
+  border-top:1px solid var(--border);
+  max-width:680px;margin:0 auto;
+}
+.footer a{color:var(--fg3)}
+.footer a:hover{color:var(--accent)}
+.footer .sep{margin:0 0.5rem}
+@media(max-width:640px){
+  .header{padding:3rem 1.5rem 1.5rem}
+  .header h1{font-size:1.75rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="../">
+    <img src="../icon128.png" alt="KULMS+ icon" width="64" height="64">
+  </a>
+  <h1>セキュリティと仕組み</h1>
+  <p>KULMS+ — 認証・データの取り扱いについて</p>
+</header>
+
+<main class="content">
+
+  <h2>ログインの仕組み</h2>
+
+  <div class="card">
+    <h3>モバイル版</h3>
+    <p>モバイル版 KULMS+ は、アプリ内の WebView（iOS: WKWebView / Android: android.webkit.WebView）を通じて京都大学の認証サーバー（<code>auth.iimc.kyoto-u.ac.jp</code>）に直接通信します。<strong>KULMS+ の開発者のサーバーに認証情報が送信されることはありません。</strong></p>
+  </div>
+
+  <div class="card">
+    <h3>ブラウザ拡張機能版</h3>
+    <p>ブラウザ拡張機能版はブラウザ本体のセッション（Cookie）を利用するため、認証情報を一切扱いません。LMS API へのアクセスは、ブラウザが保持する既存のログインセッションを利用します。</p>
+  </div>
+
+  <h2>認証情報の保存</h2>
+
+  <div class="card">
+    <p>モバイル版でパスワードの保存を選択した場合、各プラットフォームのセキュアストレージに暗号化して保存されます。</p>
+    <table>
+      <thead><tr><th>プラットフォーム</th><th>保存先</th><th>暗号化方式</th></tr></thead>
+      <tbody>
+        <tr><td>iOS</td><td>iOS Keychain</td><td>OS 管理の暗号化</td></tr>
+        <tr><td>Android</td><td>SharedPreferences</td><td>AES-256 GCM（AndroidKeyStore 管理鍵）</td></tr>
+        <tr><td>ブラウザ拡張</td><td colspan="2">認証情報は保存しません（ブラウザのセッションを利用）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>2段階認証（TOTP）自動入力</h2>
+
+  <div class="card">
+    <p>KULMS+ に TOTP シークレットキーを登録しておくことで、ログイン時のワンタイムパスワード入力を自動化できます。ブラウザ拡張機能版では登録ページにアクセスするだけで設定が完了します。</p>
+    <p>設定方法やセキュリティの詳細は <a href="../2fa/">2段階認証（TOTP）の設定ガイド</a> をご覧ください。</p>
+  </div>
+
+  <h2>データの取り扱い</h2>
+
+  <div class="card">
+    <h3>ローカルストレージ</h3>
+    <p>拡張機能が保存するデータ（課題キャッシュ、メモ、設定、チェック状態など）はすべてブラウザのローカルストレージ（<code>chrome.storage.local</code>）にのみ保存され、外部サーバーに送信されることはありません。</p>
+  </div>
+
+  <div class="card">
+    <h3>外部との通信</h3>
+    <p>KULMS+ は以下のドメインとのみ通信します。第三者のサーバーを経由することはなく、アナリティクス・トラッキング・広告関連の通信は一切ありません。</p>
+    <ul>
+      <li><strong>lms.gakusei.kyoto-u.ac.jp</strong> — 京都大学 LMS（課題・クイズ・科目情報）</li>
+      <li><strong>www.k.kyoto-u.ac.jp</strong> — KULASIS シラバス（教科書情報）</li>
+      <li><strong>auth.iimc.kyoto-u.ac.jp</strong> — 統合認証システム（TOTP 自動入力・登録）</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>ソースコード</h3>
+    <p>KULMS+ はオープンソースで開発されており、認証情報の取り扱いを含むすべてのコードを <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub</a> で公開しています。どなたでもご確認いただけます。</p>
+  </div>
+
+  <div class="card notice">
+    <h3>プライバシーポリシー</h3>
+    <p>データの収集・削除に関する詳細は <a href="../privacy.html">プライバシーポリシー</a> をご覧ください。</p>
+  </div>
+
+</main>
+
+<footer class="footer">
+  <a href="../">KULMS+ トップページ</a>
+  <span class="sep">|</span>
+  <a href="../2fa/">2段階認証の設定</a>
+  <span class="sep">|</span>
+  <a href="../privacy.html">プライバシーポリシー</a>
+</footer>
+
+</body>
+</html>

@@ -74,6 +74,14 @@
     }
   }
 
+  // 無限ループ防止: OTP 失敗でページがリロードされた場合に
+  // 連続して自動入力・送信し続けないようにする。
+  // 同一 30 秒ウィンドウ内では 1 回だけ試行する。
+  var TOTP_ATTEMPTED_KEY = "kulms-totp-attempted";
+  var currentWindow = String(Math.floor(Date.now() / 1000 / 30));
+  var lastAttempt = sessionStorage.getItem(TOTP_ATTEMPTED_KEY);
+  if (lastAttempt === currentWindow) return; // この TOTP ウィンドウでは既に試行済み
+
   // メイン処理（background の暗号化ストア経由で取得）
   chrome.runtime.sendMessage({ type: "kulms-totp-load" }, function (response) {
     var secret = response && response.secret;
@@ -81,6 +89,7 @@
 
     generateTOTP(secret).then(function (code) {
       if (code) {
+        sessionStorage.setItem(TOTP_ATTEMPTED_KEY, currentWindow);
         injectCode(code);
       }
     }).catch(function () {

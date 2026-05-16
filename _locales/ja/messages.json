@@ -556,5 +556,17 @@
   },
   "totpSecurityNote": {
     "message": "シークレットキーはブラウザのローカルストレージに保存され、外部には送信されません。"
+  },
+  "totpScanFromPage": {
+    "message": "ページからQRコードを読み取る"
+  },
+  "totpScanNotFound": {
+    "message": "QRコードが見つかりませんでした"
+  },
+  "totpScanSuccess": {
+    "message": "シークレットキーを読み取りました"
+  },
+  "totpShowCode": {
+    "message": "コードを表示"
   }
 }

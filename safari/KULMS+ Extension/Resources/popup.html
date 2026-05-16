@@ -206,12 +206,103 @@ body {
 .totp-btn-save:hover { background: #3a5f95; }
 .totp-btn-save:disabled { opacity: 0.4; cursor: default; }
 
+.totp-btn-qr {
+  background: #f0f0f0;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.totp-btn-qr:hover { background: #e0e0e0; }
+.totp-btn-qr:disabled { opacity: 0.4; cursor: default; }
+
+.totp-btn-qr svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
 .totp-btn-delete {
   background: #e85555;
   color: #fff;
 }
 
 .totp-btn-delete:hover { background: #d04040; }
+
+.totp-configured-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.totp-btn-show {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.totp-btn-show:hover { background: #e0e0e0; }
+
+.totp-debug {
+  margin: 6px 0;
+  padding: 6px 8px;
+  background: #f8f8f8;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+}
+
+.totp-debug-code {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.totp-debug-code span:first-child {
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #333;
+}
+
+.totp-debug-countdown {
+  font-size: 10px;
+  color: #999;
+}
+
+.totp-debug-secret {
+  margin-top: 4px;
+  font-family: monospace;
+  font-size: 9px;
+  color: #999;
+  word-break: break-all;
+  user-select: all;
+}
+
+.totp-btn-qrgen {
+  background: #f0f0f0;
+  color: #333;
+  font-weight: 600;
+}
+
+.totp-btn-qrgen:hover { background: #e0e0e0; }
+
+.totp-qr-display {
+  margin: 6px 0;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.totp-qr-display img,
+.totp-qr-display svg {
+  max-width: 180px;
+  height: auto;
+  image-rendering: pixelated;
+}
 
 .totp-desc {
   font-size: 10px;
@@ -437,6 +528,8 @@ body {
   .totp-input { background: #333; border-color: #555; color: #e0e0e0; }
   .totp-desc { color: #777; }
   .totp-security-note { color: #666; border-color: #444; }
+  .totp-btn-qr { background: #3a3a3a; color: #ccc; }
+  .totp-btn-qr:hover { background: #444; }
 }
 </style>
 </head>
@@ -460,13 +553,31 @@ body {
     <div class="totp-body" id="totp-body">
       <div id="totp-configured" style="display:none">
         <div class="totp-status" id="totp-status-text"></div>
-        <button class="totp-btn totp-btn-delete" id="totp-delete-btn"></button>
+        <div class="totp-debug" id="totp-debug" style="display:none">
+          <div class="totp-debug-code">
+            <span id="totp-debug-otp"></span>
+            <span class="totp-debug-countdown" id="totp-debug-countdown"></span>
+          </div>
+          <div class="totp-debug-secret" id="totp-debug-secret"></div>
+        </div>
+        <div id="totp-qr-display" class="totp-qr-display" style="display:none">
+          <div id="totp-qr-canvas"></div>
+        </div>
+        <div class="totp-configured-actions">
+          <button class="totp-btn totp-btn-show" id="totp-show-btn"></button>
+          <button class="totp-btn totp-btn-qrgen" id="totp-qrgen-btn">QR</button>
+          <button class="totp-btn totp-btn-delete" id="totp-delete-btn"></button>
+        </div>
       </div>
       <div id="totp-unconfigured" style="display:none">
         <div class="totp-input-row">
           <input type="text" class="totp-input" id="totp-input" placeholder="Base32 secret key" spellcheck="false" autocomplete="off">
           <button class="totp-btn totp-btn-save" id="totp-save-btn" disabled></button>
         </div>
+        <button class="totp-btn totp-btn-qr" id="totp-qr-btn">
+          <svg viewBox="0 0 24 24"><path d="M3 11h2V9H3v2zm0-4h2V3H3v4zm4 4h2V9H7v2zm0-4h2V3H7v4zM3 15h2v-2H3v2zm8-4h2V9h-2v2zm-4 4h2v-2H7v2zm4 0h2v-2h-2v2zm0-8h2V3h-2v4zm6 8h2v-2h-2v2zm0-12v4h2V3h-2zm0 8h2V9h-2v2zm-4 4h2v-2h-2v2zm0-8h2V3h-2v4zm4 8h2v-2h-2v2zM3 19h2v-2H3v2zm4 0h2v-2H7v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2zm4 0h2v-2h-2v2z"/></svg>
+          <span id="totp-qr-btn-text"></span>
+        </button>
         <div class="totp-desc" id="totp-desc-text"></div>
       </div>
       <div class="totp-security-note" id="totp-security-note"></div>
@@ -475,6 +586,7 @@ body {
   <div class="footer">
     <a href="#" id="open-lms">LMS を開く</a>
   </div>
+  <script src="vendor/qrcode-gen.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

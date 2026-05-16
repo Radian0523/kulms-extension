@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2段階認証（TOTP）の設定 — KULMS+</title>
+<link rel="icon" href="../icon128.png" type="image/png">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f4ed;
+  --bg-card:#faf9f5;
+  --fg:#141413;
+  --fg2:#5e5d59;
+  --fg3:#87867f;
+  --accent:#c96442;
+  --accent-hover:#b85838;
+  --border:#f0eee6;
+  --border-strong:#e8e6dc;
+  --shadow:rgba(0,0,0,0.05);
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141413;
+    --bg-card:#30302e;
+    --fg:#faf9f5;
+    --fg2:#b0aea5;
+    --fg3:#87867f;
+    --accent:#d97757;
+    --accent-hover:#e08a6c;
+    --border:#30302e;
+    --border-strong:#3d3d3a;
+    --shadow:rgba(0,0,0,0.15);
+  }
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.header{text-align:center;padding:5rem 1.5rem 2rem}
+.header img{
+  width:64px;height:64px;border-radius:12px;
+  box-shadow:var(--shadow) 0px 4px 24px;
+}
+.header h1{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:2.25rem;font-weight:500;
+  margin:1rem 0 0.25rem;line-height:1.1;
+  color:var(--fg);
+}
+.header p{font-size:1rem;color:var(--fg3)}
+.content{
+  max-width:680px;margin:0 auto;padding:0 1.5rem 3rem;
+}
+.content h2{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.4rem;font-weight:500;
+  margin:2.5rem 0 0.75rem;color:var(--fg);
+}
+.content h3{
+  font-size:1.05rem;font-weight:600;
+  margin:1.5rem 0 0.5rem;color:var(--fg);
+}
+.content p,.content ul,.content ol{
+  font-size:0.9375rem;color:var(--fg2);
+  margin-bottom:0.75rem;
+}
+.content ul,.content ol{padding-left:1.5rem}
+.content li{margin-bottom:0.35rem}
+.content code{
+  font-size:0.85em;
+  background:var(--border);
+  padding:0.15em 0.4em;border-radius:4px;
+  color:var(--fg);
+}
+.card{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:1.25rem 1.5rem;
+  margin-bottom:1rem;
+  box-shadow:var(--shadow) 0px 2px 12px;
+}
+.card h3{
+  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  font-size:1.15rem;font-weight:500;
+  color:var(--fg);margin:0 0 0.5rem;
+}
+.card p{
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.7;margin-bottom:0.5rem;
+}
+.card p:last-child{margin-bottom:0}
+.steps{list-style:none;padding:0;counter-reset:step}
+.steps li{
+  position:relative;padding-left:2rem;
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.7;margin-bottom:0.5rem;
+  counter-increment:step;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:0;top:0.15em;
+  width:1.5rem;height:1.5rem;border-radius:50%;
+  background:var(--accent);color:#faf9f5;
+  font-size:0.8rem;font-weight:500;
+  display:flex;align-items:center;justify-content:center;
+}
+.notice{
+  border-left:3px solid var(--accent);
+}
+.platform-tabs{
+  display:flex;gap:0;
+  margin-bottom:1.5rem;
+  border-bottom:1px solid var(--border-strong);
+}
+.platform-tab{
+  flex:1;padding:0.625rem 0;
+  background:none;border:none;
+  font-size:0.9375rem;font-weight:400;
+  color:var(--fg3);cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:color 0.15s,border-color 0.15s;
+  text-align:center;font-family:inherit;
+}
+.platform-tab:hover{color:var(--fg2)}
+.platform-tab.active{
+  color:var(--accent);border-bottom-color:var(--accent);
+  font-weight:500;
+}
+.platform-panel{display:none}
+.platform-panel.active{display:block}
+.footer{
+  text-align:center;padding:2rem 1.5rem;
+  color:var(--fg3);font-size:0.85rem;
+  border-top:1px solid var(--border);
+  max-width:680px;margin:0 auto;
+}
+.footer a{color:var(--fg3)}
+.footer a:hover{color:var(--accent)}
+@media(max-width:640px){
+  .header{padding:3rem 1.5rem 1.5rem}
+  .header h1{font-size:1.75rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <a href="../">
+    <img src="../icon128.png" alt="KULMS+ icon" width="64" height="64">
+  </a>
+  <h1>2段階認証（TOTP）の設定</h1>
+  <p>KULMS+ — ワンタイムパスワード自動入力</p>
+</header>
+
+<main class="content">
+  <p>京都大学の多要素認証（2段階認証）では、ログイン時にワンタイムパスワード（OTP）の入力が求められます。KULMS+ に TOTP シークレットキーを登録しておくことで、この OTP 入力を自動化できます。</p>
+
+  <h2>仕組み</h2>
+  <div class="card">
+    <p>KULMS+ は <a href="https://datatracker.ietf.org/doc/html/rfc6238" target="_blank" rel="noopener">RFC 6238（TOTP）</a>に基づき、登録済みのシークレットキーと現在時刻から 30 秒ごとに変化する 6 桁のワンタイムパスワードを端末内で生成します。Google Authenticator 等の認証アプリと同じ標準仕様です。</p>
+    <p>シークレットキーは各プラットフォームのセキュアストレージに暗号化して保存され、外部に送信されることはありません。</p>
+  </div>
+
+  <h2>設定手順</h2>
+
+  <div class="platform-tabs">
+    <button class="platform-tab active" data-target="tab-extension">ブラウザ拡張機能</button>
+    <button class="platform-tab" data-target="tab-mobile">iOS / Android</button>
+  </div>
+
+  <div class="platform-panel active" id="tab-extension">
+    <h3>方法 A: 自動登録（推奨）</h3>
+    <p>KULMS+ v1.18.0 以降では、京大の TOTP 登録ページにアクセスするだけで、シークレットの保存と OTP の入力が自動で行われます。</p>
+    <ol class="steps">
+      <li>京大の<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>（統合認証システム → ワンタイムパスワードの設定 → アプリ）にアクセスします。</li>
+      <li>KULMS+ が QR コードからシークレットキーを自動読み取りし、拡張機能に保存します。同時に OTP コードを生成してフォームに自動入力します。</li>
+      <li>内容を確認し、<strong>「登録」ボタンをクリック</strong>して完了です。</li>
+    </ol>
+
+    <h3>方法 B: 手動登録</h3>
+    <p>自動登録がうまくいかない場合や、既にシークレットキーを持っている場合はポップアップから手動で設定できます。</p>
+    <ol class="steps">
+      <li>京大の多要素認証設定ページで QR コードを表示します。</li>
+      <li>KULMS+ のポップアップを開き、下部の「TOTP 自動入力」セクションを展開します。</li>
+      <li><strong>「ページからスキャン」</strong>ボタンをクリックすると、ページ上の QR コードからシークレットキーが自動入力されます。手動で Base32 シークレットキーを貼り付けることもできます。</li>
+      <li>「保存」をクリックします。</li>
+      <li>認証設定ページ上で、認証アプリ（Google Authenticator 等）に表示された OTP をフォームに入力し、「登録」をクリックして京大側の登録を完了します。</li>
+    </ol>
+    <div class="card notice">
+      <p><strong>QR コードを読み込んだだけでは京大側の登録は完了しません。</strong>シークレットキー保存後、必ず OTP を入力して「登録」ボタンをクリックしてください。方法 A では OTP の自動入力まで行われるため、「登録」をクリックするだけで完了します。</p>
+    </div>
+
+    <h3>コードの確認と QR 生成</h3>
+    <p>設定済みの TOTP シークレットキーに関する確認・管理機能がポップアップに用意されています。</p>
+    <ul>
+      <li><strong>「コードを表示」ボタン</strong> — 現在の 6 桁 OTP コード（30 秒カウントダウン付き）と、保存済みのシークレットキーを表示します。認証アプリの表示と一致するか確認できます。</li>
+      <li><strong>「QR」ボタン</strong> — 保存済みシークレットから <code>otpauth://</code> 形式の QR コードを生成します。モバイル端末の認証アプリ（Google Authenticator 等）でスキャンして追加登録できます。</li>
+    </ul>
+  </div>
+
+  <div class="platform-panel" id="tab-mobile">
+    <h3>シークレットキーの登録</h3>
+
+    <p><strong>方法 A: QR コードをスキャン（推奨）</strong></p>
+    <ol class="steps">
+      <li>KULMS+ モバイル版のログイン画面で「QR コードをスキャン」をタップします。</li>
+      <li>QR コードをカメラで読み取ります。QR コードは以下のいずれかから取得できます。
+        <ul>
+          <li><strong>KULMS+ 拡張機能のポップアップ</strong> — TOTP 設定済みの場合、「QR」ボタンで QR コードを生成できます。PC の画面に表示された QR をモバイルで読み取るだけで完了です。</li>
+          <li><strong>京大の多要素認証設定ページ</strong> — 初回登録時に表示される QR コードを直接読み取ります。</li>
+        </ul>
+      </li>
+      <li>保存すると、次回ログインから OTP が自動入力されます。</li>
+    </ol>
+
+    <p><strong>方法 B: 手動入力</strong></p>
+    <ol class="steps">
+      <li>KULMS+ モバイル版のログイン画面で「TOTP シークレットキー」入力欄に Base32 形式のシークレットキーを入力します。</li>
+      <li>「保存」をタップして完了です。</li>
+    </ol>
+
+    <h3>コードの確認</h3>
+    <p>シークレットキー設定済みの状態で「現在のコードを表示」ボタンをタップすると、現在の 6 桁 OTP コード（30 秒カウントダウン付き）と保存済みのシークレットキーが表示されます。認証アプリの表示と一致するか確認できます。</p>
+
+    <h3>京大側の登録</h3>
+    <p>初めて TOTP を設定する場合は、京大の認証設定ページ上で OTP を一度入力して登録を完了する必要があります。モバイル版では自動登録機能がないため、以下の手順で行ってください。</p>
+    <ol class="steps">
+      <li>京大の<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>にアクセスします（PC のブラウザを推奨）。</li>
+      <li>QR コードを認証アプリ（Google Authenticator 等）または KULMS+ モバイル版で読み取ります。</li>
+      <li>アプリに表示された 6 桁の OTP をフォームに入力し、「登録」をクリックして完了です。</li>
+    </ol>
+  </div>
+
+  <h2>セキュリティについて</h2>
+
+  <div class="card">
+    <h3>シークレットキーの保存先</h3>
+    <p>TOTP シークレットキーは、各プラットフォームのセキュアストレージに暗号化して保存されます。「コードを表示」や「QR」ボタンで表示される際は、その場で復号されて表示されます。</p>
+    <ul>
+      <li><strong>ブラウザ拡張機能</strong> — <code>chrome.storage.local</code> に AES-256-GCM で暗号化して保存。暗号鍵は IndexedDB に保持（非抽出）。</li>
+      <li><strong>iOS</strong> — iOS Keychain（OS 管理の暗号化）</li>
+      <li><strong>Android</strong> — Android Keystore + SharedPreferences（AES-256-GCM、ハードウェア管理鍵）</li>
+    </ul>
+  </div>
+
+  <div class="card notice">
+    <h3>ご注意</h3>
+    <p>パスワードと TOTP シークレットキーを同一端末に保存する場合、厳密には 2 つの認証要素が 1 つの端末に集約されるため、「完全な 2 要素認証」ではなくなります。これは 1Password や Bitwarden 等の主要なパスワードマネージャーが TOTP 機能を提供する場合と同様のトレードオフです。</p>
+    <p>セキュリティを最重視する場合は、TOTP シークレットキーを KULMS+ に登録せず、別端末の認証アプリ（Google Authenticator 等）をご利用ください。</p>
+  </div>
+</main>
+
+<footer class="footer">
+  <a href="../">KULMS+ トップページ</a>
+</footer>
+
+<script>
+(function(){
+  var tabs=document.querySelectorAll('.platform-tab');
+  var panels=document.querySelectorAll('.platform-panel');
+  tabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      tabs.forEach(function(t){t.classList.remove('active')});
+      panels.forEach(function(p){p.classList.remove('active')});
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

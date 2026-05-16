@@ -64,7 +64,12 @@ src/
 ├── sidebar-resize.js    # IIFE: サイドバーリサイズ
 ├── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
 ├── grading-ta.js        # IIFE: TA 採点支援 (状態分類・ジャンプ・未採点数・一覧アイコン・未保存ガード)
-└── grading-ta-page.js   # page-world bridge: <sakai-grader> の originalSubmissions を取得
+├── grading-ta-page.js   # page-world bridge: <sakai-grader> の originalSubmissions を取得
+├── auth-totp.js         # SSO ログインページの OTP フォーム検出 + TOTP 自動入力
+└── auth-totp-register.js # SSO ログインページの TOTP シークレット自動登録（リダイレクトから secret 抽出）
+
+vendor/
+└── qrcode-gen.js        # QR コード生成ライブラリ (qrcode-generator, MIT)
 ```
 
 Manifest V3の `content_scripts.js` 配列で上記の順序通り注入される。各ファイルはIIFE（即時実行関数式）で機能を分離しており、`settings.js` で定義されるグローバル変数（`window.__kulmsSettingsReady`, `t()` 関数）を共有インターフェースとして疎結合を実現している。

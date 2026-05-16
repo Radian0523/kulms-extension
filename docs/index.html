@@ -248,67 +248,6 @@ a:hover{text-decoration:underline}
 }
 .changelog-toggle:hover{background:var(--border);color:var(--fg2)}
 
-/* Security section */
-.security-block{
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:1.25rem 1.5rem;
-  margin-bottom:1rem;
-  box-shadow:var(--shadow) 0px 2px 12px;
-}
-.security-block h3{
-  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:1.15rem;font-weight:500;
-  color:var(--fg);margin-bottom:0.5rem;
-}
-.security-block p{
-  font-size:0.9375rem;color:var(--fg2);
-  line-height:1.7;margin-bottom:0.5rem;
-}
-.security-block p:last-child{margin-bottom:0}
-.security-block code{
-  font-size:0.85em;
-  background:var(--border);
-  padding:0.15em 0.4em;border-radius:4px;
-  color:var(--fg);
-}
-.security-block ol,.security-block ul{
-  padding-left:1.25rem;margin:0.5rem 0;
-}
-.security-steps{list-style:none;padding:0;counter-reset:step}
-.security-steps li{
-  position:relative;padding-left:2rem;
-  font-size:0.9375rem;color:var(--fg2);
-  line-height:1.7;margin-bottom:0.5rem;
-  counter-increment:step;
-}
-.security-steps li::before{
-  content:counter(step);
-  position:absolute;left:0;top:0.15em;
-  width:1.5rem;height:1.5rem;border-radius:50%;
-  background:var(--accent);color:#faf9f5;
-  font-size:0.8rem;font-weight:500;
-  display:flex;align-items:center;justify-content:center;
-}
-.security-table{
-  width:100%;border-collapse:collapse;
-  margin:0.75rem 0;font-size:0.9375rem;
-}
-.security-table th,.security-table td{
-  text-align:left;padding:0.5rem 0.75rem;
-  border-bottom:1px solid var(--border-strong);
-  color:var(--fg2);
-}
-.security-table th{
-  font-weight:500;color:var(--fg);
-  font-size:0.875rem;
-}
-.security-table tr:last-child td{border-bottom:none}
-.security-notice{
-  border-color:var(--accent);
-  border-left:3px solid var(--accent);
-}
 
 /* Feedback links */
 .feedback-links{
@@ -623,46 +562,20 @@ a{transition:color 0.2s ease}
 
 <section class="section reveal" id="security">
   <h2>セキュリティと仕組み</h2>
-
-  <div class="security-block">
-    <h3>ログインの仕組み</h3>
-    <p>モバイル版 KULMS+ は、アプリ内の WebView（iOS: WKWebView / Android: android.webkit.WebView）を通じて京都大学の認証サーバー（<code>auth.iimc.kyoto-u.ac.jp</code>）に直接通信します。<strong>KULMS+ の開発者のサーバーに認証情報が送信されることはありません。</strong></p>
-    <p>ブラウザ拡張機能版はブラウザ本体のセッション（Cookie）を利用するため、認証情報を一切扱いません。</p>
-  </div>
-
-  <div class="security-block">
-    <h3>認証情報の保存</h3>
-    <p>モバイル版でパスワードの保存を選択した場合、各プラットフォームのセキュアストレージに暗号化して保存されます。</p>
-    <table class="security-table">
-      <thead><tr><th>プラットフォーム</th><th>保存先</th><th>暗号化方式</th></tr></thead>
-      <tbody>
-        <tr><td>iOS</td><td>iOS Keychain</td><td>OS 管理の暗号化</td></tr>
-        <tr><td>Android</td><td>SharedPreferences</td><td>AES-256 GCM（AndroidKeyStore 管理鍵）</td></tr>
-        <tr><td>ブラウザ拡張</td><td colspan="2">認証情報は保存しません（ブラウザのセッションを利用）</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="security-block">
-    <h3>2段階認証（TOTP）自動入力の仕組み</h3>
-    <p>京都大学の多要素認証では、ログイン時にワンタイムパスワード（OTP）の入力が求められます。KULMS+ モバイル版では、事前に TOTP シークレットキーを登録しておくことで、この OTP 入力を自動化できます。</p>
-    <ol class="security-steps">
-      <li><strong>シークレットキーの登録</strong> — 京大の多要素認証設定ページで表示される Base32 形式のシークレットキーを、KULMS+ のログイン画面または設定画面に入力します。</li>
-      <li><strong>コードの生成</strong> — ログイン時、<a href="https://datatracker.ietf.org/doc/html/rfc6238" target="_blank" rel="noopener">RFC 6238（TOTP）</a>に基づき、登録済みのシークレットキーと現在時刻から30秒ごとに変化する6桁のワンタイムパスワードを端末内で生成します。Google Authenticator 等の認証アプリと同じ標準仕様です。</li>
-      <li><strong>自動入力</strong> — 認証サーバーの OTP 入力フォームを検知し、生成したコードを JavaScript で自動入力・送信します。</li>
-    </ol>
-    <p>TOTP シークレットキーの保存先は認証情報と同様で、各プラットフォームのセキュアストレージに暗号化して保存されます。ブラウザ拡張機能版では <code>chrome.storage.local</code>（ブラウザのローカルストレージ）に保存され、外部には送信されません。</p>
-  </div>
-
-  <div class="security-block security-notice">
-    <h3>ご注意</h3>
-    <p>パスワードと TOTP シークレットキーを同一端末に保存する場合、厳密には2つの認証要素が1つの端末に集約されるため、「完全な2要素認証」ではなくなります。これは 1Password や Bitwarden 等の主要なパスワードマネージャーが TOTP 機能を提供する場合と同様のトレードオフです。</p>
-    <p>セキュリティを最重視する場合は、TOTP シークレットキーを KULMS+ に登録せず、別端末の認証アプリ（Google Authenticator 等）をご利用ください。</p>
-  </div>
-
-  <div class="security-block">
-    <h3>ソースコード</h3>
-    <p>KULMS+ はオープンソースで開発されており、認証情報の取り扱いを含むすべてのコードを <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub</a> で公開しています。どなたでもご確認いただけます。</p>
+  <p style="text-align:center;font-size:0.9375rem;color:var(--fg2);margin-bottom:1.5rem">KULMS+ は認証情報を開発者のサーバーに送信しません。データはすべてお使いの端末内に保存されます。</p>
+  <div class="downloads" style="margin-bottom:0.75rem">
+    <a class="feedback-link" href="security/">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      セキュリティの詳細
+    </a>
+    <a class="feedback-link" href="2fa/">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+      2段階認証の設定
+    </a>
+    <a class="feedback-link" href="privacy.html">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      プライバシーポリシー
+    </a>
   </div>
 </section>
 
@@ -680,8 +593,20 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.17.0</span>
+      <span class="release-version">v1.18.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>TOTP 自動登録機能</strong>: 京大の TOTP 設定ページにアクセスするだけで、QR 読み取り → シークレット保存 → OTP 自動入力が完了</li>
+      <li><strong>コード確認機能</strong>: ポップアップで現在の TOTP コードとシークレットキーを表示可能</li>
+      <li><strong>QR コード生成</strong>: 保存済みシークレットから QR コードを生成し、モバイル端末の認証アプリに追加登録可能</li>
+      <li>TOTP 再登録時にシークレットが保存されない不具合を修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.17.0</span>
     </div>
     <ul>
       <li><strong>TOTP 自動入力機能をポップアップに追加</strong>
@@ -1068,8 +993,22 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.7.0</span>
+      <span class="release-version">v2.8.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>TOTP コード確認機能</strong>: ログイン画面で現在の TOTP コードとシークレットキーを表示可能</li>
+      <li>TOTP 自動入力失敗時のエラー表示を改善（パスワードエラーと誤表示される問題を修正）</li>
+      <li>OTP ページ検出の精度向上</li>
+    </ul>
+  </article>
+
+  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
+  <div class="changelog-older">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.7.0</span>
     </div>
     <ul>
       <li><strong>ログイン画面に TOTP 設定を追加</strong>: ログイン画面から直接シークレットキーを登録可能</li>
@@ -1078,9 +1017,6 @@ a{transition:color 0.2s ease}
       <li>セキュリティ説明に TOTP の保存方法を追記</li>
     </ul>
   </article>
-
-  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
-  <div class="changelog-older">
 
   <article class="release">
     <div class="release-head">
@@ -1164,8 +1100,22 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.7.0</span>
+      <span class="release-version">v2.8.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>TOTP コード確認機能</strong>: ログイン画面で現在の TOTP コードとシークレットキーを表示可能</li>
+      <li>TOTP 自動入力失敗時のエラー表示を改善（パスワードエラーと誤表示される問題を修正）</li>
+      <li>OTP ページ検出の精度向上</li>
+    </ul>
+  </article>
+
+  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
+  <div class="changelog-older">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.7.0</span>
     </div>
     <ul>
       <li><strong>ログイン画面に TOTP 設定を追加</strong>: ログイン画面から直接シークレットキーを登録可能</li>
@@ -1175,9 +1125,6 @@ a{transition:color 0.2s ease}
       <li>セキュリティ説明に TOTP の保存方法を追記</li>
     </ul>
   </article>
-
-  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
-  <div class="changelog-older">
 
   <article class="release">
     <div class="release-head">

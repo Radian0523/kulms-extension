@@ -189,9 +189,13 @@ kulms-extension/
 │   ├── sidebar-resize.js  #   サイドバーリサイズ
 │   ├── top-favbar.js      #   ピン留め上部バー（PC のみ）
 │   ├── grading-ta.js      #   TA 採点支援（メイン機能）
-│   └── grading-ta-page.js #   TA 採点支援（page-world bridge）
+│   ├── grading-ta-page.js #   TA 採点支援（page-world bridge）
+│   ├── auth-totp.js       #   TOTP 自動入力（OTP フォーム検出）
+│   └── auth-totp-register.js # TOTP シークレット自動登録
+├── vendor/
+│   └── qrcode-gen.js      # QR コード生成ライブラリ
 ├── styles.css             # 各機能のスタイル
-├── background.js          # サービスワーカー（シラバス取得）
+├── background.js          # サービスワーカー（シラバス取得 + TOTP 暗号化管理）
 ├── _locales/
 │   ├── ja/messages.json   # 日本語メッセージ
 │   └── en/messages.json   # 英語メッセージ
