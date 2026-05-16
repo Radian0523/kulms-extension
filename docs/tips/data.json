@@ -46,6 +46,150 @@
       "title": { "ja": "iOS / Android アプリもあります", "en": "iOS / Android apps available" },
       "body": { "ja": "KULMS+ はスマートフォンアプリ版もあります。外出先でも課題の締切を確認できます。", "en": "KULMS+ is also available as a smartphone app. Check assignment deadlines on the go." },
       "link": { "url": "https://radian0523.github.io/kulms-extension/", "label": { "ja": "ダウンロード", "en": "Download" } }
+    },
+    {
+      "id": "tip-006",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-11",
+      "title": { "ja": "授業資料のフォルダをワンクリック展開", "en": "Expand resource folders with one click" },
+      "body": { "ja": "授業資料ページでフォルダをクリックすると、ページ遷移なしでその場で開閉できます。「全フォルダ自動展開」をONにすれば、ページを開いた瞬間に全フォルダが展開されます。", "en": "Click folders on the Resources page to expand/collapse them without a page reload. Enable \"Auto Expand All\" to have every folder open automatically when you visit the page." },
+      "link": null
+    },
+    {
+      "id": "tip-007",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-10",
+      "title": { "ja": "ツリービューで授業資料を見やすく", "en": "Enhanced tree view for resources" },
+      "body": { "ja": "授業資料をインデント・ガイド線付きのツリー表示に変更できます。矢印キーでの操作にも対応し、大量のファイルも快適にナビゲートできます。", "en": "Display resources as an indented tree with guide lines. Supports arrow key navigation for comfortable browsing even with many files." },
+      "link": null
+    },
+    {
+      "id": "tip-008",
+      "category": "howto",
+      "badge": null,
+      "addedAt": "2026-05-09",
+      "title": { "ja": "授業資料の不要な列を非表示に", "en": "Hide unnecessary resource columns" },
+      "body": { "ja": "授業資料ページの「アクセス」「作成者」「最終修正日」「サイズ」列を非表示にして、ファイル名に集中できます。設定 > コースページから切り替え可能。", "en": "Hide the Access, Creator, Modified Date, and Size columns on the Resources page to focus on file names. Toggle in Settings > Course Page." },
+      "link": null
+    },
+    {
+      "id": "tip-009",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-08",
+      "title": { "ja": "科目名を短く整理して表示", "en": "Clean up long course names" },
+      "body": { "ja": "サイドバーの科目名から年度・学期情報を省略して短縮表示します。「[2026前期月2]量子力学」→「量子力学」のようにスッキリ。", "en": "Shorten sidebar course names by removing year/semester info. For example, \"[2026 Spring Mon2] Quantum Mechanics\" becomes just \"Quantum Mechanics\"." },
+      "link": null
+    },
+    {
+      "id": "tip-010",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-07",
+      "title": { "ja": "ピン留め科目を曜日順に自動ソート", "en": "Auto-sort pinned courses by schedule" },
+      "body": { "ja": "サイドバーのピン留め科目が曜日・時限の順に自動でソートされます。時間割順に並ぶので、次の授業がすぐ見つかります。", "en": "Pinned courses in the sidebar are automatically sorted by day and period. Arranged like your timetable, so you can quickly find your next class." },
+      "link": null
+    },
+    {
+      "id": "tip-011",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-06",
+      "title": { "ja": "サイドバーの科目行全体をクリック可能に", "en": "Click anywhere on sidebar course rows" },
+      "body": { "ja": "科目名のテキスト部分だけでなく、行全体をクリックしてコースを展開できるようになります。小さなリンクを狙う必要がなくなります。", "en": "Click anywhere on a course row to expand it, not just the text link. No more aiming at tiny targets." },
+      "link": null
+    },
+    {
+      "id": "tip-012",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-05",
+      "title": { "ja": "不要なツールを「その他」に整理", "en": "Organize tools with visibility management" },
+      "body": { "ja": "使わないツールを「その他」に折りたたんでサイドバーをスッキリ。各ツールにホバーすると +/- ボタンが出るので、科目ごとに表示・非表示をカスタマイズできます。", "en": "Collapse unused tools into a \"More\" section to declutter the sidebar. Hover over any tool to see +/- buttons for per-course visibility customization." },
+      "link": null
+    },
+    {
+      "id": "tip-013",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-04",
+      "title": { "ja": "サイドバーの幅をドラッグで調整", "en": "Resize the sidebar by dragging" },
+      "body": { "ja": "サイドバーの右端をドラッグして幅を自由に調整できます。長い科目名を表示したいときや、画面を広く使いたいときに便利です。", "en": "Drag the right edge of the sidebar to resize it freely. Useful for displaying long course names or reclaiming screen space." },
+      "link": null
+    },
+    {
+      "id": "tip-014",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-03",
+      "title": { "ja": "科目タブを締切の緊急度で色分け", "en": "Color-code courses by deadline urgency" },
+      "body": { "ja": "サイドバーの科目が課題の締切に応じて赤・黄・緑に色分けされます。ボーダー・背景・太バーの3スタイルから選択可能。設定 > サイドバーで変更できます。", "en": "Sidebar courses are color-coded red/yellow/green based on assignment deadlines. Choose from 3 styles: border, background, or bold bar. Customize in Settings > Sidebar." },
+      "link": null
+    },
+    {
+      "id": "tip-015",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-02",
+      "title": { "ja": "ピン留め科目を上部バーに常時表示", "en": "Pin courses to a top bar" },
+      "body": { "ja": "ヘッダー直下にピン留め科目のバーを表示できます。どのページにいても1クリックで科目にアクセス。サイズは小・中・大・特大の4段階で調整可能。", "en": "Display a bar of pinned courses just below the header. Access any course in one click from any page. Size adjustable in 4 levels: small, medium, large, extra-large." },
+      "link": null
+    },
+    {
+      "id": "tip-016",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-01",
+      "title": { "ja": "新しい課題が追加されたらバッジで通知", "en": "Get notified of new assignments with badges" },
+      "body": { "ja": "新しい課題が追加されたコースにバッジが表示されます。サイドバーを見るだけで、どの科目に新しい課題があるか一目でわかります。", "en": "A badge appears on courses with new assignments. Just glance at the sidebar to see which courses have new work." },
+      "link": null
+    },
+    {
+      "id": "tip-017",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-04-30",
+      "title": { "ja": "サイドバーのスタイルを変更", "en": "Change the sidebar selection style" },
+      "body": { "ja": "選択中の科目の表示を、デフォルトの青背景から左ボーダー表示に変更できます。色分け機能との相性がよく、よりスッキリした見た目に。", "en": "Replace the default blue selection background with a subtle left border. Pairs nicely with color-coding for a cleaner look." },
+      "link": null
+    },
+    {
+      "id": "tip-018",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-04-29",
+      "title": { "ja": "今の授業をNOWバッジでハイライト", "en": "Highlight your current class with a NOW badge" },
+      "body": { "ja": "時間割に基づいて、現在進行中の授業の科目にNOWバッジが表示されます。次の授業にはNEXTバッジも。上部バーと連動して使うと便利です。", "en": "A pulsing NOW badge appears on the course currently in session based on your timetable. A NEXT badge shows your upcoming class too. Works great with the top pinned bar." },
+      "link": null
+    },
+    {
+      "id": "tip-019",
+      "category": "howto",
+      "badge": null,
+      "addedAt": "2026-04-28",
+      "title": { "ja": "パネル表示モードを切り替え", "en": "Switch panel display mode" },
+      "body": { "ja": "「パネル押し出し表示」をONにすると、パネルを開いたときにページ全体が左にスライドします。OFFにするとページの上に重ねて表示。設定 > パネルで切り替え。", "en": "Enable \"Panel Push\" to slide the page left when the panel opens. Disable it for an overlay mode. Toggle in Settings > Panel." },
+      "link": null
+    },
+    {
+      "id": "tip-020",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-04-27",
+      "title": { "ja": "提出済みの課題を自動で完了済みに", "en": "Auto-mark submitted assignments as completed" },
+      "body": { "ja": "提出済・評定済の課題を自動で「完了済み」に分類します。手動でチェックする手間が省けます。クイズ・テストは安全のため手動チェックのみです。", "en": "Submitted and graded assignments are automatically classified as completed. Saves you from manually checking each one. Quizzes/tests require manual checks for safety." },
+      "link": null
+    },
+    {
+      "id": "tip-021",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-04-26",
+      "title": { "ja": "ドラッグ＆ドロップでファイル提出", "en": "Submit files with drag and drop" },
+      "body": { "ja": "課題提出ページにドラッグ＆ドロップエリアが追加されます。ファイルをドラッグするだけで添付完了。複数ファイルにも対応しています。", "en": "A drag-and-drop zone is added to assignment submission pages. Just drag files to attach them. Supports multiple files." },
+      "link": null
     }
   ]
 }

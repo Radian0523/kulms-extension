@@ -2629,41 +2629,47 @@
     };
 
     tips.forEach(function (tip) {
-      var card = document.createElement("div");
-      card.className = "kulms-tips-card";
+      var catClass = tip.category ? "tips-cat-" + tip.category : "";
 
-      // ヘッダー行（バッジ + カテゴリ）
-      var header = document.createElement("div");
-      header.className = "kulms-tips-header";
+      // 課題カードと同じ構造: card > card-body
+      var card = document.createElement("div");
+      card.className = "kulms-tips-card " + catClass;
+
+      var cardBody = document.createElement("div");
+      cardBody.className = "kulms-tips-card-body";
+
+      // バッジ行（カテゴリピル + NEW バッジ）
+      var badgeRow = document.createElement("div");
+      badgeRow.className = "kulms-tips-badge-row";
+
+      if (tip.category) {
+        var catPill = document.createElement("span");
+        catPill.className = "kulms-tips-category-pill " + catClass;
+        catPill.textContent = categoryLabels[tip.category] || tip.category;
+        badgeRow.appendChild(catPill);
+      }
 
       if (tip.badge) {
         var badge = document.createElement("span");
         badge.className = "kulms-tips-badge";
         if (tip.badge === "NEW") badge.classList.add("kulms-tips-badge-new");
         badge.textContent = tip.badge;
-        header.appendChild(badge);
+        badgeRow.appendChild(badge);
       }
 
-      if (tip.category) {
-        var cat = document.createElement("span");
-        cat.className = "kulms-tips-category";
-        cat.textContent = categoryLabels[tip.category] || tip.category;
-        header.appendChild(cat);
-      }
-
-      card.appendChild(header);
+      cardBody.appendChild(badgeRow);
 
       // タイトル
       var title = document.createElement("div");
       title.className = "kulms-tips-title";
       title.textContent = resolveTipsText(tip.title);
-      card.appendChild(title);
+      cardBody.appendChild(title);
 
       // 本文
       var body = document.createElement("div");
       body.className = "kulms-tips-body";
       body.textContent = resolveTipsText(tip.body);
-      card.appendChild(body);
+      cardBody.appendChild(body);
 
       // リンク（任意）
       if (tip.link && tip.link.url) {
@@ -2673,9 +2679,10 @@
         link.target = "_blank";
         link.rel = "noopener noreferrer";
         link.textContent = resolveTipsText(tip.link.label) || tip.link.url;
-        card.appendChild(link);
+        cardBody.appendChild(link);
       }
 
+      card.appendChild(cardBody);
       container.appendChild(card);
     });
 

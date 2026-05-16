@@ -1054,30 +1054,64 @@ body {
 .kulms-tips-container {
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
-  padding: 4px 0 !important;
+  gap: 6px !important;
+  padding: 0 !important;
 }
 
 .kulms-tips-card {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
   background: #fff !important;
-  border: 1px solid #e0e0e0 !important;
-  border-radius: 8px !important;
-  padding: 10px 12px !important;
+  border: 2px solid #777 !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  margin-bottom: 0 !important;
+  position: relative !important;
   transition: box-shadow 0.15s ease !important;
 }
 
 .kulms-tips-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-.kulms-tips-header {
+/* カテゴリ別ボーダー色 */
+.kulms-tips-card.tips-cat-feature { border-color: #4a6fa5 !important; }
+.kulms-tips-card.tips-cat-update { border-color: var(--kulms-color-success) !important; }
+.kulms-tips-card.tips-cat-howto { border-color: var(--kulms-color-warning) !important; }
+.kulms-tips-card.tips-cat-announcement { border-color: #26a69a !important; }
+
+.kulms-tips-card-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* バッジ行 */
+.kulms-tips-badge-row {
   display: flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-  margin-bottom: 4px !important;
   flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-bottom: 3px !important;
 }
 
+/* カテゴリピルバッジ */
+.kulms-tips-category-pill {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  white-space: nowrap !important;
+}
+
+.kulms-tips-category-pill.tips-cat-feature { background: #4a6fa5 !important; }
+.kulms-tips-category-pill.tips-cat-update { background: var(--kulms-color-success) !important; }
+.kulms-tips-category-pill.tips-cat-howto { background: var(--kulms-color-warning) !important; }
+.kulms-tips-category-pill.tips-cat-announcement { background: #26a69a !important; }
+
+/* NEW / バージョンバッジ */
 .kulms-tips-badge {
   display: inline-block !important;
   padding: 1px 8px !important;
@@ -1093,35 +1127,45 @@ body {
   color: #fff !important;
 }
 
-.kulms-tips-category {
-  font-size: 10px !important;
-  color: #999 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.3px !important;
-}
-
 .kulms-tips-title {
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  color: #333 !important;
-  margin-bottom: 4px !important;
-}
-
-.kulms-tips-body {
-  font-size: 13px !important;
-  color: #555 !important;
-  line-height: 1.5 !important;
-  margin-bottom: 6px !important;
-}
-
-.kulms-tips-link {
   font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin-bottom: 2px !important;
+}
+
+.kulms-tips-title a {
   color: #1565c0 !important;
   text-decoration: none !important;
 }
 
-.kulms-tips-link:hover {
+.kulms-tips-title a:hover {
   text-decoration: underline !important;
+}
+
+.kulms-tips-body {
+  font-size: 12px !important;
+  color: #777 !important;
+  line-height: 1.4 !important;
+  margin-bottom: 4px !important;
+}
+
+.kulms-tips-link {
+  display: inline-block !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #4a6fa5 !important;
+  background: #e8eef7 !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.kulms-tips-link:hover {
+  background: #d0ddef !important;
+  color: #3a5a8a !important;
+  text-decoration: none !important;
 }
 
 /* === 設定ビュー === */
