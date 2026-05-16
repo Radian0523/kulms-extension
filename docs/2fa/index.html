@@ -270,6 +270,38 @@ a:hover{text-decoration:underline}
     </ol>
     <p style="margin-top:0.75rem">詳しくは <a href="https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/" target="_blank" rel="noopener">多要素認証について</a> または <a href="https://iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">設定手順 (PDF)</a> をご覧ください。</p>
   </div>
+
+  <h2>よくある質問</h2>
+
+  <div class="card">
+    <h3>京大の規約に違反していませんか？</h3>
+    <p>京都大学の情報環境機構は、多要素認証の手段として「TOTP 表示アプリ」を案内しており、その中に<strong>「Web ブラウザのプラグイン版」</strong>も含まれています（<a href="https://www.iimc.kyoto-u.ac.jp/ja/services/account/mfa/" target="_blank" rel="noopener">多要素認証について</a>）。</p>
+    <p>KULMS+ は Google Authenticator 等と同じ標準規格（<a href="https://datatracker.ietf.org/doc/html/rfc6238" target="_blank" rel="noopener">RFC 6238</a>）に基づいて OTP を生成するブラウザ拡張機能 / モバイルアプリであり、京大が案内している利用形態に該当します。不正アクセスや認証の迂回を行うものではなく、正規の認証フローに沿って OTP を入力しています。</p>
+  </div>
+
+  <div class="card">
+    <h3>「ワンタイムパスワードが異なります」と表示されます</h3>
+    <p>京大の認証サーバーに登録できる TOTP シークレットキーは <strong>1 つだけ</strong> です。<a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>で新しい QR コードを読み取って「登録」を行うと、以前のシークレットキーは上書きされます。</p>
+    <p>よくある原因:</p>
+    <ul>
+      <li>Google Authenticator 等の別アプリで再登録を行い、京大サーバー側のシークレットキーが更新された（KULMS+ 側は古いキーのまま）</li>
+      <li>KULMS+ でシークレットキーを保存したが、京大側の「登録」ボタンをクリックしていないため、サーバーにシークレットが反映されていない</li>
+      <li>複数端末でそれぞれ別の QR コードを登録したため、最後に登録した端末のキーだけが有効になっている</li>
+    </ul>
+    <p><strong>解決方法:</strong> <a href="https://auth.iimc.kyoto-u.ac.jp/user/index.php?app=qrsecret&st=ga" target="_blank" rel="noopener">多要素認証設定ページ</a>で QR コードを再表示し、KULMS+ に再登録してください。すべての端末で同じシークレットキーを使用する必要があります。拡張機能で登録済みの場合は、ポップアップの「QR」ボタンで生成した QR をモバイル端末でスキャンすると、同一キーを共有できます。</p>
+  </div>
+
+  <div class="card">
+    <h3>セキュリティ的に大丈夫ですか？</h3>
+    <p>KULMS+ は以下の方針でシークレットキーを安全に管理しています。</p>
+    <ul>
+      <li><strong>端末内完結</strong> — シークレットキーは端末内のセキュアストレージにのみ保存され、KULMS+ の開発者サーバーを含む外部サーバーには一切送信されません。</li>
+      <li><strong>暗号化保存</strong> — ブラウザ拡張機能では AES-256-GCM 暗号化、iOS では Keychain、Android では Keystore + AES-256-GCM でハードウェアレベルの保護がかかります。</li>
+      <li><strong>標準プロトコル</strong> — OTP の生成は RFC 6238（TOTP）に準拠しており、独自の認証処理は一切行っていません。</li>
+      <li><strong>オープンソース</strong> — ソースコードは <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub で公開</a>されており、動作を誰でも確認できます。</li>
+    </ul>
+    <p>なお、パスワードと TOTP を同一端末に保存する場合、2 つの認証要素が 1 台に集約されるトレードオフがあります。これは 1Password や Bitwarden 等の主要パスワードマネージャーが TOTP 機能を提供する場合と同じ構造です。詳しくは上の「セキュリティについて」セクションをご覧ください。</p>
+  </div>
 </main>
 
 <footer class="footer">
