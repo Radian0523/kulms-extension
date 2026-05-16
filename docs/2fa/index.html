@@ -253,6 +253,23 @@ a:hover{text-decoration:underline}
     <p>パスワードと TOTP シークレットキーを同一端末に保存する場合、厳密には 2 つの認証要素が 1 つの端末に集約されるため、「完全な 2 要素認証」ではなくなります。これは 1Password や Bitwarden 等の主要なパスワードマネージャーが TOTP 機能を提供する場合と同様のトレードオフです。</p>
     <p>セキュリティを最重視する場合は、TOTP シークレットキーを KULMS+ に登録せず、別端末の認証アプリ（Google Authenticator 等）をご利用ください。</p>
   </div>
+
+  <h2>FIDO認証（パスキー）という選択肢</h2>
+
+  <div class="card">
+    <p>京大の2段階認証は TOTP のほかに <strong>FIDO認証（パスキー）</strong>にも対応しています。セキュリティキーや生体認証（指紋・顔認証）を登録すれば、パスワード＋ワンタイムパスワードの入力なしでログインできます。</p>
+    <p>TOTP の自動入力で十分便利ですが、FIDO認証なら端末側の認証だけで完結するため、さらにスムーズかつ安全です。</p>
+  </div>
+
+  <div class="card">
+    <h3>FIDO認証の設定方法</h3>
+    <ol class="steps">
+      <li><a href="https://auth.iimc.kyoto-u.ac.jp/user/" target="_blank" rel="noopener">auth.iimc.kyoto-u.ac.jp/user/</a> にログインします。</li>
+      <li>右上のハンバーガーメニュー →「<strong>FIDO認証デバイスの設定</strong>」を開きます。</li>
+      <li>画面の指示に従ってセキュリティキーまたは生体認証を登録します。</li>
+    </ol>
+    <p style="margin-top:0.75rem">詳しくは <a href="https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/" target="_blank" rel="noopener">多要素認証について</a> または <a href="https://iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">設定手順 (PDF)</a> をご覧ください。</p>
+  </div>
 </main>
 
 <footer class="footer">
