@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-16T00:00:00Z",
+  "tips": [
+    {
+      "id": "tip-001",
+      "category": "feature",
+      "badge": "NEW",
+      "addedAt": "2026-05-16",
+      "title": { "ja": "全科目の課題を一覧表示", "en": "View all assignments at a glance" },
+      "body": { "ja": "パネルを開くと、登録している全科目の課題・締切が一覧で確認できます。緊急度別に色分けされるので、優先順位が一目でわかります。", "en": "Open the panel to see assignments and deadlines across all your enrolled courses. They're color-coded by urgency so you can prioritize at a glance." },
+      "link": null
+    },
+    {
+      "id": "tip-002",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-15",
+      "title": { "ja": "教科書情報を自動取得", "en": "Auto-fetch textbook info" },
+      "body": { "ja": "「教科書」タブを開くと、シラバスから各科目の教科書・参考書情報を自動で取得します。Amazon リンク付きですぐに購入できます。", "en": "Open the Textbooks tab to automatically fetch textbook and reference info from the syllabus. Includes Amazon links for quick purchasing." },
+      "link": null
+    },
+    {
+      "id": "tip-003",
+      "category": "feature",
+      "badge": null,
+      "addedAt": "2026-05-14",
+      "title": { "ja": "メモ機能で自分だけのタスクを管理", "en": "Manage personal tasks with Memos" },
+      "body": { "ja": "課題タブの「+」ボタンからメモを追加できます。締切や繰り返し設定も可能。LMS に載らない提出物や個人タスクの管理に便利です。", "en": "Add memos via the \"+\" button in the Tasks tab. You can set deadlines and weekly repeats — perfect for tracking personal tasks not listed on the LMS." },
+      "link": null
+    },
+    {
+      "id": "tip-004",
+      "category": "howto",
+      "badge": null,
+      "addedAt": "2026-05-13",
+      "title": { "ja": "TOTP 自動入力でログインを自動化", "en": "Automate login with TOTP auto-fill" },
+      "body": { "ja": "設定 > 2段階認証 (TOTP) にシークレットキーを登録すると、ログイン時に OTP コードが自動入力されます。QRコード読み取りにも対応。", "en": "Register your secret key in Settings > Two-Factor Auth (TOTP) to auto-fill OTP codes during login. QR code scanning is also supported." },
+      "link": { "url": "https://radian0523.github.io/kulms-extension/2fa/", "label": { "ja": "設定方法を見る", "en": "See setup guide" } }
+    },
+    {
+      "id": "tip-005",
+      "category": "announcement",
+      "badge": null,
+      "addedAt": "2026-05-12",
+      "title": { "ja": "iOS / Android アプリもあります", "en": "iOS / Android apps available" },
+      "body": { "ja": "KULMS+ はスマートフォンアプリ版もあります。外出先でも課題の締切を確認できます。", "en": "KULMS+ is also available as a smartphone app. Check assignment deadlines on the go." },
+      "link": { "url": "https://radian0523.github.io/kulms-extension/", "label": { "ja": "ダウンロード", "en": "Download" } }
+    }
+  ]
+}

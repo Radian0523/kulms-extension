@@ -538,6 +538,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true; // 非同期レスポンスを示す
 });
 
+// === Tips 取得ハンドラ ===
+
+const TIPS_URL = "https://radian0523.github.io/kulms-extension/tips/data.json";
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action !== "fetchTips") return false;
+  (async () => {
+    try {
+      const res = await fetch(TIPS_URL, { cache: "no-cache" });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      sendResponse({ data: await res.json() });
+    } catch (e) {
+      sendResponse({ error: e.message });
+    }
+  })();
+  return true;
+});
+
 // === TOTP シークレット暗号化ストア ===
 
 const TOTP_DB_NAME = "kulms-totp-db";

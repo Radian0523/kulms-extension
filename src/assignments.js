@@ -10,6 +10,9 @@
   const MEMO_KEY = "kulms-memos";
   const PREV_ASSIGNMENTS_KEY = "kulms-prev-assignment-ids";
   const DISMISSED_KEY = "kulms-dismissed-assignments";
+  const TIPS_URL = "https://radian0523.github.io/kulms-extension/tips/data.json";
+  const TIPS_CACHE_KEY = "kulms-tips-cache";
+  const TIPS_CACHE_TTL = 3600000; // 1時間
   const IOS_BANNER_DISMISSED_KEY = "kulms-ios-banner-dismissed";
   var SHOW_IOS_BANNER = true; // false にするだけでバナー非表示
   const ANDROID_BANNER_DISMISSED_KEY = "kulms-android-banner-dismissed";
@@ -778,6 +781,8 @@
       if (currentView === "assignments") loadAssignments(true);
       else if (currentView === "textbooks" && window.__kulmsTextbookAPI) {
         window.__kulmsTextbookAPI.loadInto(contentEl, true);
+      } else if (currentView === "tips") {
+        showTipsView(true);
       }
     });
 
@@ -829,6 +834,16 @@
     tabSettings.appendChild(document.createTextNode(t("tabSettings")));
     tabs.push(tabSettings);
 
+    var tabTips = document.createElement("label");
+    tabTips.className = "kulms-panel-tab";
+    var radioTips = document.createElement("input");
+    radioTips.type = "radio";
+    radioTips.name = "kulms-tab";
+    radioTips.value = "tips";
+    tabTips.appendChild(radioTips);
+    tabTips.appendChild(document.createTextNode(t("tabTips")));
+    tabs.push(tabTips);
+
     function setActiveTab(activeTab) {
       tabs.forEach(function (t) { t.classList.remove("active"); });
       activeTab.classList.add("active");
@@ -839,6 +854,7 @@
       tabBar.appendChild(tabTextbook);
     }
     tabBar.appendChild(tabSettings);
+    tabBar.appendChild(tabTips);
 
     tabAssign.classList.add("active");
 
@@ -853,6 +869,10 @@
     tabSettings.addEventListener("click", function () {
       setActiveTab(tabSettings);
       showSettingsView();
+    });
+    tabTips.addEventListener("click", function () {
+      setActiveTab(tabTips);
+      showTipsView(false);
     });
 
     // キャッシュ情報
@@ -2456,6 +2476,230 @@
 
     if (cacheInfoEl) cacheInfoEl.style.display = "";
     loadAssignments(false);
+  }
+
+  // --- Tips ビュー ---
+
+  function getTipsLang() {
+    var s = window.__kulmsSettings || {};
+    var lang = s.language;
+    if (!lang || lang === "auto") {
+      var uiLang = (typeof navigator !== "undefined" && navigator.language) || "en";
+      return uiLang.toLowerCase().indexOf("ja") === 0 ? "ja" : "en";
+    }
+    return lang === "ja" ? "ja" : "en";
+  }
+
+  function resolveTipsText(obj) {
+    if (!obj) return "";
+    var lang = getTipsLang();
+    return obj[lang] || obj.ja || obj.en || "";
+  }
+
+  function fetchTipsData() {
+    return new Promise(function (resolve, reject) {
+      // 1. 直接 fetch (GitHub Pages は CORS OK)
+      if (typeof fetch === "function") {
+        fetch(TIPS_URL, { cache: "no-cache" })
+          .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            return res.json();
+          })
+          .then(resolve)
+          .catch(function (err1) {
+            // 2. ネイティブ fetch (iOS/Android WebView)
+            if (typeof window.__kulmsNativeFetch === "function") {
+              window.__kulmsNativeFetch(TIPS_URL)
+                .then(function (text) { resolve(JSON.parse(text)); })
+                .catch(function () { fallbackToBackground(resolve, reject); });
+            } else {
+              fallbackToBackground(resolve, reject);
+            }
+          });
+      } else {
+        fallbackToBackground(resolve, reject);
+      }
+    });
+  }
+
+  function fallbackToBackground(resolve, reject) {
+    // 3. chrome.runtime.sendMessage 経由
+    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.sendMessage) {
+      chrome.runtime.sendMessage({ action: "fetchTips" }, function (response) {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else if (response && response.error) {
+          reject(new Error(response.error));
+        } else if (response && response.data) {
+          resolve(response.data);
+        } else {
+          reject(new Error("Empty response"));
+        }
+      });
+    } else {
+      reject(new Error("No fetch method available"));
+    }
+  }
+
+  function showTipsView(forceRefresh) {
+    if (!forceRefresh && currentView === "tips") return;
+    currentView = "tips";
+    if (window.__kulmsTextbookAPI && window.__kulmsTextbookAPI.detach) {
+      window.__kulmsTextbookAPI.detach();
+    }
+    if (cacheInfoEl) cacheInfoEl.style.display = "none";
+    contentEl.innerHTML = "";
+
+    // ローディング表示
+    var loadingEl = document.createElement("div");
+    loadingEl.className = "kulms-assign-loading";
+    var spinner = document.createElement("div");
+    spinner.className = "kulms-assign-spinner";
+    var loadingText = document.createElement("div");
+    loadingText.className = "kulms-assign-loading-text";
+    loadingText.textContent = t("tipsLoading");
+    loadingEl.appendChild(spinner);
+    loadingEl.appendChild(loadingText);
+    contentEl.appendChild(loadingEl);
+
+    // キャッシュチェック
+    if (!forceRefresh) {
+      window.__kulmsSafeStorage.get(TIPS_CACHE_KEY, function (result) {
+        var cached = result[TIPS_CACHE_KEY];
+        if (cached && cached.data && (Date.now() - cached.timestamp) < TIPS_CACHE_TTL) {
+          if (currentView === "tips") renderTips(cached.data);
+          return;
+        }
+        doFetchTips();
+      });
+    } else {
+      doFetchTips();
+    }
+
+    function doFetchTips() {
+      fetchTipsData()
+        .then(function (data) {
+          // キャッシュ保存
+          window.__kulmsSafeStorage.set({
+            [TIPS_CACHE_KEY]: { data: data, timestamp: Date.now() }
+          });
+          if (currentView === "tips") renderTips(data);
+        })
+        .catch(function (err) {
+          console.warn("[KULMS] Tips fetch error:", err.message);
+          // フェッチ失敗時はキャッシュフォールバック
+          window.__kulmsSafeStorage.get(TIPS_CACHE_KEY, function (result) {
+            var cached = result[TIPS_CACHE_KEY];
+            if (cached && cached.data) {
+              if (currentView === "tips") renderTips(cached.data);
+            } else {
+              if (currentView === "tips") renderTipsError();
+            }
+          });
+        });
+    }
+  }
+
+  function renderTips(data) {
+    if (!contentEl || currentView !== "tips") return;
+    contentEl.innerHTML = "";
+
+    var tips = (data && data.tips) || [];
+    if (tips.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "kulms-assign-empty";
+      empty.textContent = t("tipsEmpty");
+      contentEl.appendChild(empty);
+      return;
+    }
+
+    // addedAt 降順ソート
+    tips.sort(function (a, b) {
+      return (b.addedAt || "").localeCompare(a.addedAt || "");
+    });
+
+    var container = document.createElement("div");
+    container.className = "kulms-tips-container";
+
+    var categoryLabels = {
+      feature: "Feature",
+      update: "Update",
+      howto: "How-to",
+      announcement: "Info"
+    };
+
+    tips.forEach(function (tip) {
+      var card = document.createElement("div");
+      card.className = "kulms-tips-card";
+
+      // ヘッダー行（バッジ + カテゴリ）
+      var header = document.createElement("div");
+      header.className = "kulms-tips-header";
+
+      if (tip.badge) {
+        var badge = document.createElement("span");
+        badge.className = "kulms-tips-badge";
+        if (tip.badge === "NEW") badge.classList.add("kulms-tips-badge-new");
+        badge.textContent = tip.badge;
+        header.appendChild(badge);
+      }
+
+      if (tip.category) {
+        var cat = document.createElement("span");
+        cat.className = "kulms-tips-category";
+        cat.textContent = categoryLabels[tip.category] || tip.category;
+        header.appendChild(cat);
+      }
+
+      card.appendChild(header);
+
+      // タイトル
+      var title = document.createElement("div");
+      title.className = "kulms-tips-title";
+      title.textContent = resolveTipsText(tip.title);
+      card.appendChild(title);
+
+      // 本文
+      var body = document.createElement("div");
+      body.className = "kulms-tips-body";
+      body.textContent = resolveTipsText(tip.body);
+      card.appendChild(body);
+
+      // リンク（任意）
+      if (tip.link && tip.link.url) {
+        var link = document.createElement("a");
+        link.className = "kulms-tips-link";
+        link.href = tip.link.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = resolveTipsText(tip.link.label) || tip.link.url;
+        card.appendChild(link);
+      }
+
+      container.appendChild(card);
+    });
+
+    contentEl.appendChild(container);
+  }
+
+  function renderTipsError() {
+    if (!contentEl || currentView !== "tips") return;
+    contentEl.innerHTML = "";
+
+    var errDiv = document.createElement("div");
+    errDiv.className = "kulms-assign-error";
+    var errMsg = document.createElement("div");
+    errMsg.className = "kulms-assign-error-msg";
+    errMsg.textContent = t("tipsFetchError");
+    var retryBtn = document.createElement("button");
+    retryBtn.className = "kulms-assign-retry-btn";
+    retryBtn.textContent = t("retry");
+    retryBtn.addEventListener("click", function () {
+      showTipsView(true);
+    });
+    errDiv.appendChild(errMsg);
+    errDiv.appendChild(retryBtn);
+    contentEl.appendChild(errDiv);
   }
 
   // --- 緊急度カラー注入 ---

@@ -1049,6 +1049,81 @@ body {
   color: #fff !important;
 }
 
+/* === Tips ビュー === */
+
+.kulms-tips-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 4px 0 !important;
+}
+
+.kulms-tips-card {
+  background: #fff !important;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  transition: box-shadow 0.15s ease !important;
+}
+
+.kulms-tips-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.kulms-tips-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-bottom: 4px !important;
+  flex-wrap: wrap !important;
+}
+
+.kulms-tips-badge {
+  display: inline-block !important;
+  padding: 1px 8px !important;
+  border-radius: 20px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  background: #e0e0e0 !important;
+  color: #555 !important;
+}
+
+.kulms-tips-badge-new {
+  background: #e53935 !important;
+  color: #fff !important;
+}
+
+.kulms-tips-category {
+  font-size: 10px !important;
+  color: #999 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+
+.kulms-tips-title {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #333 !important;
+  margin-bottom: 4px !important;
+}
+
+.kulms-tips-body {
+  font-size: 13px !important;
+  color: #555 !important;
+  line-height: 1.5 !important;
+  margin-bottom: 6px !important;
+}
+
+.kulms-tips-link {
+  font-size: 12px !important;
+  color: #1565c0 !important;
+  text-decoration: none !important;
+}
+
+.kulms-tips-link:hover {
+  text-decoration: underline !important;
+}
+
 /* === 設定ビュー === */
 
 .kulms-settings-view {

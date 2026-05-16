@@ -568,5 +568,18 @@
   },
   "totpShowCode": {
     "message": "Show code"
+  },
+
+  "tabTips": {
+    "message": "Tips"
+  },
+  "tipsLoading": {
+    "message": "Loading tips..."
+  },
+  "tipsFetchError": {
+    "message": "Failed to load tips"
+  },
+  "tipsEmpty": {
+    "message": "No tips available yet"
   }
 }
