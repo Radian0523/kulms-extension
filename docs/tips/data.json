@@ -9,7 +9,7 @@
       "addedAt": "2026-05-17",
       "title": { "ja": "FIDO認証でパスワードレスログイン", "en": "Passwordless login with FIDO authentication" },
       "body": { "ja": "京大の2段階認証はFIDO認証にも対応しています。セキュリティキーや生体認証（指紋・顔）を使えば、パスワード+OTPの入力なしでログインできます。", "en": "Kyoto University's two-factor authentication also supports FIDO. Use a security key or biometrics (fingerprint/face) to log in without entering a password and OTP." },
-      "link": { "url": "https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/", "label": { "ja": "多要素認証について", "en": "About MFA" } }
+      "link": { "url": "https://radian0523.github.io/kulms-extension/2fa/", "label": { "ja": "多要素認証について", "en": "About MFA" } }
     },
     {
       "id": "tip-001",
