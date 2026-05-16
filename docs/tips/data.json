@@ -1,11 +1,20 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-16T00:00:00Z",
+  "updatedAt": "2026-05-17T00:00:00Z",
   "tips": [
+    {
+      "id": "tip-022",
+      "category": "howto",
+      "badge": "NEW",
+      "addedAt": "2026-05-17",
+      "title": { "ja": "FIDO認証でパスワードレスログイン", "en": "Passwordless login with FIDO authentication" },
+      "body": { "ja": "京大の2段階認証はFIDO認証にも対応しています。セキュリティキーや生体認証（指紋・顔）を使えば、パスワード+OTPの入力なしでログインできます。", "en": "Kyoto University's two-factor authentication also supports FIDO. Use a security key or biometrics (fingerprint/face) to log in without entering a password and OTP." },
+      "link": { "url": "https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/", "label": { "ja": "多要素認証について", "en": "About MFA" } }
+    },
     {
       "id": "tip-001",
       "category": "feature",
-      "badge": "NEW",
+      "badge": null,
       "addedAt": "2026-05-16",
       "title": { "ja": "全科目の課題を一覧表示", "en": "View all assignments at a glance" },
       "body": { "ja": "パネルを開くと、登録している全科目の課題・締切が一覧で確認できます。緊急度別に色分けされるので、優先順位が一目でわかります。", "en": "Open the panel to see assignments and deadlines across all your enrolled courses. They're color-coded by urgency so you can prioritize at a glance." },
