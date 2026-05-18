@@ -182,8 +182,7 @@
         status: status,
         kind: classifyStatus(status),
         submitTime: submitTime,
-        source: "submissionList",
-        cachedAt: Date.now()
+        source: "submissionList"
       };
     }
 
