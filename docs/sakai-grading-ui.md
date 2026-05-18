@@ -34,6 +34,8 @@ const submissions = grader.originalSubmissions;
 
 このため実装では、同一タブ・同一課題内で一度見えた `pendingGrade` を `sessionStorage` に保持し、後続の `originalSubmissions` が一時的に `inProgress` / `notSubmitted` 相当に落としても `pendingGrade` を維持する。`graded` / `returned` が明確に見えた場合、および保存・返却系ボタンを押した場合はキャッシュを破棄・上書きする。
 
+一覧画面で読めた状態は `source: "submissionList"` 付きで保存する。詳細画面の `originalSubmissions` で `returned` が落ちて `graded` だけ見えるケースがあるため、一覧由来の `returned` は live 判定が `graded` の場合に限って `returned` に補正する。live 判定が `pendingGrade` / `inProgress` / `notSubmitted` の場合は、再提出や作業中の可能性を優先して cached `returned` では上書きしない。詳細画面で非表示の受講者について `draft` が落ち、`submitted=true` だけから推定 `pendingGrade` になるケースでは、一覧由来の `inProgress` を優先する。
+
 提出物一覧ページの HTML fetch は fallback として残すが、`?panel=Main` や `sakai_action=doView_submission_list` では `submissionList` が返らないケースがあるため、通常経路としては使わない。
 
 ## 提出物一覧ページ fallback
@@ -83,8 +85,8 @@ const submissions = grader.originalSubmissions;
 | `未採点 - 取組中` | ドラフト保存中 | `inProgress` | 🟠 | × |
 | `未採点 - 提出済み YYYY/MM/DD HH:MM` | **採点待ち** | `pendingGrade` | 🟡 | **○** |
 | `再提出済み` / `再提出済み YYYY/MM/DD HH:MM - 遅延` | **再提出後の採点待ち** | `pendingGrade` | 🟡 | **○** |
-| `採点済み - 再提出済み` | 再提出後の採点完了・未返却 | `graded` | 🟢 | × |
-| `採点済み` | 採点完了・未返却 | `graded` | 🟢 | × |
+| `採点済み - 再提出済み` | 再提出後の採点完了・未返却 | `graded` | 🟨 | × |
+| `採点済み` | 採点完了・未返却 | `graded` | 🟨 | × |
 
 `未採点 - 提出済み` と `再提出済み` は後ろに日時や遅延表記が付くため prefix/包含判定にする。
 

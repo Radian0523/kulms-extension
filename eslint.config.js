@@ -30,6 +30,15 @@ export default [
         DOMParser: "readonly",
         TextDecoder: "readonly",
         Notification: "readonly",
+        XMLSerializer: "readonly",
+        Image: "readonly",
+        DataTransfer: "readonly",
+        Node: "readonly",
+        crypto: "readonly",
+        indexedDB: "readonly",
+        TextEncoder: "readonly",
+        btoa: "readonly",
+        atob: "readonly",
         matchMedia: "readonly",
         requestAnimationFrame: "readonly",
         getComputedStyle: "readonly",
@@ -37,8 +46,10 @@ export default [
         confirm: "readonly",
         // Chrome extension API
         chrome: "readonly",
-        // Third-party (LMS)
+        // Third-party (LMS / vendor)
         bootstrap: "readonly",
+        jsQR: "readonly",
+        qrcode: "readonly",
         // Cross-file globals (settings.js defines these, loaded before other scripts)
         t: "readonly",
         __kulmsOverrideMessages: "writable",

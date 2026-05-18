@@ -518,7 +518,7 @@
     "message": "未提出"
   },
   "gradingLegendGraded": {
-    "message": "採点済み"
+    "message": "採点済み・未返却"
   },
   "gradingLegendReturned": {
     "message": "返却済み"
