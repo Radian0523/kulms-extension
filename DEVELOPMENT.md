@@ -15,6 +15,7 @@ KULMS+は、京都大学のSakai LMS (KULMS) のUIを拡張するブラウザ拡
 | **chrome.i18n API** | 多言語対応（日本語/英語）。言語上書き機能付き |
 | **CSS Custom Properties** | 緊急度カラーのカスタマイズ (`--kulms-color-danger` 等) |
 | **DOM Injection** | `<style>` タグの動的注入によるCSS詳細度の制御 |
+| **bun** | パッケージマネージャ。ESLint 等の開発依存管理に使用 |
 
 ### フレームワークを使わない判断
 

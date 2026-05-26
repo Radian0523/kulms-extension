@@ -26,6 +26,7 @@ KULMS+ への貢献を歓迎します。
 
 ## コーディング規約
 
+- パッケージマネージャには bun を使用（`bun install` で依存をインストール）
 - 外部ライブラリ・ビルドツールは使用しない（Vanilla JS のみ）
 - 各機能は IIFE で独立させ、グローバル汚染を避ける
 - 設定キーは `src/settings.js` の `DEFAULT_SETTINGS` に定義
