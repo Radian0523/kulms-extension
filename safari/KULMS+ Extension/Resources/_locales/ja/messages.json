@@ -568,27 +568,5 @@
   },
   "totpShowCode": {
     "message": "コードを表示"
-  },
-
-  "tabTips": {
-    "message": "Tips"
-  },
-  "tipsLoading": {
-    "message": "読み込み中..."
-  },
-  "tipsFetchError": {
-    "message": "Tips の取得に失敗しました"
-  },
-  "tipsEmpty": {
-    "message": "Tips はまだありません"
-  },
-  "tipsShowAll": {
-    "message": "すべて表示 ($COUNT$)",
-    "placeholders": {
-      "count": { "content": "$1" }
-    }
-  },
-  "tipsShowDaily": {
-    "message": "今日のTipsだけ表示"
   }
 }
