@@ -20,6 +20,7 @@
   var NOT_SUBMITTED_PREFIX = "未提出";
   var GRADED_LABEL = "採点済み";
   var RETURNED_LABEL = "返却済み";
+  var LOCAL_RETURN_TTL_MS = 5 * 60 * 1000;
   var PROGRESS_RE = /(?:採点済み|Graded)\s*\d+\s*\/\s*\d+/i;
   var STATUS_ICON_PREFIX_RE = /^(?:(?:\uD83D[\uDFE0-\uDFE2\uDFE8]|⚪|✅)\s*)+/;
 
@@ -294,8 +295,9 @@
     var map = {};
     submissions.forEach(function (submission) {
       if (!submission || !submission.id) return;
-      var kind = classifySubmission(submission);
-      var hasExplicitStatus = !!submission.status;
+      var explicitKind = classifyStatus(submission.status);
+      var kind = explicitKind !== "unknown" ? explicitKind : classifySubmission(submission);
+      var hasExplicitStatus = explicitKind !== "unknown";
       map[submission.id] = {
         name: submission.firstSubmitterName || "",
         status: submission.status || buildStatusLabel(kind, submission),
@@ -334,12 +336,80 @@
     }
   }
 
-  function clearStatusCache(ctx) {
+  function mergeObservedStatusCache(ctx, observedMap) {
+    var cached = loadStatusCache(ctx) || {};
+    var merged = {};
+    Object.keys(cached).forEach(function (sid) {
+      merged[sid] = cached[sid];
+    });
+    Object.keys(observedMap).forEach(function (sid) {
+      merged[sid] = observedMap[sid];
+    });
+    saveStatusCache(ctx, merged);
+  }
+
+  function clearSelectedStatusCache(ctx) {
+    if (!ctx || !ctx.select || !ctx.select.value) return;
+
     try {
-      sessionStorage.removeItem(getStatusCacheKey(ctx));
+      var cached = loadStatusCache(ctx);
+      if (!cached) return;
+      delete cached[ctx.select.value];
+      saveStatusCache(ctx, cached);
     } catch {
       // sessionStorage may be unavailable in hardened browser settings.
     }
+  }
+
+  function setSelectedReturnedCache(ctx) {
+    if (!ctx || !ctx.select || !ctx.select.value) return;
+    var sid = ctx.select.value;
+    var option = ctx.select.options[ctx.select.selectedIndex];
+    var existing = (currentState.statusMap && currentState.statusMap[sid]) || {};
+    var entry = {
+      name: existing.name || (option ? stripStatusIcon(option.text) : ""),
+      status: RETURNED_LABEL,
+      kind: "returned",
+      submitTime: existing.submitTime || "",
+      source: "localReturn",
+      statusSource: "localAction",
+      cachedAt: Date.now()
+    };
+
+    try {
+      var cached = loadStatusCache(ctx) || {};
+      cached[sid] = entry;
+      saveStatusCache(ctx, cached);
+    } catch {
+      // sessionStorage may be unavailable in hardened browser settings.
+    }
+
+    if (currentState.statusMap) {
+      currentState.statusMap[sid] = entry;
+      reapplyDecorations();
+    }
+  }
+
+  function shouldKeepReturnedCache(cachedEntry, currentEntry) {
+    if (!cachedEntry || cachedEntry.kind !== "returned") return false;
+    if (!currentEntry || currentEntry.kind === "returned") return false;
+    if (currentEntry.source === "submissionList") return false;
+    if (currentEntry.statusSource === "explicit") return false;
+    if (currentEntry.statusSource !== "derived") return false;
+
+    if (cachedEntry.source === "submissionList") {
+      return currentEntry.kind === "graded";
+    }
+
+    if (cachedEntry.source === "localReturn") {
+      var age = Date.now() - (cachedEntry.cachedAt || 0);
+      return age >= 0 && age < LOCAL_RETURN_TTL_MS && (
+        currentEntry.kind === "graded" ||
+        currentEntry.kind === "pendingGrade"
+      );
+    }
+
+    return false;
   }
 
   function mergeStatusCache(ctx, map) {
@@ -359,11 +429,7 @@
       var currentEntry = merged[sid];
       if (!cachedEntry || !currentEntry) return;
 
-      if (
-        cachedEntry.source === "submissionList" &&
-        cachedEntry.kind === "returned" &&
-        currentEntry.kind === "graded"
-      ) {
+      if (shouldKeepReturnedCache(cachedEntry, currentEntry)) {
         merged[sid] = cachedEntry;
         return;
       }
@@ -490,7 +556,13 @@
       var opt = options[i];
       var entry = statusMap[opt.value];
       var icon = entry ? ICONS[entry.kind] : "";
-      if (!icon) continue;
+      if (!icon) {
+        if (opt.dataset.kulmsIcon) {
+          opt.text = stripStatusIcon(opt.text);
+          delete opt.dataset.kulmsIcon;
+        }
+        continue;
+      }
       var prefix = icon + " ";
       if (opt.dataset.kulmsIcon === icon && opt.text.indexOf(prefix) === 0) continue;
       // 既存の絵文字 prefix を除去してから付ける
@@ -589,7 +661,7 @@
     var groups = parseSubmissionListGroups(table, statusColIdx, findSubmissionListSubmitColumn(table));
     Object.keys(groups).forEach(function (key) {
       var group = groups[key];
-      saveStatusCache({
+      mergeObservedStatusCache({
         siteId: group.siteId,
         assignmentId: group.assignmentId
       }, group.map);
@@ -824,8 +896,9 @@
   // === セットアップ本体 ===
 
   var booted = false;
-  var currentState = { ctx: null, statusMap: null };
+  var currentState = { ctx: null, statusMap: null, selectedSubmissionId: "" };
   var statusRequestSeq = 0;
+  var statusRefreshTimer = null;
   var reapplyQueued = false;
   var decorationObserver = null;
   var listIconsInstalled = false;
@@ -833,6 +906,14 @@
   var listObserver = null;
   var graderDirty = false;
   var allowNextUnload = false;
+
+  function scheduleStatusRefresh(ctx, delay) {
+    if (statusRefreshTimer) window.clearTimeout(statusRefreshTimer);
+    statusRefreshTimer = window.setTimeout(function () {
+      statusRefreshTimer = null;
+      refreshStatusMap(parseContext() || ctx);
+    }, delay);
+  }
 
   function refreshStatusMap(ctx, retriesLeft) {
     var seq = ++statusRequestSeq;
@@ -866,11 +947,19 @@
     var ctx = parseContext();
     if (!ctx) return;
     if (!currentState.ctx || currentState.ctx.select !== ctx.select) installDecorationObserver(ctx);
+    var selectedSubmissionId = ctx.select && ctx.select.value;
+    var selectedChanged = !!(
+      currentState.selectedSubmissionId &&
+      selectedSubmissionId &&
+      selectedSubmissionId !== currentState.selectedSubmissionId
+    );
     currentState.ctx = ctx;
+    currentState.selectedSubmissionId = selectedSubmissionId || "";
     applyOptionIcons(currentState.ctx, currentState.statusMap);
     applyPendingCount(currentState.ctx, currentState.statusMap);
     injectJumpButtons(currentState.ctx);
     injectStatusLegend(currentState.ctx);
+    if (selectedChanged) scheduleStatusRefresh(currentState.ctx, 300);
   }
 
   function queueReapplyDecorations() {
@@ -903,11 +992,13 @@
         graderDirty = false;
         allowNextUnload = true;
         window.setTimeout(function () { allowNextUnload = false; }, 3000);
-        if (currentState.ctx || ctx) clearStatusCache(currentState.ctx || ctx);
-        currentState.statusMap = null;
-        window.setTimeout(function () {
-          refreshStatusMap(parseContext() || ctx);
-        }, 1200);
+        if (/返却|Return|Release/i.test(text)) {
+          setSelectedReturnedCache(currentState.ctx || ctx);
+        } else {
+          clearSelectedStatusCache(currentState.ctx || ctx);
+          currentState.statusMap = null;
+        }
+        scheduleStatusRefresh(currentState.ctx || ctx, 1200);
       }
     }, true);
   }
@@ -943,6 +1034,7 @@
       if (!select || select.id !== "grader-submitter-select") return;
       if (!graderDirty) {
         lastSubmitterValue = select.value;
+        scheduleStatusRefresh(parseContext() || ctx, 300);
         return;
       }
       if (!confirmLeaveIfDirty()) {
@@ -952,6 +1044,7 @@
         return;
       }
       lastSubmitterValue = select.value;
+      scheduleStatusRefresh(parseContext() || ctx, 300);
     }, true);
 
     document.addEventListener("click", function (e) {
