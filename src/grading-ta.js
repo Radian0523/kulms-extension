@@ -20,6 +20,7 @@
   var NOT_SUBMITTED_PREFIX = "未提出";
   var GRADED_LABEL = "採点済み";
   var RETURNED_LABEL = "返却済み";
+  var LOCAL_RETURN_TTL_MS = 5 * 60 * 1000;
   var PROGRESS_RE = /(?:採点済み|Graded)\s*\d+\s*\/\s*\d+/i;
   var STATUS_ICON_PREFIX_RE = /^(?:(?:\uD83D[\uDFE0-\uDFE2\uDFE8]|⚪|✅)\s*)+/;
 
@@ -402,7 +403,7 @@
 
     if (cachedEntry.source === "localReturn") {
       var age = Date.now() - (cachedEntry.cachedAt || 0);
-      return age >= 0 && age < 5 * 60 * 1000 && (
+      return age >= 0 && age < LOCAL_RETURN_TTL_MS && (
         currentEntry.kind === "graded" ||
         currentEntry.kind === "pendingGrade"
       );
@@ -781,7 +782,6 @@
     if (!confirmLeaveIfDirty()) return false;
     var submissionId = ctx.select.options[idx].value;
     location.href = buildGradeUrl(ctx, submissionId);
-    scheduleStatusRefresh(ctx, 1500);
     return true;
   }
 
