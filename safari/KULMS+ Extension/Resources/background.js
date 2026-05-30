@@ -4,20 +4,26 @@
 chrome.runtime.onInstalled.addListener(async () => {
   chrome.storage.local.remove(["kulms-syllabus-catalog", "kulms-textbooks"]);
 
+  // eviction 保護を要求
+  ensureTotpPersistence();
+
   // 旧キー kulms-totp-secret（平文）が残っていれば暗号化して移行
   try {
     const result = await chrome.storage.local.get(["kulms-totp-secret"]);
     const plainSecret = result["kulms-totp-secret"];
     if (plainSecret) {
-      const key = await getOrCreateTotpKey();
-      const encrypted = await encryptSecret(key, plainSecret);
-      await chrome.storage.local.set({ "kulms-totp-encrypted": encrypted });
+      await saveTotpSecret(plainSecret);
       await chrome.storage.local.remove(["kulms-totp-secret"]);
       console.log("[KULMS] migrated TOTP secret from plaintext to encrypted");
     }
   } catch (e) {
     console.warn("[KULMS] TOTP migration error:", e.message);
   }
+});
+
+// 起動時にも eviction 保護を再要求する
+chrome.runtime.onStartup.addListener(() => {
+  ensureTotpPersistence();
 });
 
 // === シラバス教科書取得ハンドラ ===
@@ -539,10 +545,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 });
 
 // === TOTP シークレット暗号化ストア ===
+//
+// 鍵(AES-GCM, 非抽出)と暗号文を「同一の IndexedDB ストアに、単一トランザクションで
+// アトミックに」保存する。以前は鍵を IndexedDB・暗号文を chrome.storage.local に
+// 分けて別々のタイミングで書き込んでいたため、片方だけが失われる/入れ替わると
+// 復号不能（AES-GCM OperationError）になり、自動入力も popup も無言で停止していた。
+// 両者の運命を常に一致させることで desync を構造的に排除する。
+// さらに navigator.storage.persist() で eviction からの保護を要求する。
 
 const TOTP_DB_NAME = "kulms-totp-db";
 const TOTP_DB_STORE = "keys";
 const TOTP_KEY_ID = "totp-aes-key";
+const TOTP_SECRET_ID = "totp-secret"; // { data, iv }
+const TOTP_LEGACY_CIPHER_KEY = "kulms-totp-encrypted"; // 旧: chrome.storage.local
 
 function openTotpDB() {
   return new Promise((resolve, reject) => {
@@ -558,41 +573,134 @@ function openTotpDB() {
   });
 }
 
-async function getOrCreateTotpKey() {
-  const db = await openTotpDB();
+// eviction（容量逼迫時の LRU 削除）からオリジンを除外するよう要求する。
+async function ensureTotpPersistence() {
+  try {
+    if (navigator.storage && navigator.storage.persist) {
+      if (!(await navigator.storage.persisted())) {
+        await navigator.storage.persist();
+      }
+    }
+  } catch (e) {
+    /* persist 非対応環境では何もしない */
+  }
+}
 
-  // 既存キーを取得
-  const existing = await new Promise((resolve, reject) => {
+function idbGet(db, id) {
+  return new Promise((resolve, reject) => {
     const tx = db.transaction(TOTP_DB_STORE, "readonly");
-    const store = tx.objectStore(TOTP_DB_STORE);
-    const req = store.get(TOTP_KEY_ID);
+    const req = tx.objectStore(TOTP_DB_STORE).get(id);
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+}
 
-  if (existing) {
-    db.close();
-    return existing;
-  }
-
-  // 新規 AES-GCM-256 キーを生成（非抽出）
-  const key = await crypto.subtle.generateKey(
-    { name: "AES-GCM", length: 256 },
-    false, // extractable: false
-    ["encrypt", "decrypt"]
-  );
-
-  // IndexedDB に保存
-  await new Promise((resolve, reject) => {
+// 単一トランザクションで複数キーを書き込み、コミット完了(oncomplete)まで待つ。
+// req.onsuccess ではなく tx.oncomplete を待つことで、SW 終了などで書き込みが
+// 永続化されない（=desync の温床）状態を防ぐ。
+function idbPutAll(db, entries) {
+  return new Promise((resolve, reject) => {
     const tx = db.transaction(TOTP_DB_STORE, "readwrite");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error || new Error("transaction aborted"));
     const store = tx.objectStore(TOTP_DB_STORE);
-    const req = store.put(key, TOTP_KEY_ID);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
+    for (const [id, value] of entries) store.put(value, id);
   });
+}
 
-  db.close();
-  return key;
+function idbDelete(db, id) {
+  return new Promise((resolve) => {
+    const tx = db.transaction(TOTP_DB_STORE, "readwrite");
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+    tx.onabort = () => resolve();
+    tx.objectStore(TOTP_DB_STORE).delete(id);
+  });
+}
+
+// シークレットを保存: 鍵(なければ新規生成)と暗号文を同一トランザクションで書き込む。
+async function saveTotpSecret(plaintext) {
+  await ensureTotpPersistence();
+  const db = await openTotpDB();
+  try {
+    let key = await idbGet(db, TOTP_KEY_ID);
+    if (!key) {
+      key = await crypto.subtle.generateKey(
+        { name: "AES-GCM", length: 256 },
+        false, // extractable: false
+        ["encrypt", "decrypt"]
+      );
+    }
+    const enc = await encryptSecret(key, plaintext);
+    await idbPutAll(db, [
+      [TOTP_KEY_ID, key],
+      [TOTP_SECRET_ID, enc],
+    ]);
+    // 新スキームに保存できたら旧 chrome.storage.local の暗号文は不要
+    await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
+  } finally {
+    db.close();
+  }
+}
+
+// シークレットを読み出す。復号できない(=鍵入れ替わり/破損)場合は、
+// 死んだ暗号文を自動的に削除して null を返す。これにより popup は「未設定」に戻り、
+// 無言ロックアウトではなく再登録へ誘導される。
+async function loadTotpSecret() {
+  await ensureTotpPersistence();
+  const db = await openTotpDB();
+  try {
+    const key = await idbGet(db, TOTP_KEY_ID);
+    let rec = await idbGet(db, TOTP_SECRET_ID);
+
+    // 旧スキーム(chrome.storage.local)からの移行
+    if (!rec) {
+      const legacy = (await chrome.storage.local.get(TOTP_LEGACY_CIPHER_KEY))[
+        TOTP_LEGACY_CIPHER_KEY
+      ];
+      if (!legacy) return null;
+      if (key) {
+        try {
+          const secret = await decryptSecret(key, legacy.data, legacy.iv);
+          // 復号できたので新スキームへ移行し、旧データを掃除
+          await idbPutAll(db, [[TOTP_SECRET_ID, legacy]]);
+          await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
+          return secret;
+        } catch (e) {
+          /* 復号不能 → 下で掃除 */
+        }
+      }
+      // 鍵が無い or 復号不能 → 復元不可能な死んだ暗号文。掃除して再登録へ。
+      await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
+      return null;
+    }
+
+    if (!key) {
+      await idbDelete(db, TOTP_SECRET_ID);
+      return null;
+    }
+
+    try {
+      return await decryptSecret(key, rec.data, rec.iv);
+    } catch (e) {
+      // AES-GCM OperationError 等: 鍵と暗号文の不整合。自己修復のため暗号文を削除。
+      await idbDelete(db, TOTP_SECRET_ID);
+      return null;
+    }
+  } finally {
+    db.close();
+  }
+}
+
+async function deleteTotpSecret() {
+  const db = await openTotpDB();
+  try {
+    await idbDelete(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+  await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
 }
 
 async function encryptSecret(key, plaintext) {
@@ -628,32 +736,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     try {
       switch (message.type) {
         case "kulms-totp-save": {
-          const key = await getOrCreateTotpKey();
-          const encrypted = await encryptSecret(key, message.secret);
-          await chrome.storage.local.set({ "kulms-totp-encrypted": encrypted });
+          await saveTotpSecret(message.secret);
           sendResponse({ ok: true });
           break;
         }
         case "kulms-totp-load": {
-          const result = await chrome.storage.local.get(["kulms-totp-encrypted"]);
-          const stored = result["kulms-totp-encrypted"];
-          if (!stored) {
-            sendResponse({ secret: null });
-            break;
-          }
-          const key = await getOrCreateTotpKey();
-          const secret = await decryptSecret(key, stored.data, stored.iv);
-          sendResponse({ secret });
+          const secret = await loadTotpSecret();
+          sendResponse({ secret: secret || null });
           break;
         }
         case "kulms-totp-delete": {
-          await chrome.storage.local.remove(["kulms-totp-encrypted"]);
+          await deleteTotpSecret();
           sendResponse({ ok: true });
           break;
         }
         case "kulms-totp-has": {
-          const result = await chrome.storage.local.get(["kulms-totp-encrypted"]);
-          sendResponse({ exists: !!result["kulms-totp-encrypted"] });
+          // 復号可否まで含めて判定する。復号できない死んだ暗号文は
+          // loadTotpSecret が自動削除するため、ここで false を返せば
+          // popup は「未設定」に戻り再登録へ誘導される（無言ロックアウト防止）。
+          const secret = await loadTotpSecret();
+          sendResponse({ exists: !!secret });
           break;
         }
         default:

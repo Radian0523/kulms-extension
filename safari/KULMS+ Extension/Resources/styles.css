@@ -1207,6 +1207,93 @@ body {
   border-bottom: none !important;
 }
 
+/* TOTP (2段階認証) セクション */
+.kulms-totp-status {
+  padding: 8px 12px 0 !important;
+  font-size: 12px !important;
+  color: #2e8540 !important;
+  font-weight: 600 !important;
+}
+.kulms-totp-actions {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+  flex-wrap: wrap !important;
+}
+.kulms-totp-btn {
+  padding: 6px 12px !important;
+  font-size: 12px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.kulms-totp-btn:hover { background: #e2e2e2 !important; }
+.kulms-totp-btn:disabled { opacity: 0.4 !important; cursor: default !important; }
+.kulms-totp-btn-primary {
+  background: #41639a !important;
+  border-color: #41639a !important;
+  color: #fff !important;
+}
+.kulms-totp-btn-primary:hover { background: #38567f !important; }
+.kulms-totp-btn-danger {
+  background: #e85555 !important;
+  border-color: #e85555 !important;
+  color: #fff !important;
+}
+.kulms-totp-btn-danger:hover { background: #d04040 !important; }
+.kulms-totp-codebox {
+  padding: 4px 12px 10px !important;
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+}
+.kulms-totp-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
+  font-size: 22px !important;
+  letter-spacing: 2px !important;
+  color: #222 !important;
+}
+.kulms-totp-countdown { font-size: 12px !important; color: #888 !important; }
+.kulms-totp-qrbox {
+  padding: 10px 12px !important;
+  text-align: center !important;
+}
+.kulms-totp-qrbox svg {
+  width: 160px !important;
+  height: 160px !important;
+  background: #fff !important;
+  padding: 6px !important;
+  border-radius: 4px !important;
+}
+.kulms-totp-input-row {
+  display: flex !important;
+  gap: 8px !important;
+  padding: 8px 12px !important;
+}
+.kulms-totp-input {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding: 6px 8px !important;
+  font-size: 13px !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: #333 !important;
+}
+.kulms-totp-error {
+  padding: 0 12px 8px !important;
+  font-size: 12px !important;
+  color: #e85555 !important;
+}
+.kulms-totp-note {
+  padding: 0 12px 10px !important;
+  font-size: 11px !important;
+  color: #999 !important;
+  line-height: 1.4 !important;
+}
+
 /* アコーディオン */
 .kulms-settings-section-header {
   cursor: pointer !important;

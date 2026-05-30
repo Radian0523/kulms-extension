@@ -2212,6 +2212,220 @@
       otherInputs.push({ key: settingKey, input: input, type: "color", defaultVal: defaultColor });
     }
 
+    // TOTP (2段階認証) セクションを構築する。
+    // 鍵・暗号文は background が暗号化保管しており、ここでは復号した secret を
+    // 一時的に受け取って OTP コード生成 / QR 生成に使うだけ（保存はしない）。
+    function buildTotpSettingsSection() {
+      createSettingsSection(t("totpSectionTitle"), "sectionTotp");
+      var body = currentCardBody;
+      var totpTimer = null;
+      var B32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      var B32_RE = /^[A-Z2-7=\s-]+$/i;
+
+      function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text != null) e.textContent = text;
+        return e;
+      }
+      function btn(cls, text) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = cls;
+        b.textContent = text;
+        return b;
+      }
+      function clearTotpTimer() {
+        if (totpTimer) { clearInterval(totpTimer); totpTimer = null; }
+      }
+      function totpMessage(type, payload, cb) {
+        try {
+          var m = { type: type };
+          if (payload) Object.keys(payload).forEach(function (k) { m[k] = payload[k]; });
+          chrome.runtime.sendMessage(m, function (resp) {
+            if (chrome.runtime.lastError) { if (cb) cb(null); return; }
+            if (cb) cb(resp);
+          });
+        } catch (e) {
+          if (cb) cb(null);
+        }
+      }
+
+      function base32Decode(input) {
+        var cleaned = input.replace(/[\s-]/g, "").replace(/=+$/, "").toUpperCase();
+        if (!cleaned) return null;
+        var output = [];
+        var buffer = 0;
+        var bitsLeft = 0;
+        for (var i = 0; i < cleaned.length; i++) {
+          var idx = B32_ALPHABET.indexOf(cleaned[i]);
+          if (idx < 0) return null;
+          buffer = (buffer << 5) | idx;
+          bitsLeft += 5;
+          if (bitsLeft >= 8) {
+            bitsLeft -= 8;
+            output.push((buffer >> bitsLeft) & 0xff);
+          }
+        }
+        return new Uint8Array(output);
+      }
+      function generateTOTP(secret) {
+        var key = base32Decode(secret);
+        if (!key) return Promise.resolve(null);
+        var counter = Math.floor(Date.now() / 1000 / 30);
+        var buf = new ArrayBuffer(8);
+        var view = new DataView(buf);
+        view.setUint32(0, Math.floor(counter / 0x100000000), false);
+        view.setUint32(4, counter & 0xffffffff, false);
+        return crypto.subtle
+          .importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"])
+          .then(function (ck) { return crypto.subtle.sign("HMAC", ck, buf); })
+          .then(function (hb) {
+            var h = new Uint8Array(hb);
+            var off = h[19] & 0x0f;
+            var code =
+              ((h[off] & 0x7f) << 24) |
+              (h[off + 1] << 16) |
+              (h[off + 2] << 8) |
+              h[off + 3];
+            return String(code % 1000000).padStart(6, "0");
+          });
+      }
+
+      function render(hasSecret) {
+        clearTotpTimer();
+        body.innerHTML = "";
+        if (hasSecret) renderConfigured();
+        else renderUnconfigured();
+      }
+
+      function renderConfigured() {
+        body.appendChild(el("div", "kulms-totp-status", t("totpConfigured")));
+
+        var actions = el("div", "kulms-totp-actions");
+        var showBtn = btn("kulms-totp-btn", t("totpShowCode"));
+        var qrBtn = btn("kulms-totp-btn", "QR");
+        var delBtn = btn("kulms-totp-btn kulms-totp-btn-danger", t("totpDelete"));
+        actions.appendChild(showBtn);
+        actions.appendChild(qrBtn);
+        actions.appendChild(delBtn);
+        body.appendChild(actions);
+
+        var codeBox = el("div", "kulms-totp-codebox");
+        codeBox.style.display = "none";
+        var codeVal = el("span", "kulms-totp-code", "");
+        var codeCd = el("span", "kulms-totp-countdown", "");
+        codeBox.appendChild(codeVal);
+        codeBox.appendChild(codeCd);
+        body.appendChild(codeBox);
+
+        var qrBox = el("div", "kulms-totp-qrbox");
+        qrBox.style.display = "none";
+        body.appendChild(qrBox);
+
+        showBtn.addEventListener("click", function () {
+          if (codeBox.style.display !== "none") {
+            codeBox.style.display = "none";
+            clearTotpTimer();
+            return;
+          }
+          totpMessage("kulms-totp-load", null, function (resp) {
+            var secret = resp && resp.secret;
+            if (!secret) { render(false); return; }
+            codeBox.style.display = "";
+            function upd() {
+              generateTOTP(secret).then(function (code) {
+                if (!code) return;
+                codeVal.textContent = code.slice(0, 3) + " " + code.slice(3);
+                var rem = 30 - (Math.floor(Date.now() / 1000) % 30);
+                codeCd.textContent = "(" + rem + "s)";
+              });
+            }
+            upd();
+            clearTotpTimer();
+            totpTimer = setInterval(upd, 1000);
+          });
+        });
+
+        qrBtn.addEventListener("click", function () {
+          if (qrBox.style.display !== "none") {
+            qrBox.style.display = "none";
+            qrBox.innerHTML = "";
+            return;
+          }
+          totpMessage("kulms-totp-load", null, function (resp) {
+            var secret = resp && resp.secret;
+            if (!secret) { render(false); return; }
+            if (typeof qrcode !== "function") {
+              qrBox.textContent = "QR";
+              qrBox.style.display = "";
+              return;
+            }
+            try {
+              var uri =
+                "otpauth://totp/KULMS%2B?secret=" +
+                encodeURIComponent(secret) +
+                "&issuer=KULMS%2B";
+              var qr = qrcode(0, "M");
+              qr.addData(uri);
+              qr.make();
+              qrBox.innerHTML = qr.createSvgTag(4, 2);
+              qrBox.style.display = "";
+            } catch (e) {
+              qrBox.innerHTML = "";
+              qrBox.style.display = "none";
+            }
+          });
+        });
+
+        delBtn.addEventListener("click", function () {
+          clearTotpTimer();
+          totpMessage("kulms-totp-delete", null, function () { render(false); });
+        });
+      }
+
+      function renderUnconfigured() {
+        body.appendChild(el("div", "kulms-settings-row-desc", t("totpDescription")));
+
+        var row = el("div", "kulms-totp-input-row");
+        var input = document.createElement("input");
+        input.type = "text";
+        input.className = "kulms-totp-input";
+        input.placeholder = t("totpPlaceholder");
+        input.spellcheck = false;
+        input.autocomplete = "off";
+        var saveBtn = btn("kulms-totp-btn kulms-totp-btn-primary", t("totpSave"));
+        saveBtn.disabled = true;
+        row.appendChild(input);
+        row.appendChild(saveBtn);
+        body.appendChild(row);
+
+        var errEl = el("div", "kulms-totp-error", "");
+        errEl.style.display = "none";
+        body.appendChild(errEl);
+
+        body.appendChild(el("div", "kulms-totp-note", t("totpSecurityNote")));
+
+        input.addEventListener("input", function () {
+          saveBtn.disabled = !input.value.trim();
+          errEl.style.display = "none";
+        });
+        saveBtn.addEventListener("click", function () {
+          var cleaned = input.value.replace(/[\s-]/g, "").toUpperCase();
+          if (!cleaned || !B32_RE.test(cleaned)) {
+            errEl.textContent = t("totpInvalidMessage");
+            errEl.style.display = "";
+            return;
+          }
+          totpMessage("kulms-totp-save", { secret: cleaned }, function () { render(true); });
+        });
+      }
+
+      totpMessage("kulms-totp-has", null, function (resp) {
+        render(!!(resp && resp.exists));
+      });
+    }
+
     // ========================================
     // 1. 外観 (Appearance): Language
     // ========================================
@@ -2252,6 +2466,16 @@
     langRow.appendChild(langSelect);
     currentCardBody.appendChild(langRow);
     otherInputs.push({ key: "language", input: langSelect, type: "select", defaultVal: "auto" });
+
+    // ========================================
+    // 1.5 TOTP (2段階認証): コード表示 / QR 生成 / 登録・削除
+    //     「外観」と「パネル」の間に配置
+    //     モバイル(iOS/Android WebView)は専用 shim 経由で background が無く、
+    //     kulms-totp-* メッセージを処理できないため拡張機能限定で表示する。
+    // ========================================
+    if (!window.__kulmsPlatform) {
+      buildTotpSettingsSection();
+    }
 
     // ========================================
     // 2. パネル (Panel): textbooks, memos, panelPush
