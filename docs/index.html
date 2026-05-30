@@ -623,8 +623,57 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.18.0</span>
+      <span class="release-version">v1.21.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>2段階認証 (TOTP) を設定パネルに追加</strong>: KULMS の設定パネル内（「外観」と「パネル」の間）から、現在のコード表示（30秒カウントダウン）・QR 生成・登録・削除をポップアップを開かずに操作可能（モバイル版は対象外）</li>
+      <li><strong>TOTP 自動ログインが一定時間後に停止する不具合を根治</strong>: 鍵と暗号文を同一 IndexedDB ストアに原子的に保存して desync を排除。復号失敗時は自動的に未設定へ戻して再登録を促し、storage eviction からも保護</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.20.0</span>
+    </div>
+    <ul>
+      <li><strong>Tips タブを削除</strong>: タブ構成を「課題 / 教科書 / 設定」の3タブに変更</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.19.2</span>
+    </div>
+    <ul>
+      <li><strong>TA 採点支援: 返却後の状態表示を安定化</strong>: 返却後に Next / 受講者切替で返却済みアイコンが「採点済み・未返却」に戻るケースを修正（キャッシュ粒度を改善）</li>
+      <li>パッケージマネージャを npm から bun に移行、CI を bun に対応</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.19.1</span>
+    </div>
+    <ul>
+      <li>TA 採点支援: 詳細画面ドロップダウンの状態アイコンずれを補正、「採点済み・未返却」アイコンを 🟨 に変更</li>
+      <li>2FA 設定ページに FAQ セクション（OTP 不一致の原因・対処、セキュリティ Q&A）を追加</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.19.0</span>
+    </div>
+    <ul>
+      <li><strong>Tips タブを追加</strong>: 使い方やアップデート情報をカード形式で表示（日替わりランダム2件・全件表示切替）</li>
+      <li>ランディングページ・2FA 設定ページに FIDO 認証（パスキー）の案内を追加</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.18.0</span>
     </div>
     <ul>
       <li><strong>TOTP 自動登録機能</strong>: 京大の TOTP 設定ページにアクセスするだけで、QR 読み取り → シークレット保存 → OTP 自動入力が完了</li>
