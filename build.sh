@@ -46,7 +46,7 @@ sync_safari() {
   fi
 
   # 拡張機能リソースを Safari プロジェクトに同期
-  local resources=(manifest.json background.js popup.html popup.js styles.css src icons _locales)
+  local resources=(manifest.json background.js popup.html popup.js totp-unlock.html totp-unlock.js styles.css src icons _locales)
   for item in "${resources[@]}"; do
     rm -rf "$dest/$item"
     cp -R "$item" "$dest/$item"

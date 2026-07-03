@@ -608,6 +608,8 @@ body {
           <div class="totp-configured-actions">
             <button class="totp-btn totp-btn-qrgen" id="totp-pp-protect-btn" style="display:none"></button>
             <button class="totp-btn totp-btn-qrgen" id="totp-pp-change-btn" style="display:none"></button>
+            <button class="totp-btn totp-btn-qrgen" id="totp-wa-add-btn" style="display:none"></button>
+            <button class="totp-btn totp-btn-qrgen" id="totp-wa-remove-btn" style="display:none"></button>
             <button class="totp-btn totp-btn-qrgen" id="totp-lock-btn" style="display:none"></button>
             <button class="totp-btn totp-btn-delete" id="totp-pp-remove-btn" style="display:none"></button>
           </div>
@@ -631,6 +633,7 @@ body {
       </div>
       <div id="totp-locked" style="display:none">
         <div class="totp-status" id="totp-locked-text"></div>
+        <button class="totp-btn totp-btn-show" id="totp-wa-unlock-btn" style="display:none"></button>
         <div class="totp-input-row">
           <input type="password" class="totp-input" id="totp-unlock-input" autocomplete="current-password" spellcheck="false">
           <button class="totp-btn totp-btn-save" id="totp-unlock-btn"></button>

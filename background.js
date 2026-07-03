@@ -660,8 +660,13 @@ async function saveTotpSecretAuto(plaintext) {
   }
 }
 
+function isProtectedFamily(rec) {
+  return !!rec && (rec.mode === "protected" || rec.mode === "passphrase");
+}
+
 // シークレット保存のエントリポイント。現行モードに応じて分岐する。
-// passphrase モードでは、アンロック済み(session 鍵)か passphrase 指定が必要。
+// protected モードでは、アンロック済み(session の DEK)か passphrase 指定が必要。
+// DEK は据え置きで、暗号文(data/iv)だけを更新する(wrappers は不変=解錠手段を維持)。
 async function saveTotpSecret(plaintext, passphrase) {
   const db = await openTotpDB();
   let rec;
@@ -671,36 +676,44 @@ async function saveTotpSecret(plaintext, passphrase) {
     db.close();
   }
 
-  if (rec && totpRecordMode(rec) === "passphrase") {
-    let rawKey = await getSessionKey();
-    if (!rawKey && passphrase) {
-      rawKey = await deriveRawKey(
-        passphrase,
-        b64ToBytes(rec.salt),
-        rec.iterations || TOTP_PBKDF2_ITERATIONS
-      );
+  if (isProtectedFamily(rec)) {
+    let dek = await getSessionKey();
+    if (!dek && passphrase) {
+      const u = await unlockPassphrase(passphrase);
+      if (!u.ok) return { ok: false, error: "locked" };
+      dek = await getSessionKey();
     }
-    if (!rawKey) return { ok: false, error: "locked" };
-    const enc = await encryptWithRawKey(rawKey, plaintext);
+    if (!dek) return { ok: false, error: "locked" };
+
+    const enc = await encryptWithRawKey(dek, plaintext);
+    const wrappers =
+      rec.wrappers && typeof rec.wrappers === "object" ? rec.wrappers : null;
     await ensureTotpPersistence();
     const db2 = await openTotpDB();
     try {
-      await idbPutAll(db2, [
-        [
-          TOTP_SECRET_ID,
-          {
-            mode: "passphrase",
-            data: enc.data,
-            iv: enc.iv,
-            salt: rec.salt,
-            iterations: rec.iterations || TOTP_PBKDF2_ITERATIONS,
-          },
-        ],
-      ]);
+      if (wrappers) {
+        await idbPutAll(db2, [
+          [TOTP_SECRET_ID, { mode: "protected", data: enc.data, iv: enc.iv, wrappers }],
+        ]);
+      } else {
+        // 旧形式(mode:"passphrase", data を派生鍵で直接暗号化)の後方互換保存
+        await idbPutAll(db2, [
+          [
+            TOTP_SECRET_ID,
+            {
+              mode: rec.mode || "passphrase",
+              data: enc.data,
+              iv: enc.iv,
+              salt: rec.salt,
+              iterations: rec.iterations || TOTP_PBKDF2_ITERATIONS,
+            },
+          ],
+        ]);
+      }
     } finally {
       db2.close();
     }
-    await setSessionKey(rawKey); // 保存直後はアンロック維持＋自動ロック再スケジュール
+    await setSessionKey(dek); // アンロック維持＋自動ロック再スケジュール
     return { ok: true };
   }
 
@@ -742,16 +755,18 @@ async function loadTotpSecretDetailed() {
 
     const mode = totpRecordMode(rec);
 
-    if (mode === "passphrase") {
-      const rawKey = await getSessionKey();
-      if (!rawKey) return { secret: null, mode, locked: true };
+    if (mode === "protected" || mode === "passphrase") {
+      // protected: session=DEK / 旧passphrase: session=派生鍵。どちらも data を
+      // session 鍵で直接復号できる(protected は DEK で、旧は派生鍵で暗号化済み)。
+      const sessionKey = await getSessionKey();
+      if (!sessionKey) return { secret: null, mode: "protected", locked: true };
       try {
-        const secret = await decryptWithRawKey(rawKey, rec.data, rec.iv);
-        return { secret, mode, locked: false };
+        const secret = await decryptWithRawKey(sessionKey, rec.data, rec.iv);
+        return { secret, mode: "protected", locked: false };
       } catch (e) {
         // session 鍵が古い/不整合 → ロック状態に戻す(暗号文は保持=再アンロック可能)
         await clearSessionKey();
-        return { secret: null, mode, locked: true };
+        return { secret: null, mode: "protected", locked: true };
       }
     }
 
@@ -802,9 +817,15 @@ async function totpStatus() {
     return { exists: false, mode: null, locked: false };
   }
   const mode = totpRecordMode(rec);
-  if (mode === "passphrase") {
-    const rawKey = await getSessionKey();
-    return { exists: true, mode, locked: !rawKey };
+  if (mode === "protected" || mode === "passphrase") {
+    const sessionKey = await getSessionKey();
+    const wa = rec.wrappers && rec.wrappers.webauthn ? rec.wrappers.webauthn : null;
+    return {
+      exists: true,
+      mode: "protected",
+      locked: !sessionKey,
+      methods: { passphrase: true, webauthn: !!wa },
+    };
   }
   // auto: 復号可否まで含めて判定(死んだ暗号文は loadTotpSecretDetailed が掃除)
   const d = await loadTotpSecretDetailed();
@@ -865,42 +886,82 @@ async function decryptWithRawKey(rawKey, dataB64, ivB64) {
   return new TextDecoder().decode(plainBuffer);
 }
 
-// パスフレーズで保護に切替 / パスフレーズ変更。現在のシークレットが取得できる
-// (auto モード or アンロック済み)必要がある。
+// WebAuthn の PRF 出力(生体認証)から HKDF-SHA256 でラップ用 256bit 鍵を導出する。
+async function deriveKeyFromPrf(prfBytes, saltBytes) {
+  const base = await crypto.subtle.importKey("raw", prfBytes, "HKDF", false, [
+    "deriveBits",
+  ]);
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt: saltBytes,
+      info: new TextEncoder().encode("kulms-totp-webauthn"),
+    },
+    base,
+    256
+  );
+  return new Uint8Array(bits);
+}
+
+// パスフレーズで保護(protected エンベロープ)に切替 / パスフレーズ変更。
+// ランダム DEK で秘密を暗号化し、DEK を PBKDF2(passphrase) でラップする。
+// 既存が protected でアンロック済みなら DEK と webauthn ラッパーを引き継ぐ
+// (＝パスフレーズ変更後も生体認証はそのまま使える)。
 async function setPassphrase(passphrase) {
   if (!passphrase) return { ok: false, error: "empty" };
   const cur = await loadTotpSecretDetailed();
   if (!cur.secret) {
     return { ok: false, error: cur.locked ? "locked" : "no-secret" };
   }
-  await ensureTotpPersistence();
+
+  const db0 = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db0, TOTP_SECRET_ID);
+  } finally {
+    db0.close();
+  }
+
+  let dek = null;
+  let keepWebauthn = null;
+  if (rec && rec.mode === "protected") {
+    dek = await getSessionKey(); // cur.secret が取れた=アンロック済み
+    if (rec.wrappers && rec.wrappers.webauthn) keepWebauthn = rec.wrappers.webauthn;
+  }
+  if (!dek) dek = crypto.getRandomValues(new Uint8Array(32));
+
+  const enc = await encryptWithRawKey(dek, cur.secret); // 秘密を DEK で暗号化
   const salt = crypto.getRandomValues(new Uint8Array(TOTP_SALT_BYTES));
-  const rawKey = await deriveRawKey(passphrase, salt, TOTP_PBKDF2_ITERATIONS);
-  const enc = await encryptWithRawKey(rawKey, cur.secret);
+  const wrapKey = await deriveRawKey(passphrase, salt, TOTP_PBKDF2_ITERATIONS);
+  const wrap = await encryptWithRawKey(wrapKey, bytesToB64(dek)); // DEK をラップ
+
+  const wrappers = {
+    passphrase: {
+      salt: bytesToB64(salt),
+      iterations: TOTP_PBKDF2_ITERATIONS,
+      data: wrap.data,
+      iv: wrap.iv,
+    },
+  };
+  if (keepWebauthn) wrappers.webauthn = keepWebauthn;
+
+  await ensureTotpPersistence();
   const db = await openTotpDB();
   try {
     await idbPutAll(db, [
-      [
-        TOTP_SECRET_ID,
-        {
-          mode: "passphrase",
-          data: enc.data,
-          iv: enc.iv,
-          salt: bytesToB64(salt),
-          iterations: TOTP_PBKDF2_ITERATIONS,
-        },
-      ],
+      [TOTP_SECRET_ID, { mode: "protected", data: enc.data, iv: enc.iv, wrappers }],
     ]);
     await idbDelete(db, TOTP_KEY_ID); // auto の CryptoKey は不要
   } finally {
     db.close();
   }
   await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
-  await setSessionKey(rawKey); // 設定直後はアンロック状態
+  await setSessionKey(dek); // 設定直後はアンロック状態
   return { ok: true };
 }
 
-// パスフレーズ保護を解除して auto モードへ戻す。
+// 保護(パスフレーズ＋生体)を解除して auto モードへ戻す(wrappers ごと破棄)。
 async function removePassphrase(passphrase) {
   let secret = null;
   const cur = await loadTotpSecretDetailed();
@@ -918,7 +979,9 @@ async function removePassphrase(passphrase) {
   return { ok: true };
 }
 
-// パスフレーズでアンロック: 導出鍵で復号を試み、成功したら session にキャッシュ。
+// パスフレーズでアンロック: DEK を復元して session にキャッシュ。
+// protected: passphrase ラッパーから DEK をアンラップ。
+// 旧 passphrase 形式(未リリース): 派生鍵で data を検証 → protected へ移行。
 async function unlockPassphrase(passphrase) {
   if (!passphrase) return { ok: false, error: "empty" };
   const db = await openTotpDB();
@@ -928,21 +991,140 @@ async function unlockPassphrase(passphrase) {
   } finally {
     db.close();
   }
-  if (!rec || totpRecordMode(rec) !== "passphrase") {
-    return { ok: false, error: "not-passphrase" };
+  if (!isProtectedFamily(rec)) return { ok: false, error: "not-protected" };
+
+  if (rec.mode === "protected") {
+    const w = rec.wrappers && rec.wrappers.passphrase;
+    if (!w) return { ok: false, error: "no-passphrase-wrapper" };
+    const wrapKey = await deriveRawKey(
+      passphrase,
+      b64ToBytes(w.salt),
+      w.iterations || TOTP_PBKDF2_ITERATIONS
+    );
+    let dekB64;
+    try {
+      // AES-GCM の認証タグが検証子。誤パスフレーズなら例外。
+      dekB64 = await decryptWithRawKey(wrapKey, w.data, w.iv);
+    } catch (e) {
+      return { ok: false, error: "wrong-passphrase" };
+    }
+    await setSessionKey(b64ToBytes(dekB64));
+    return { ok: true };
   }
-  const rawKey = await deriveRawKey(
+
+  // 旧 passphrase 形式: data を派生鍵で直接復号して検証
+  const derived = await deriveRawKey(
     passphrase,
     b64ToBytes(rec.salt),
     rec.iterations || TOTP_PBKDF2_ITERATIONS
   );
   try {
-    // AES-GCM の認証タグが検証子。誤パスフレーズなら例外。
-    await decryptWithRawKey(rawKey, rec.data, rec.iv);
+    await decryptWithRawKey(derived, rec.data, rec.iv);
   } catch (e) {
     return { ok: false, error: "wrong-passphrase" };
   }
-  await setSessionKey(rawKey);
+  await setSessionKey(derived);
+  // protected エンベロープへ移行(best-effort)
+  try {
+    await setPassphrase(passphrase);
+  } catch (e) {
+    /* 移行失敗でも解錠は成立 */
+  }
+  return { ok: true };
+}
+
+// === WebAuthn(PRF, 生体認証) 解錠 ===
+// 儀式(navigator.credentials.create/get)は DOM とユーザー操作が要るため
+// 専用ページ(totp-unlock.html)で実行し、PRF 出力だけをここへ渡す。
+
+// 解錠ページが使うための情報(登録済みクレデンシャル ID と PRF salt)を返す。
+async function getWebauthnInfo() {
+  const db = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+  const w = rec && rec.wrappers && rec.wrappers.webauthn;
+  if (!w) return { hasWebauthn: false };
+  return { hasWebauthn: true, credentialId: w.credentialId, prfSalt: w.prfSalt };
+}
+
+// 生体認証を追加: アンロック済み(session の DEK)必須。PRF 出力で DEK をラップして保存。
+async function addWebauthn(prfOutputB64, credentialId, prfSalt) {
+  if (!prfOutputB64 || !credentialId || !prfSalt) return { ok: false, error: "bad-args" };
+  const db0 = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db0, TOTP_SECRET_ID);
+  } finally {
+    db0.close();
+  }
+  if (!rec || rec.mode !== "protected") return { ok: false, error: "not-protected" };
+  const dek = await getSessionKey();
+  if (!dek) return { ok: false, error: "locked" };
+
+  const wrapKey = await deriveKeyFromPrf(b64ToBytes(prfOutputB64), b64ToBytes(prfSalt));
+  const wrap = await encryptWithRawKey(wrapKey, bytesToB64(dek));
+  const wrappers = Object.assign({}, rec.wrappers, {
+    webauthn: { credentialId, prfSalt, data: wrap.data, iv: wrap.iv },
+  });
+  const db = await openTotpDB();
+  try {
+    await idbPutAll(db, [
+      [TOTP_SECRET_ID, { mode: "protected", data: rec.data, iv: rec.iv, wrappers }],
+    ]);
+  } finally {
+    db.close();
+  }
+  await setSessionKey(dek); // 自動ロック再スケジュール
+  return { ok: true };
+}
+
+// 生体認証でアンロック: PRF 出力から DEK をアンラップして session にキャッシュ。
+async function unlockWebauthn(prfOutputB64) {
+  if (!prfOutputB64) return { ok: false, error: "bad-args" };
+  const db = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+  const w = rec && rec.wrappers && rec.wrappers.webauthn;
+  if (!rec || rec.mode !== "protected" || !w) return { ok: false, error: "no-webauthn" };
+  const wrapKey = await deriveKeyFromPrf(b64ToBytes(prfOutputB64), b64ToBytes(w.prfSalt));
+  let dekB64;
+  try {
+    dekB64 = await decryptWithRawKey(wrapKey, w.data, w.iv);
+  } catch (e) {
+    return { ok: false, error: "unlock-failed" };
+  }
+  await setSessionKey(b64ToBytes(dekB64));
+  return { ok: true };
+}
+
+// 生体認証だけを解除(パスフレーズ保護は残す)。
+async function removeWebauthn() {
+  const db0 = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db0, TOTP_SECRET_ID);
+  } finally {
+    db0.close();
+  }
+  if (!rec || rec.mode !== "protected" || !rec.wrappers) return { ok: true };
+  const wrappers = Object.assign({}, rec.wrappers);
+  delete wrappers.webauthn;
+  const db = await openTotpDB();
+  try {
+    await idbPutAll(db, [
+      [TOTP_SECRET_ID, { mode: "protected", data: rec.data, iv: rec.iv, wrappers }],
+    ]);
+  } finally {
+    db.close();
+  }
   return { ok: true };
 }
 
@@ -1124,6 +1306,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case "kulms-totp-remove-passphrase": {
           sendResponse(await removePassphrase(message.passphrase));
+          break;
+        }
+        case "kulms-totp-get-webauthn": {
+          sendResponse(await getWebauthnInfo());
+          break;
+        }
+        case "kulms-totp-webauthn-add": {
+          sendResponse(
+            await addWebauthn(message.prfOutput, message.credentialId, message.prfSalt)
+          );
+          break;
+        }
+        case "kulms-totp-webauthn-unlock": {
+          sendResponse(await unlockWebauthn(message.prfOutput));
+          break;
+        }
+        case "kulms-totp-webauthn-remove": {
+          await removeWebauthn();
+          sendResponse({ ok: true });
           break;
         }
         case "kulms-totp-delete": {

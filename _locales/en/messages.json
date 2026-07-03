@@ -631,5 +631,50 @@
   },
   "totpPpStatusOff": {
     "message": "Protection: automatic (key stored on device; relies on OS disk encryption)"
+  },
+  "totpWaAdd": {
+    "message": "Add biometric unlock"
+  },
+  "totpWaRemove": {
+    "message": "Remove biometric unlock"
+  },
+  "totpWaUnlock": {
+    "message": "Unlock with biometrics"
+  },
+  "totpWaRemoved": {
+    "message": "Biometric unlock removed"
+  },
+  "waEnrollDesc": {
+    "message": "Register biometric unlock (Windows Hello / Touch ID) on this device. Please authenticate."
+  },
+  "waUnlockDesc": {
+    "message": "Unlock with biometrics (Windows Hello / Touch ID). Please authenticate."
+  },
+  "waAuthenticate": {
+    "message": "Authenticate"
+  },
+  "waClose": {
+    "message": "Close"
+  },
+  "waDone": {
+    "message": "Done. This window will close automatically."
+  },
+  "waErrCancelled": {
+    "message": "Authentication was cancelled. Please try again."
+  },
+  "waErrPrfUnsupported": {
+    "message": "This device/browser does not support biometric encryption (PRF). Please use a passphrase."
+  },
+  "waErrLocked": {
+    "message": "Unlock with your passphrase first, then register biometrics."
+  },
+  "waErrNoWebauthn": {
+    "message": "No biometric credential is registered."
+  },
+  "waErrUnavailable": {
+    "message": "Biometrics are unavailable in this environment. Please use a passphrase."
+  },
+  "waErrGeneric": {
+    "message": "Authentication failed. Please try again."
   }
 }

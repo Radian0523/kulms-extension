@@ -631,5 +631,50 @@
   },
   "totpPpStatusOff": {
     "message": "保護: 自動（暗号鍵は端末内。OS のディスク暗号化に依存）"
+  },
+  "totpWaAdd": {
+    "message": "生体認証を追加"
+  },
+  "totpWaRemove": {
+    "message": "生体認証を解除"
+  },
+  "totpWaUnlock": {
+    "message": "生体認証で解錠"
+  },
+  "totpWaRemoved": {
+    "message": "生体認証を解除しました"
+  },
+  "waEnrollDesc": {
+    "message": "生体認証（Windows Hello / Touch ID）をこの端末に登録します。認証してください。"
+  },
+  "waUnlockDesc": {
+    "message": "生体認証（Windows Hello / Touch ID）でロックを解除します。認証してください。"
+  },
+  "waAuthenticate": {
+    "message": "認証する"
+  },
+  "waClose": {
+    "message": "閉じる"
+  },
+  "waDone": {
+    "message": "完了しました。このウィンドウは自動的に閉じます。"
+  },
+  "waErrCancelled": {
+    "message": "認証がキャンセルされました。もう一度お試しください。"
+  },
+  "waErrPrfUnsupported": {
+    "message": "この端末/ブラウザは生体認証（PRF）に対応していません。パスフレーズをご利用ください。"
+  },
+  "waErrLocked": {
+    "message": "先にパスフレーズでアンロックしてから登録してください。"
+  },
+  "waErrNoWebauthn": {
+    "message": "生体認証が登録されていません。"
+  },
+  "waErrUnavailable": {
+    "message": "この環境では生体認証を利用できません。パスフレーズをご利用ください。"
+  },
+  "waErrGeneric": {
+    "message": "認証に失敗しました。もう一度お試しください。"
   }
 }

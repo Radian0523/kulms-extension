@@ -711,6 +711,36 @@
     document.getElementById("totp-unlock-input").placeholder = t("totpPpPlaceholder");
     document.getElementById("totp-unlock-btn").textContent = t("totpUnlock");
     document.getElementById("totp-locked-delete-btn").textContent = t("totpDelete");
+    document.getElementById("totp-wa-add-btn").textContent = t("totpWaAdd");
+    document.getElementById("totp-wa-remove-btn").textContent = t("totpWaRemove");
+    document.getElementById("totp-wa-unlock-btn").textContent = t("totpWaUnlock");
+
+    // 生体認証(WebAuthn)の儀式は別ウィンドウ(totp-unlock.html)で行う。
+    // action ポップアップは Hello ダイアログのフォーカス喪失で閉じるため。
+    function openWebauthnWindow(waAction) {
+      try {
+        chrome.windows.create({
+          url: chrome.runtime.getURL("totp-unlock.html?action=" + waAction),
+          type: "popup",
+          width: 440,
+          height: 360,
+        });
+      } catch (e) { /* noop */ }
+    }
+    document.getElementById("totp-wa-add-btn").addEventListener("click", function () {
+      openWebauthnWindow("enroll");
+    });
+    document.getElementById("totp-wa-unlock-btn").addEventListener("click", function () {
+      openWebauthnWindow("unlock");
+    });
+    document.getElementById("totp-wa-remove-btn").addEventListener("click", function () {
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-webauthn-remove" }, function () {
+          showRefreshToast(t("totpWaRemoved"));
+          refreshTotpState();
+        });
+      } catch (e) { /* context invalidated */ }
+    });
 
     // --- Passphrase UI: handlers ---
     var ppSetRow = document.getElementById("totp-pp-setrow");
@@ -1039,27 +1069,41 @@
     var exists = !!(status && status.exists);
     var mode = status && status.mode;
     var locked = !!(status && status.locked);
+    var methods = (status && status.methods) || {};
+    var hasWa = !!methods.webauthn;
+    var waAvail = !!window.PublicKeyCredential;
 
     var configured = document.getElementById("totp-configured");
     var unconfigured = document.getElementById("totp-unconfigured");
     var lockedBlock = document.getElementById("totp-locked");
 
-    // 3 状態: 未設定 / ロック中(passphrase) / 設定済み(表示可能)
+    // 3 状態: 未設定 / ロック中(protected) / 設定済み(表示可能)
     configured.style.display = exists && !locked ? "block" : "none";
     lockedBlock.style.display = exists && locked ? "block" : "none";
     unconfigured.style.display = exists ? "none" : "block";
 
-    if (!exists || locked) return;
+    if (exists && locked) {
+      // ロック中: 生体認証が登録済みかつ利用可能なら「生体認証で解錠」を表示
+      document.getElementById("totp-wa-unlock-btn").style.display =
+        hasWa && waAvail ? "" : "none";
+      return;
+    }
+    if (!exists) return;
 
-    // 設定済み表示: モードに応じてパスフレーズ関連ボタンを出し分け
-    var isPp = mode === "passphrase";
-    document.getElementById("totp-pp-protect-btn").style.display = isPp ? "none" : "";
-    document.getElementById("totp-pp-change-btn").style.display = isPp ? "" : "none";
-    document.getElementById("totp-pp-remove-btn").style.display = isPp ? "" : "none";
-    document.getElementById("totp-lock-btn").style.display = isPp ? "" : "none";
-    document.getElementById("totp-autolock-row").style.display = isPp ? "flex" : "none";
+    // 設定済み(アンロック済み): モードに応じてボタンを出し分け
+    var isProtected = mode === "protected";
+    document.getElementById("totp-pp-protect-btn").style.display = isProtected ? "none" : "";
+    document.getElementById("totp-pp-change-btn").style.display = isProtected ? "" : "none";
+    document.getElementById("totp-pp-remove-btn").style.display = isProtected ? "" : "none";
+    document.getElementById("totp-lock-btn").style.display = isProtected ? "" : "none";
+    document.getElementById("totp-autolock-row").style.display = isProtected ? "flex" : "none";
+    // 生体認証: protected かつ WebAuthn 利用可能なときのみ。未登録→追加/登録済→解除
+    document.getElementById("totp-wa-add-btn").style.display =
+      isProtected && waAvail && !hasWa ? "" : "none";
+    document.getElementById("totp-wa-remove-btn").style.display =
+      isProtected && hasWa ? "" : "none";
     document.getElementById("totp-pp-setrow").style.display = "none";
-    document.getElementById("totp-pp-status").textContent = isPp
+    document.getElementById("totp-pp-status").textContent = isProtected
       ? t("totpPpStatusOn")
       : t("totpPpStatusOff");
   }
