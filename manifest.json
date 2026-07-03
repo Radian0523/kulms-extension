@@ -18,7 +18,7 @@
       "128": "icons/icon128.png"
     }
   },
-  "permissions": ["storage", "unlimitedStorage", "scripting", "activeTab"],
+  "permissions": ["storage", "unlimitedStorage", "scripting", "activeTab", "alarms"],
   "host_permissions": ["https://www.k.kyoto-u.ac.jp/*", "https://lms.gakusei.kyoto-u.ac.jp/*", "https://auth.iimc.kyoto-u.ac.jp/*", "https://radian0523.github.io/*"],
   "content_scripts": [
     {

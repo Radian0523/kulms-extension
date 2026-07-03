@@ -568,5 +568,68 @@
   },
   "totpShowCode": {
     "message": "コードを表示"
+  },
+  "totpPpProtect": {
+    "message": "パスフレーズで保護"
+  },
+  "totpPpChange": {
+    "message": "パスフレーズを変更"
+  },
+  "totpPpRemove": {
+    "message": "保護を解除"
+  },
+  "totpLockNow": {
+    "message": "今すぐロック"
+  },
+  "totpPpPlaceholder": {
+    "message": "パスフレーズ"
+  },
+  "totpPpPlaceholder2": {
+    "message": "パスフレーズ（確認）"
+  },
+  "totpPpCancel": {
+    "message": "キャンセル"
+  },
+  "totpAutolockLabel": {
+    "message": "自動ロック（分）"
+  },
+  "totpAutolockNever": {
+    "message": "しない"
+  },
+  "totpLockedText": {
+    "message": "パスフレーズでロックされています。アンロックしてください。"
+  },
+  "totpLockedHint": {
+    "message": "拡張機能のポップアップからパスフレーズでアンロックしてください。"
+  },
+  "totpUnlock": {
+    "message": "アンロック"
+  },
+  "totpUnlocked": {
+    "message": "アンロックしました"
+  },
+  "totpUnlockFailed": {
+    "message": "パスフレーズが違います"
+  },
+  "totpPpTooShort": {
+    "message": "パスフレーズは4文字以上にしてください"
+  },
+  "totpPpMismatch": {
+    "message": "パスフレーズが一致しません"
+  },
+  "totpPpDone": {
+    "message": "パスフレーズを設定しました"
+  },
+  "totpPpRemoved": {
+    "message": "保護を解除しました"
+  },
+  "totpPpError": {
+    "message": "エラーが発生しました"
+  },
+  "totpPpStatusOn": {
+    "message": "保護: パスフレーズあり（PBKDF2 + AES-GCM。暗号鍵は保存されません）"
+  },
+  "totpPpStatusOff": {
+    "message": "保護: 自動（暗号鍵は端末内。OS のディスク暗号化に依存）"
   }
 }

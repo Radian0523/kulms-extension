@@ -320,6 +320,36 @@ body {
   line-height: 1.4;
 }
 
+/* TOTP passphrase */
+.totp-pp {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+.totp-pp-status {
+  font-size: 10px;
+  color: #888;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.totp-pp-setrow { flex-wrap: wrap; gap: 6px; }
+.totp-autolock-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: #666;
+}
+.totp-autolock-row select {
+  font-size: 11px;
+  padding: 2px 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+}
+#totp-locked-text { color: #b26a00; }
+
 /* Section */
 .section { margin-bottom: 6px; }
 
@@ -530,6 +560,11 @@ body {
   .totp-security-note { color: #666; border-color: #444; }
   .totp-btn-qr { background: #3a3a3a; color: #ccc; }
   .totp-btn-qr:hover { background: #444; }
+  .totp-pp { border-color: #444; }
+  .totp-pp-status { color: #888; }
+  .totp-autolock-row { color: #999; }
+  .totp-autolock-row select { background: #333; border-color: #555; color: #e0e0e0; }
+  #totp-locked-text { color: #e0a44d; }
 }
 </style>
 </head>
@@ -568,6 +603,39 @@ body {
           <button class="totp-btn totp-btn-qrgen" id="totp-qrgen-btn">QR</button>
           <button class="totp-btn totp-btn-delete" id="totp-delete-btn"></button>
         </div>
+        <div class="totp-pp" id="totp-pp-area">
+          <div class="totp-pp-status" id="totp-pp-status"></div>
+          <div class="totp-configured-actions">
+            <button class="totp-btn totp-btn-qrgen" id="totp-pp-protect-btn" style="display:none"></button>
+            <button class="totp-btn totp-btn-qrgen" id="totp-pp-change-btn" style="display:none"></button>
+            <button class="totp-btn totp-btn-qrgen" id="totp-lock-btn" style="display:none"></button>
+            <button class="totp-btn totp-btn-delete" id="totp-pp-remove-btn" style="display:none"></button>
+          </div>
+          <div class="totp-input-row totp-pp-setrow" id="totp-pp-setrow" style="display:none">
+            <input type="password" class="totp-input" id="totp-pp-input" autocomplete="new-password" spellcheck="false">
+            <input type="password" class="totp-input" id="totp-pp-input2" autocomplete="new-password" spellcheck="false">
+            <button class="totp-btn totp-btn-save" id="totp-pp-save-btn"></button>
+            <button class="totp-btn totp-btn-qr" id="totp-pp-cancel-btn"></button>
+          </div>
+          <div class="totp-autolock-row" id="totp-autolock-row" style="display:none">
+            <span id="totp-autolock-label"></span>
+            <select id="totp-autolock-select">
+              <option value="5">5</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+              <option value="60">60</option>
+              <option value="0" id="totp-autolock-never"></option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="totp-locked" style="display:none">
+        <div class="totp-status" id="totp-locked-text"></div>
+        <div class="totp-input-row">
+          <input type="password" class="totp-input" id="totp-unlock-input" autocomplete="current-password" spellcheck="false">
+          <button class="totp-btn totp-btn-save" id="totp-unlock-btn"></button>
+        </div>
+        <button class="totp-btn totp-btn-delete" id="totp-locked-delete-btn"></button>
       </div>
       <div id="totp-unconfigured" style="display:none">
         <div class="totp-input-row">

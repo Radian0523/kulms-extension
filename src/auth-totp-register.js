@@ -9,12 +9,13 @@
   // === 登録完了ページの検知（URL チェックより先に行う） ===
   // フォーム送信後のリダイレクトで URL から app=qrsecret が落ちる場合があるため、
   // 「設定が完了しました」テキストの検知を最優先で行う。
-  var pendingSecret = sessionStorage.getItem("kulms-totp-pending-secret");
-  if (pendingSecret && document.body.innerText.includes("\u8A2D\u5B9A\u304C\u5B8C\u4E86\u3057\u307E\u3057\u305F")) {
-    chrome.runtime.sendMessage({ type: "kulms-totp-save", secret: pendingSecret });
-    sessionStorage.removeItem("kulms-totp-pending-secret");
-    console.log("[KULMS] TOTP registration: secret saved after successful registration");
-    return;
+  // 保留シークレットはページの sessionStorage には置かない（平文残留を避けるため）。
+  // 代わりに background の chrome.storage.session（メモリのみ・端末外に出ない）へ
+  // stash し、完了ページでは commit を送るだけにする（stash が無ければ background 側で no-op）。
+  if (document.body.innerText.includes("設定が完了しました")) {
+    chrome.runtime.sendMessage({ type: "kulms-totp-pending-commit" });
+    console.log("[KULMS] TOTP registration: commit sent after successful registration");
+    if (!location.search.includes("app=qrsecret")) return;
   }
 
   // qrsecret ページ以外では QR スキャン・OTP 生成を行わない
@@ -112,7 +113,7 @@
       }
     }
     var match = document.body.innerText.match(
-      /\u30B7\u30FC\u30AF\u30EC\u30C3\u30C8[:\uFF1A\s]*([A-Za-z2-7=]+)/
+      /シークレット[:：\s]*([A-Za-z2-7=]+)/
     );
     if (match) return match[1].replace(/[\s-]/g, "").toUpperCase();
     return null;
@@ -130,8 +131,9 @@
     }
     console.log("[KULMS] TOTP registration: secret obtained");
 
-    // 2. シークレットを sessionStorage に一時保存（登録完了後に正式保存する）
-    sessionStorage.setItem("kulms-totp-pending-secret", secret);
+    // 2. シークレットを background の session（メモリのみ）に一時 stash する。
+    //    登録完了ページで commit されるまで、ページの sessionStorage には残さない。
+    chrome.runtime.sendMessage({ type: "kulms-totp-pending-set", secret: secret });
 
     // 3. TOTP コード生成
     var otp = await generateTOTP(secret);

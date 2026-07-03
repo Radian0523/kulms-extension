@@ -2321,11 +2321,32 @@
           });
       }
 
-      function render(hasSecret) {
+      function refresh() {
+        totpMessage("kulms-totp-status", null, function (status) {
+          render(status || { exists: false });
+        });
+      }
+
+      function render(status) {
         clearTotpTimer();
         body.innerHTML = "";
-        if (hasSecret) renderConfigured();
+        var exists = !!(status && status.exists);
+        var locked = !!(status && status.locked);
+        if (exists && locked) renderLocked();
+        else if (exists) renderConfigured();
         else renderUnconfigured();
+      }
+
+      function renderLocked() {
+        body.appendChild(el("div", "kulms-totp-status", t("totpLockedText")));
+        body.appendChild(el("div", "kulms-totp-note", t("totpLockedHint")));
+        var actions = el("div", "kulms-totp-actions");
+        var delBtn = btn("kulms-totp-btn kulms-totp-btn-danger", t("totpDelete"));
+        actions.appendChild(delBtn);
+        body.appendChild(actions);
+        delBtn.addEventListener("click", function () {
+          totpMessage("kulms-totp-delete", null, function () { refresh(); });
+        });
       }
 
       function renderConfigured() {
@@ -2360,7 +2381,7 @@
           }
           totpMessage("kulms-totp-load", null, function (resp) {
             var secret = resp && resp.secret;
-            if (!secret) { render(false); return; }
+            if (!secret) { refresh(); return; }
             codeBox.style.display = "";
             function upd() {
               generateTOTP(secret).then(function (code) {
@@ -2384,7 +2405,7 @@
           }
           totpMessage("kulms-totp-load", null, function (resp) {
             var secret = resp && resp.secret;
-            if (!secret) { render(false); return; }
+            if (!secret) { refresh(); return; }
             if (typeof qrcode !== "function") {
               qrBox.textContent = "QR";
               qrBox.style.display = "";
@@ -2409,7 +2430,7 @@
 
         delBtn.addEventListener("click", function () {
           clearTotpTimer();
-          totpMessage("kulms-totp-delete", null, function () { render(false); });
+          totpMessage("kulms-totp-delete", null, function () { refresh(); });
         });
       }
 
@@ -2446,13 +2467,11 @@
             errEl.style.display = "";
             return;
           }
-          totpMessage("kulms-totp-save", { secret: cleaned }, function () { render(true); });
+          totpMessage("kulms-totp-save", { secret: cleaned }, function () { refresh(); });
         });
       }
 
-      totpMessage("kulms-totp-has", null, function (resp) {
-        render(!!(resp && resp.exists));
-      });
+      refresh();
     }
 
     // ========================================

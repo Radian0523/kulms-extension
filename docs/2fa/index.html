@@ -242,10 +242,16 @@ a:hover{text-decoration:underline}
     <h3>シークレットキーの保存先</h3>
     <p>TOTP シークレットキーは、各プラットフォームのセキュアストレージに暗号化して保存されます。「コードを表示」や「QR」ボタンで表示される際は、その場で復号されて表示されます。</p>
     <ul>
-      <li><strong>ブラウザ拡張機能</strong> — <code>chrome.storage.local</code> に AES-256-GCM で暗号化して保存。暗号鍵は IndexedDB に保持（非抽出）。</li>
-      <li><strong>iOS</strong> — iOS Keychain（OS 管理の暗号化）</li>
+      <li><strong>ブラウザ拡張機能</strong> — AES-256-GCM で暗号化して IndexedDB に保存します。保護レベルは2種類から選べます。
+        <ul>
+          <li><strong>自動モード（既定）</strong> — 暗号鍵を端末内（IndexedDB、非抽出）に保持し、操作なしで自動入力します。手軽な一方、暗号鍵が端末内にあるため、保護は最終的に <strong>OS のディスク暗号化（FileVault / BitLocker 等）と OS のユーザー分離に依存</strong>します。ブラウザ拡張という仕組み上、iOS/Android のようなハードウェア鍵ストアは利用できません。</li>
+          <li><strong>パスフレーズモード（任意・推奨）</strong> — 設定したパスフレーズから <strong>PBKDF2（SHA-256・60万回）で暗号鍵を導出</strong>し、<strong>鍵自体は一切保存しません</strong>（端末に残るのは salt・IV・暗号文のみ）。パスフレーズを知らなければ、端末のデータを丸ごと取得されても復号できません。アンロックはブラウザのセッションごとに1回で、以降は自動入力が働きます（一定時間で自動ロック）。導出鍵はアンロック中のみメモリ（<code>chrome.storage.session</code>）に保持され、ブラウザ終了で消えます。</li>
+        </ul>
+      </li>
+      <li><strong>iOS</strong> — iOS Keychain（OS 管理・ハードウェア保護の暗号化）</li>
       <li><strong>Android</strong> — Android Keystore + SharedPreferences（AES-256-GCM、ハードウェア管理鍵）</li>
     </ul>
+    <p class="totp-note">パスフレーズは端末外にもKULMS+の開発者にも送信されません。忘れると保存済みシークレットは復号できなくなるため、その場合は多要素認証設定ページから再登録してください。</p>
   </div>
 
   <div class="card notice">
@@ -290,7 +296,7 @@ a:hover{text-decoration:underline}
     <p>KULMS+ は以下の方針でシークレットキーを安全に管理しています。</p>
     <ul>
       <li><strong>端末内完結</strong> — シークレットキーは端末内のセキュアストレージにのみ保存され、KULMS+ の開発者サーバーを含む外部サーバーには一切送信されません。</li>
-      <li><strong>暗号化保存</strong> — ブラウザ拡張機能では AES-256-GCM 暗号化、iOS では Keychain、Android では Keystore + AES-256-GCM でハードウェアレベルの保護がかかります。</li>
+      <li><strong>暗号化保存</strong> — いずれのプラットフォームでも AES-256-GCM で暗号化して保存します。iOS（Keychain）・Android（Keystore）ではハードウェアレベルの鍵保護がかかります。ブラウザ拡張機能はハードウェア鍵ストアを持たないため、既定（自動モード）の保護は OS のディスク暗号化に依存します。より強い保護が必要な場合は <strong>パスフレーズモード</strong>（PBKDF2 で鍵を導出し鍵を保存しない）を有効化できます。詳しくは上の「シークレットキーの保存先」をご覧ください。</li>
       <li><strong>標準プロトコル</strong> — OTP の生成は RFC 6238（TOTP）に準拠しており、独自の認証処理は一切行っていません。</li>
       <li><strong>オープンソース</strong> — ソースコードは <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub で公開</a>されており、動作を誰でも確認できます。</li>
     </ul>

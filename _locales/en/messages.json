@@ -568,5 +568,68 @@
   },
   "totpShowCode": {
     "message": "Show code"
+  },
+  "totpPpProtect": {
+    "message": "Protect with passphrase"
+  },
+  "totpPpChange": {
+    "message": "Change passphrase"
+  },
+  "totpPpRemove": {
+    "message": "Remove protection"
+  },
+  "totpLockNow": {
+    "message": "Lock now"
+  },
+  "totpPpPlaceholder": {
+    "message": "Passphrase"
+  },
+  "totpPpPlaceholder2": {
+    "message": "Passphrase (confirm)"
+  },
+  "totpPpCancel": {
+    "message": "Cancel"
+  },
+  "totpAutolockLabel": {
+    "message": "Auto-lock (min)"
+  },
+  "totpAutolockNever": {
+    "message": "Never"
+  },
+  "totpLockedText": {
+    "message": "Locked with a passphrase. Please unlock."
+  },
+  "totpLockedHint": {
+    "message": "Unlock with your passphrase from the extension popup."
+  },
+  "totpUnlock": {
+    "message": "Unlock"
+  },
+  "totpUnlocked": {
+    "message": "Unlocked"
+  },
+  "totpUnlockFailed": {
+    "message": "Wrong passphrase"
+  },
+  "totpPpTooShort": {
+    "message": "Passphrase must be at least 4 characters"
+  },
+  "totpPpMismatch": {
+    "message": "Passphrases do not match"
+  },
+  "totpPpDone": {
+    "message": "Passphrase set"
+  },
+  "totpPpRemoved": {
+    "message": "Protection removed"
+  },
+  "totpPpError": {
+    "message": "An error occurred"
+  },
+  "totpPpStatusOn": {
+    "message": "Protection: passphrase (PBKDF2 + AES-GCM; key is not stored)"
+  },
+  "totpPpStatusOff": {
+    "message": "Protection: automatic (key stored on device; relies on OS disk encryption)"
   }
 }

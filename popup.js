@@ -696,12 +696,120 @@
       }
     });
 
-    // Load current state
+    // --- Passphrase UI: i18n ---
+    document.getElementById("totp-pp-protect-btn").textContent = t("totpPpProtect");
+    document.getElementById("totp-pp-change-btn").textContent = t("totpPpChange");
+    document.getElementById("totp-pp-remove-btn").textContent = t("totpPpRemove");
+    document.getElementById("totp-lock-btn").textContent = t("totpLockNow");
+    document.getElementById("totp-pp-input").placeholder = t("totpPpPlaceholder");
+    document.getElementById("totp-pp-input2").placeholder = t("totpPpPlaceholder2");
+    document.getElementById("totp-pp-save-btn").textContent = t("totpSave");
+    document.getElementById("totp-pp-cancel-btn").textContent = t("totpPpCancel");
+    document.getElementById("totp-autolock-label").textContent = t("totpAutolockLabel");
+    document.getElementById("totp-autolock-never").textContent = t("totpAutolockNever");
+    document.getElementById("totp-locked-text").textContent = t("totpLockedText");
+    document.getElementById("totp-unlock-input").placeholder = t("totpPpPlaceholder");
+    document.getElementById("totp-unlock-btn").textContent = t("totpUnlock");
+    document.getElementById("totp-locked-delete-btn").textContent = t("totpDelete");
+
+    // --- Passphrase UI: handlers ---
+    var ppSetRow = document.getElementById("totp-pp-setrow");
+    var ppInput = document.getElementById("totp-pp-input");
+    var ppInput2 = document.getElementById("totp-pp-input2");
+    var ppSaveBtn = document.getElementById("totp-pp-save-btn");
+    var autolockSelect = document.getElementById("totp-autolock-select");
+    var unlockInput = document.getElementById("totp-unlock-input");
+    var unlockBtn = document.getElementById("totp-unlock-btn");
+
+    function openPpSetRow() {
+      ppInput.value = ""; ppInput2.value = "";
+      ppSetRow.style.display = "flex";
+      ppInput.focus();
+    }
+    function closePpSetRow() {
+      ppInput.value = ""; ppInput2.value = "";
+      ppSetRow.style.display = "none";
+    }
+
+    document.getElementById("totp-pp-protect-btn").addEventListener("click", openPpSetRow);
+    document.getElementById("totp-pp-change-btn").addEventListener("click", openPpSetRow);
+    document.getElementById("totp-pp-cancel-btn").addEventListener("click", closePpSetRow);
+
+    ppSaveBtn.addEventListener("click", function () {
+      var p1 = ppInput.value;
+      var p2 = ppInput2.value;
+      if (!p1 || p1.length < 4) { showRefreshToast(t("totpPpTooShort")); return; }
+      if (p1 !== p2) { showRefreshToast(t("totpPpMismatch")); return; }
+      ppSaveBtn.disabled = true;
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-set-passphrase", passphrase: p1 }, function (r) {
+          ppSaveBtn.disabled = false;
+          if (r && r.ok) { closePpSetRow(); showRefreshToast(t("totpPpDone")); refreshTotpState(); }
+          else { showRefreshToast(t("totpPpError")); }
+        });
+      } catch (e) { ppSaveBtn.disabled = false; }
+    });
+
+    document.getElementById("totp-pp-remove-btn").addEventListener("click", function () {
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-remove-passphrase" }, function (r) {
+          if (r && r.ok) { showRefreshToast(t("totpPpRemoved")); refreshTotpState(); }
+          else { showRefreshToast(t("totpPpError")); }
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+
+    document.getElementById("totp-lock-btn").addEventListener("click", function () {
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-lock" }, function () {
+          if (totpDebugTimer) { clearInterval(totpDebugTimer); totpDebugTimer = null; }
+          document.getElementById("totp-debug").style.display = "none";
+          document.getElementById("totp-qr-display").style.display = "none";
+          document.getElementById("totp-qr-canvas").innerHTML = "";
+          refreshTotpState();
+        });
+      } catch (e) { /* context invalidated */ }
+    });
+
+    unlockBtn.addEventListener("click", function () {
+      var p = unlockInput.value;
+      if (!p) return;
+      unlockBtn.disabled = true;
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-unlock", passphrase: p }, function (r) {
+          unlockBtn.disabled = false;
+          unlockInput.value = "";
+          if (r && r.ok) { showRefreshToast(t("totpUnlocked")); refreshTotpState(); }
+          else { showRefreshToast(t("totpUnlockFailed")); }
+        });
+      } catch (e) { unlockBtn.disabled = false; }
+    });
+    unlockInput.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") unlockBtn.click();
+    });
+
+    document.getElementById("totp-locked-delete-btn").addEventListener("click", function () {
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-delete" }, function () { refreshTotpState(); });
+      } catch (e) { /* context invalidated */ }
+    });
+
+    autolockSelect.addEventListener("change", function () {
+      var minutes = parseInt(autolockSelect.value, 10);
+      try {
+        chrome.runtime.sendMessage({ type: "kulms-totp-set-autolock", minutes: minutes }, function () {});
+      } catch (e) { /* context invalidated */ }
+    });
+
+    // 自動ロック設定の初期値を反映
     try {
-      chrome.runtime.sendMessage({ type: "kulms-totp-has" }, function (response) {
-        renderTotpState(!!(response && response.exists));
+      chrome.runtime.sendMessage({ type: "kulms-totp-get-autolock" }, function (r) {
+        if (r && typeof r.minutes === "number") autolockSelect.value = String(r.minutes);
       });
     } catch (e) { /* context invalidated */ }
+
+    // Load current state
+    refreshTotpState();
 
     // Input validation
     input.addEventListener("input", function () {
@@ -719,7 +827,7 @@
         chrome.runtime.sendMessage({ type: "kulms-totp-save", secret: cleaned }, function () {
           input.value = "";
           saveBtn.disabled = true;
-          renderTotpState(true);
+          refreshTotpState();
         });
       } catch (e) { /* context invalidated */ }
     });
@@ -764,7 +872,7 @@
           document.getElementById("totp-debug").style.display = "none";
           document.getElementById("totp-qr-display").style.display = "none";
           document.getElementById("totp-qr-canvas").innerHTML = "";
-          renderTotpState(false);
+          refreshTotpState();
         });
       } catch (e) { /* context invalidated */ }
     });
@@ -919,15 +1027,40 @@
     return null;
   }
 
-  function renderTotpState(hasSecret) {
+  function refreshTotpState() {
+    try {
+      chrome.runtime.sendMessage({ type: "kulms-totp-status" }, function (status) {
+        renderTotpState(status || { exists: false });
+      });
+    } catch (e) { /* context invalidated */ }
+  }
+
+  function renderTotpState(status) {
+    var exists = !!(status && status.exists);
+    var mode = status && status.mode;
+    var locked = !!(status && status.locked);
+
     var configured = document.getElementById("totp-configured");
     var unconfigured = document.getElementById("totp-unconfigured");
-    if (hasSecret) {
-      configured.style.display = "block";
-      unconfigured.style.display = "none";
-    } else {
-      configured.style.display = "none";
-      unconfigured.style.display = "block";
-    }
+    var lockedBlock = document.getElementById("totp-locked");
+
+    // 3 状態: 未設定 / ロック中(passphrase) / 設定済み(表示可能)
+    configured.style.display = exists && !locked ? "block" : "none";
+    lockedBlock.style.display = exists && locked ? "block" : "none";
+    unconfigured.style.display = exists ? "none" : "block";
+
+    if (!exists || locked) return;
+
+    // 設定済み表示: モードに応じてパスフレーズ関連ボタンを出し分け
+    var isPp = mode === "passphrase";
+    document.getElementById("totp-pp-protect-btn").style.display = isPp ? "none" : "";
+    document.getElementById("totp-pp-change-btn").style.display = isPp ? "" : "none";
+    document.getElementById("totp-pp-remove-btn").style.display = isPp ? "" : "none";
+    document.getElementById("totp-lock-btn").style.display = isPp ? "" : "none";
+    document.getElementById("totp-autolock-row").style.display = isPp ? "flex" : "none";
+    document.getElementById("totp-pp-setrow").style.display = "none";
+    document.getElementById("totp-pp-status").textContent = isPp
+      ? t("totpPpStatusOn")
+      : t("totpPpStatusOff");
   }
 })();

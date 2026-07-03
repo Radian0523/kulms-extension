@@ -555,9 +555,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 const TOTP_DB_NAME = "kulms-totp-db";
 const TOTP_DB_STORE = "keys";
-const TOTP_KEY_ID = "totp-aes-key";
-const TOTP_SECRET_ID = "totp-secret"; // { data, iv }
+const TOTP_KEY_ID = "totp-aes-key"; // auto モードの CryptoKey(非抽出)
+const TOTP_SECRET_ID = "totp-secret"; // auto: { mode, data, iv } / passphrase: { mode, data, iv, salt, iterations }
 const TOTP_LEGACY_CIPHER_KEY = "kulms-totp-encrypted"; // 旧: chrome.storage.local
+
+// passphrase モード(PBKDF2 → AES-256-GCM)の定数
+const TOTP_PBKDF2_ITERATIONS = 600000; // OWASP 2023 推奨水準
+const TOTP_PBKDF2_HASH = "SHA-256";
+const TOTP_SALT_BYTES = 16;
+const TOTP_IV_BYTES = 12;
+
+// アンロック中の導出鍵キャッシュ(メモリのみ)と自動ロック
+const TOTP_SESSION_KEY = "kulms-totp-skey"; // chrome.storage.session: 導出鍵の生バイト(base64)
+const TOTP_PENDING_KEY = "kulms-totp-pending"; // chrome.storage.session: 登録中の保留シークレット(平文, メモリのみ)
+const TOTP_AUTOLOCK_ALARM = "kulms-totp-autolock";
+const TOTP_AUTOLOCK_SETTING = "kulms-totp-autolock-min"; // chrome.storage.local: 分
+const TOTP_AUTOLOCK_DEFAULT_MIN = 30; // 0 = ブラウザ終了まで保持
 
 function openTotpDB() {
   return new Promise((resolve, reject) => {
@@ -619,8 +632,12 @@ function idbDelete(db, id) {
   });
 }
 
-// シークレットを保存: 鍵(なければ新規生成)と暗号文を同一トランザクションで書き込む。
-async function saveTotpSecret(plaintext) {
+function totpRecordMode(rec) {
+  return (rec && rec.mode) || "auto"; // mode 無し(旧レコード)は auto 扱い
+}
+
+// auto モードで保存: CryptoKey(なければ生成)と暗号文を同一トランザクションで書き込む。
+async function saveTotpSecretAuto(plaintext) {
   await ensureTotpPersistence();
   const db = await openTotpDB();
   try {
@@ -635,58 +652,121 @@ async function saveTotpSecret(plaintext) {
     const enc = await encryptSecret(key, plaintext);
     await idbPutAll(db, [
       [TOTP_KEY_ID, key],
-      [TOTP_SECRET_ID, enc],
+      [TOTP_SECRET_ID, { mode: "auto", data: enc.data, iv: enc.iv }],
     ]);
-    // 新スキームに保存できたら旧 chrome.storage.local の暗号文は不要
     await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
   } finally {
     db.close();
   }
 }
 
-// シークレットを読み出す。復号できない(=鍵入れ替わり/破損)場合は、
-// 死んだ暗号文を自動的に削除して null を返す。これにより popup は「未設定」に戻り、
-// 無言ロックアウトではなく再登録へ誘導される。
-async function loadTotpSecret() {
+// シークレット保存のエントリポイント。現行モードに応じて分岐する。
+// passphrase モードでは、アンロック済み(session 鍵)か passphrase 指定が必要。
+async function saveTotpSecret(plaintext, passphrase) {
+  const db = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+
+  if (rec && totpRecordMode(rec) === "passphrase") {
+    let rawKey = await getSessionKey();
+    if (!rawKey && passphrase) {
+      rawKey = await deriveRawKey(
+        passphrase,
+        b64ToBytes(rec.salt),
+        rec.iterations || TOTP_PBKDF2_ITERATIONS
+      );
+    }
+    if (!rawKey) return { ok: false, error: "locked" };
+    const enc = await encryptWithRawKey(rawKey, plaintext);
+    await ensureTotpPersistence();
+    const db2 = await openTotpDB();
+    try {
+      await idbPutAll(db2, [
+        [
+          TOTP_SECRET_ID,
+          {
+            mode: "passphrase",
+            data: enc.data,
+            iv: enc.iv,
+            salt: rec.salt,
+            iterations: rec.iterations || TOTP_PBKDF2_ITERATIONS,
+          },
+        ],
+      ]);
+    } finally {
+      db2.close();
+    }
+    await setSessionKey(rawKey); // 保存直後はアンロック維持＋自動ロック再スケジュール
+    return { ok: true };
+  }
+
+  await saveTotpSecretAuto(plaintext);
+  return { ok: true };
+}
+
+// シークレットを読み出す。{ secret, mode, locked } を返す。
+// passphrase モードで未アンロックなら secret=null, locked=true。
+// auto モードで復号不能(=鍵入れ替わり/破損)なら死んだ暗号文を掃除して secret=null。
+async function loadTotpSecretDetailed() {
   await ensureTotpPersistence();
   const db = await openTotpDB();
   try {
-    const key = await idbGet(db, TOTP_KEY_ID);
-    let rec = await idbGet(db, TOTP_SECRET_ID);
+    const rec = await idbGet(db, TOTP_SECRET_ID);
 
-    // 旧スキーム(chrome.storage.local)からの移行
+    // 旧スキーム(chrome.storage.local, auto 相当)からの移行
     if (!rec) {
       const legacy = (await chrome.storage.local.get(TOTP_LEGACY_CIPHER_KEY))[
         TOTP_LEGACY_CIPHER_KEY
       ];
-      if (!legacy) return null;
+      if (!legacy) return { secret: null, mode: null, locked: false };
+      const key = await idbGet(db, TOTP_KEY_ID);
       if (key) {
         try {
           const secret = await decryptSecret(key, legacy.data, legacy.iv);
-          // 復号できたので新スキームへ移行し、旧データを掃除
-          await idbPutAll(db, [[TOTP_SECRET_ID, legacy]]);
+          await idbPutAll(db, [
+            [TOTP_SECRET_ID, { mode: "auto", data: legacy.data, iv: legacy.iv }],
+          ]);
           await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
-          return secret;
+          return { secret, mode: "auto", locked: false };
         } catch (e) {
           /* 復号不能 → 下で掃除 */
         }
       }
-      // 鍵が無い or 復号不能 → 復元不可能な死んだ暗号文。掃除して再登録へ。
       await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
-      return null;
+      return { secret: null, mode: null, locked: false };
     }
 
+    const mode = totpRecordMode(rec);
+
+    if (mode === "passphrase") {
+      const rawKey = await getSessionKey();
+      if (!rawKey) return { secret: null, mode, locked: true };
+      try {
+        const secret = await decryptWithRawKey(rawKey, rec.data, rec.iv);
+        return { secret, mode, locked: false };
+      } catch (e) {
+        // session 鍵が古い/不整合 → ロック状態に戻す(暗号文は保持=再アンロック可能)
+        await clearSessionKey();
+        return { secret: null, mode, locked: true };
+      }
+    }
+
+    // auto モード
+    const key = await idbGet(db, TOTP_KEY_ID);
     if (!key) {
       await idbDelete(db, TOTP_SECRET_ID);
-      return null;
+      return { secret: null, mode: "auto", locked: false };
     }
-
     try {
-      return await decryptSecret(key, rec.data, rec.iv);
+      const secret = await decryptSecret(key, rec.data, rec.iv);
+      return { secret, mode: "auto", locked: false };
     } catch (e) {
-      // AES-GCM OperationError 等: 鍵と暗号文の不整合。自己修復のため暗号文を削除。
       await idbDelete(db, TOTP_SECRET_ID);
-      return null;
+      return { secret: null, mode: "auto", locked: false };
     }
   } finally {
     db.close();
@@ -697,10 +777,262 @@ async function deleteTotpSecret() {
   const db = await openTotpDB();
   try {
     await idbDelete(db, TOTP_SECRET_ID);
+    await idbDelete(db, TOTP_KEY_ID);
   } finally {
     db.close();
   }
   await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
+  await clearSessionKey();
+}
+
+// TOTP の状態を返す: { exists, mode, locked }
+async function totpStatus() {
+  const db = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+  if (!rec) {
+    const legacy = (await chrome.storage.local.get(TOTP_LEGACY_CIPHER_KEY))[
+      TOTP_LEGACY_CIPHER_KEY
+    ];
+    if (legacy) return { exists: true, mode: "auto", locked: false };
+    return { exists: false, mode: null, locked: false };
+  }
+  const mode = totpRecordMode(rec);
+  if (mode === "passphrase") {
+    const rawKey = await getSessionKey();
+    return { exists: true, mode, locked: !rawKey };
+  }
+  // auto: 復号可否まで含めて判定(死んだ暗号文は loadTotpSecretDetailed が掃除)
+  const d = await loadTotpSecretDetailed();
+  return { exists: !!d.secret, mode: "auto", locked: false };
+}
+
+// === passphrase モードの鍵導出・暗号化 ===
+
+function bytesToB64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+function b64ToBytes(b64) {
+  return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+}
+
+// PBKDF2 でパスフレーズ + salt から生の 256bit 鍵を導出する。
+async function deriveRawKey(passphrase, saltBytes, iterations) {
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt: saltBytes, iterations, hash: TOTP_PBKDF2_HASH },
+    baseKey,
+    256
+  );
+  return new Uint8Array(bits);
+}
+
+async function importAesKey(rawKey) {
+  return crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, [
+    "encrypt",
+    "decrypt",
+  ]);
+}
+
+async function encryptWithRawKey(rawKey, plaintext) {
+  const key = await importAesKey(rawKey);
+  const iv = crypto.getRandomValues(new Uint8Array(TOTP_IV_BYTES));
+  const cipherBuffer = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    new TextEncoder().encode(plaintext)
+  );
+  return { data: bytesToB64(cipherBuffer), iv: bytesToB64(iv) };
+}
+
+async function decryptWithRawKey(rawKey, dataB64, ivB64) {
+  const key = await importAesKey(rawKey);
+  const plainBuffer = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64ToBytes(ivB64) },
+    key,
+    b64ToBytes(dataB64)
+  );
+  return new TextDecoder().decode(plainBuffer);
+}
+
+// パスフレーズで保護に切替 / パスフレーズ変更。現在のシークレットが取得できる
+// (auto モード or アンロック済み)必要がある。
+async function setPassphrase(passphrase) {
+  if (!passphrase) return { ok: false, error: "empty" };
+  const cur = await loadTotpSecretDetailed();
+  if (!cur.secret) {
+    return { ok: false, error: cur.locked ? "locked" : "no-secret" };
+  }
+  await ensureTotpPersistence();
+  const salt = crypto.getRandomValues(new Uint8Array(TOTP_SALT_BYTES));
+  const rawKey = await deriveRawKey(passphrase, salt, TOTP_PBKDF2_ITERATIONS);
+  const enc = await encryptWithRawKey(rawKey, cur.secret);
+  const db = await openTotpDB();
+  try {
+    await idbPutAll(db, [
+      [
+        TOTP_SECRET_ID,
+        {
+          mode: "passphrase",
+          data: enc.data,
+          iv: enc.iv,
+          salt: bytesToB64(salt),
+          iterations: TOTP_PBKDF2_ITERATIONS,
+        },
+      ],
+    ]);
+    await idbDelete(db, TOTP_KEY_ID); // auto の CryptoKey は不要
+  } finally {
+    db.close();
+  }
+  await chrome.storage.local.remove(TOTP_LEGACY_CIPHER_KEY);
+  await setSessionKey(rawKey); // 設定直後はアンロック状態
+  return { ok: true };
+}
+
+// パスフレーズ保護を解除して auto モードへ戻す。
+async function removePassphrase(passphrase) {
+  let secret = null;
+  const cur = await loadTotpSecretDetailed();
+  if (cur.secret) {
+    secret = cur.secret;
+  } else if (cur.locked && passphrase) {
+    const u = await unlockPassphrase(passphrase);
+    if (!u.ok) return { ok: false, error: "wrong-passphrase" };
+    const cur2 = await loadTotpSecretDetailed();
+    secret = cur2.secret;
+  }
+  if (!secret) return { ok: false, error: "locked" };
+  await saveTotpSecretAuto(secret); // {mode:"auto"} + 新規 CryptoKey
+  await clearSessionKey();
+  return { ok: true };
+}
+
+// パスフレーズでアンロック: 導出鍵で復号を試み、成功したら session にキャッシュ。
+async function unlockPassphrase(passphrase) {
+  if (!passphrase) return { ok: false, error: "empty" };
+  const db = await openTotpDB();
+  let rec;
+  try {
+    rec = await idbGet(db, TOTP_SECRET_ID);
+  } finally {
+    db.close();
+  }
+  if (!rec || totpRecordMode(rec) !== "passphrase") {
+    return { ok: false, error: "not-passphrase" };
+  }
+  const rawKey = await deriveRawKey(
+    passphrase,
+    b64ToBytes(rec.salt),
+    rec.iterations || TOTP_PBKDF2_ITERATIONS
+  );
+  try {
+    // AES-GCM の認証タグが検証子。誤パスフレーズなら例外。
+    await decryptWithRawKey(rawKey, rec.data, rec.iv);
+  } catch (e) {
+    return { ok: false, error: "wrong-passphrase" };
+  }
+  await setSessionKey(rawKey);
+  return { ok: true };
+}
+
+// === セッション鍵キャッシュ & 自動ロック ===
+
+async function getAutolockMinutes() {
+  const v = (await chrome.storage.local.get(TOTP_AUTOLOCK_SETTING))[
+    TOTP_AUTOLOCK_SETTING
+  ];
+  return typeof v === "number" && v >= 0 ? v : TOTP_AUTOLOCK_DEFAULT_MIN;
+}
+
+async function scheduleAutolock() {
+  try {
+    await chrome.alarms.clear(TOTP_AUTOLOCK_ALARM);
+    const min = await getAutolockMinutes();
+    if (min > 0) chrome.alarms.create(TOTP_AUTOLOCK_ALARM, { delayInMinutes: min });
+  } catch (e) {
+    /* alarms 非対応環境では自動ロックなし(session はブラウザ終了で消える) */
+  }
+}
+
+async function setSessionKey(rawKey) {
+  try {
+    await chrome.storage.session.set({ [TOTP_SESSION_KEY]: bytesToB64(rawKey) });
+  } catch (e) {
+    /* session 非対応環境では都度アンロックになる */
+  }
+  await scheduleAutolock();
+}
+
+async function getSessionKey() {
+  try {
+    const b64 = (await chrome.storage.session.get(TOTP_SESSION_KEY))[
+      TOTP_SESSION_KEY
+    ];
+    return b64 ? b64ToBytes(b64) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function clearSessionKey() {
+  try {
+    await chrome.storage.session.remove(TOTP_SESSION_KEY);
+  } catch (e) {
+    /* noop */
+  }
+  try {
+    await chrome.alarms.clear(TOTP_AUTOLOCK_ALARM);
+  } catch (e) {
+    /* noop */
+  }
+}
+
+if (chrome.alarms && chrome.alarms.onAlarm) {
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm && alarm.name === TOTP_AUTOLOCK_ALARM) clearSessionKey();
+  });
+}
+
+// === 登録フローの保留シークレット(メモリのみ) ===
+// 京大の登録ページで読み取ったシークレットを、登録完了ページに遷移するまで
+// chrome.storage.session に保持する。ページの sessionStorage に平文を置かないための橋渡し。
+async function setPendingSecret(secret) {
+  try {
+    await chrome.storage.session.set({ [TOTP_PENDING_KEY]: secret });
+  } catch (e) {
+    /* noop */
+  }
+}
+
+async function commitPendingSecret() {
+  let pending = null;
+  try {
+    pending = (await chrome.storage.session.get(TOTP_PENDING_KEY))[TOTP_PENDING_KEY];
+  } catch (e) {
+    /* noop */
+  }
+  if (!pending) return { ok: false, error: "no-pending" };
+  const r = await saveTotpSecret(pending);
+  // 保存できた場合のみ保留を破棄する(passphrase ロック中などは保留を残して再試行可能に)。
+  if (r && r.ok) {
+    try {
+      await chrome.storage.session.remove(TOTP_PENDING_KEY);
+    } catch (e) {
+      /* noop */
+    }
+  }
+  return r;
 }
 
 async function encryptSecret(key, plaintext) {
@@ -728,21 +1060,70 @@ async function decryptSecret(key, data, iv) {
   return new TextDecoder().decode(plainBuffer);
 }
 
+// 送信元の検証。onMessage は本拡張自身のコンテキスト(注入したコンテンツスクリプト＋
+// 拡張ページ)からしか届かない(externally_connectable 未設定)が、多層防御として
+// 許可オリジンを明示する: 拡張自身のページ(popup 等)と、本拡張がコンテンツスクリプトを
+// 注入している京大ドメイン(認証ページと LMS)のみ。それ以外(host_permissions だけ持つ
+// www.k / github.io など)は拒否する。
+function isAllowedTotpSender(sender) {
+  if (!sender) return false;
+  const url = sender.url || "";
+  if (url.startsWith(chrome.runtime.getURL(""))) return true; // popup / 拡張ページ
+  if (
+    sender.tab &&
+    (url.startsWith("https://auth.iimc.kyoto-u.ac.jp/") ||
+      url.startsWith("https://lms.gakusei.kyoto-u.ac.jp/"))
+  ) {
+    return true; // auth-totp*.js / assignments.js(LMS 内の設定UI)
+  }
+  return false;
+}
+
 // TOTP メッセージハンドラ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || !message.type || !message.type.startsWith("kulms-totp-")) return false;
+
+  if (!isAllowedTotpSender(sender)) {
+    sendResponse({ error: "forbidden" });
+    return true;
+  }
 
   (async () => {
     try {
       switch (message.type) {
         case "kulms-totp-save": {
-          await saveTotpSecret(message.secret);
+          sendResponse(await saveTotpSecret(message.secret, message.passphrase));
+          break;
+        }
+        case "kulms-totp-pending-set": {
+          await setPendingSecret(message.secret);
           sendResponse({ ok: true });
           break;
         }
+        case "kulms-totp-pending-commit": {
+          sendResponse(await commitPendingSecret());
+          break;
+        }
         case "kulms-totp-load": {
-          const secret = await loadTotpSecret();
-          sendResponse({ secret: secret || null });
+          const d = await loadTotpSecretDetailed();
+          sendResponse({ secret: d.secret || null, mode: d.mode, locked: !!d.locked });
+          break;
+        }
+        case "kulms-totp-unlock": {
+          sendResponse(await unlockPassphrase(message.passphrase));
+          break;
+        }
+        case "kulms-totp-lock": {
+          await clearSessionKey();
+          sendResponse({ ok: true });
+          break;
+        }
+        case "kulms-totp-set-passphrase": {
+          sendResponse(await setPassphrase(message.passphrase));
+          break;
+        }
+        case "kulms-totp-remove-passphrase": {
+          sendResponse(await removePassphrase(message.passphrase));
           break;
         }
         case "kulms-totp-delete": {
@@ -750,12 +1131,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ ok: true });
           break;
         }
-        case "kulms-totp-has": {
-          // 復号可否まで含めて判定する。復号できない死んだ暗号文は
-          // loadTotpSecret が自動削除するため、ここで false を返せば
-          // popup は「未設定」に戻り再登録へ誘導される（無言ロックアウト防止）。
-          const secret = await loadTotpSecret();
-          sendResponse({ exists: !!secret });
+        case "kulms-totp-has":
+        case "kulms-totp-status": {
+          sendResponse(await totpStatus());
+          break;
+        }
+        case "kulms-totp-set-autolock": {
+          const min = Number(message.minutes);
+          await chrome.storage.local.set({
+            [TOTP_AUTOLOCK_SETTING]:
+              isFinite(min) && min >= 0 ? min : TOTP_AUTOLOCK_DEFAULT_MIN,
+          });
+          if (await getSessionKey()) await scheduleAutolock();
+          sendResponse({ ok: true });
+          break;
+        }
+        case "kulms-totp-get-autolock": {
+          sendResponse({ minutes: await getAutolockMinutes() });
           break;
         }
         default:
