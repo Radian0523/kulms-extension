@@ -50,6 +50,7 @@
 
   var params = new URLSearchParams(location.search);
   var action = params.get("action") === "enroll" ? "enroll" : "unlock";
+  var autoAttempt = params.get("auto") === "1";
 
   titleEl.textContent = t("extName", "KULMS+");
   descEl.textContent =
@@ -154,7 +155,7 @@
     return ["waErrGeneric", "認証に失敗しました。もう一度お試しください。"];
   }
 
-  async function run() {
+  async function run(isAuto) {
     runBtn.disabled = true;
     statusEl.textContent = "";
     statusEl.className = "";
@@ -164,6 +165,14 @@
       showOk();
       setTimeout(function () { window.close(); }, 1200);
     } catch (e) {
+      // 自動起動でジェスチャ必須により弾かれた場合はボタン起点へ切替(エラー扱いしない)
+      if (isAuto && e && e.name === "NotAllowedError") {
+        runBtn.disabled = false;
+        runBtn.style.display = "";
+        statusEl.textContent = t("waTapToAuth", "「認証する」を押してください。");
+        statusEl.className = "";
+        return;
+      }
       var m = mapError(e);
       showError(m[0], m[1]);
     }
@@ -172,6 +181,10 @@
   if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.create) {
     showError("waErrUnavailable", "この環境では生体認証を利用できません。パスフレーズをご利用ください。");
   } else {
-    runBtn.addEventListener("click", run);
+    runBtn.addEventListener("click", function () { run(false); });
+    // ログインページからの自動起動: 可能なら即座に生体認証を試みる
+    if (autoAttempt && action === "unlock") {
+      run(true);
+    }
   }
 })();

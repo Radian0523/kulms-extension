@@ -653,6 +653,9 @@
   "waAuthenticate": {
     "message": "認証する"
   },
+  "waTapToAuth": {
+    "message": "「認証する」を押してください。"
+  },
   "waClose": {
     "message": "閉じる"
   },

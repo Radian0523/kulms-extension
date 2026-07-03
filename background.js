@@ -1327,6 +1327,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ ok: true });
           break;
         }
+        case "kulms-totp-open-unlock": {
+          // ログインページから: 生体認証の解錠ウィンドウを自動で開く。
+          try {
+            await chrome.windows.create({
+              url: chrome.runtime.getURL("totp-unlock.html?action=unlock&auto=1"),
+              type: "popup",
+              width: 440,
+              height: 360,
+            });
+            sendResponse({ ok: true });
+          } catch (e) {
+            sendResponse({ ok: false, error: e.message });
+          }
+          break;
+        }
         case "kulms-totp-delete": {
           await deleteTotpSecret();
           sendResponse({ ok: true });

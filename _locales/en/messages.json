@@ -653,6 +653,9 @@
   "waAuthenticate": {
     "message": "Authenticate"
   },
+  "waTapToAuth": {
+    "message": "Please click “Authenticate”."
+  },
   "waClose": {
     "message": "Close"
   },
