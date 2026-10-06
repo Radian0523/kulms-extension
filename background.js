@@ -478,11 +478,14 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
 
 // メッセージハンドラ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action !== "fetchTextbooks") return false;
+  if (!message || message.action !== "fetchTextbooks") return false;
 
-  const courseName = message.courseName;
-  const siteId = String(message.siteId || "").trim();
-  const lectureCode = String(message.lectureCode || "").trim().toUpperCase();
+  // 文字列でない項目は空として扱う（String() も、toString が関数でない
+  // オブジェクトでは例外を投げる）
+  const text = (value) => (typeof value === "string" ? value : "");
+  const courseName = text(message.courseName);
+  const siteId = text(message.siteId).trim();
+  const lectureCode = text(message.lectureCode).trim().toUpperCase();
   if (!courseName && !lectureCode) {
     sendResponse({ books: [] });
     return false;
@@ -730,7 +733,7 @@ async function decryptSecret(key, data, iv) {
 
 // TOTP メッセージハンドラ
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || !message.type || !message.type.startsWith("kulms-totp-")) return false;
+  if (!message || typeof message.type !== "string" || !message.type.startsWith("kulms-totp-")) return false;
 
   (async () => {
     try {
