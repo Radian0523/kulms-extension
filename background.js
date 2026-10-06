@@ -559,6 +559,60 @@ const TOTP_KEY_ID = "totp-aes-key";
 const TOTP_SECRET_ID = "totp-secret"; // { data, iv }
 const TOTP_LEGACY_CIPHER_KEY = "kulms-totp-encrypted"; // 旧: chrome.storage.local
 
+// --- TOTP コードの計算（RFC 6238: HMAC-SHA-1、30 秒、6 桁） ---
+// ログインページにはシークレットを渡さず、ここで計算したコードだけを渡す。
+
+const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+function base32Decode(input) {
+  const cleaned = input.replace(/[\s-]/g, "").replace(/=+$/, "").toUpperCase();
+  if (!cleaned) return null;
+  const output = [];
+  let buffer = 0;
+  let bitsLeft = 0;
+  for (let i = 0; i < cleaned.length; i++) {
+    const idx = BASE32_ALPHABET.indexOf(cleaned[i]);
+    if (idx < 0) return null;
+    buffer = (buffer << 5) | idx;
+    bitsLeft += 5;
+    if (bitsLeft >= 8) {
+      bitsLeft -= 8;
+      output.push((buffer >> bitsLeft) & 0xff);
+    }
+  }
+  return new Uint8Array(output);
+}
+
+// 時刻 now（ミリ秒）のコード。シークレットをデコードできないときは null
+async function generateTotpCode(secret, now) {
+  const key = base32Decode(secret);
+  if (!key || key.length === 0) return null;
+  const counter = Math.floor(now / 1000 / 30);
+  const counterBytes = new ArrayBuffer(8);
+  const view = new DataView(counterBytes);
+  view.setUint32(0, Math.floor(counter / 0x100000000), false);
+  view.setUint32(4, counter & 0xffffffff, false);
+  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "HMAC", hash: "SHA-1" }, false, ["sign"]);
+  const hmac = new Uint8Array(await crypto.subtle.sign("HMAC", cryptoKey, counterBytes));
+  // Dynamic Truncation (RFC 4226)
+  const offset = hmac[19] & 0x0f;
+  const code =
+    ((hmac[offset] & 0x7f) << 24) |
+    (hmac[offset + 1] << 16) |
+    (hmac[offset + 2] << 8) |
+    hmac[offset + 3];
+  return String(code % 1000000).padStart(6, "0");
+}
+
+// 送信元が京大の認証ページ（auth.iimc）の content script か
+function isFromAuthPage(sender) {
+  try {
+    return !!sender.tab && new URL(sender.url).host === "auth.iimc.kyoto-u.ac.jp";
+  } catch {
+    return false;
+  }
+}
+
 function openTotpDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(TOTP_DB_NAME, 1);
@@ -741,8 +795,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           break;
         }
         case "kulms-totp-load": {
+          // 認証ページの content script にはシークレットを渡さない（自動入力は
+          // kulms-totp-code でコードだけを受け取り、登録補助は保存するだけ）
+          if (isFromAuthPage(sender)) {
+            sendResponse({ error: "not allowed" });
+            break;
+          }
           const secret = await loadTotpSecret();
           sendResponse({ secret: secret || null });
+          break;
+        }
+        case "kulms-totp-code": {
+          const secret = await loadTotpSecret();
+          sendResponse({ code: secret ? await generateTotpCode(secret, Date.now()) : null });
           break;
         }
         case "kulms-totp-delete": {
