@@ -92,13 +92,19 @@ async function fetchSakaiSiteContact(siteId) {
     const html = await htmlRes.text();
 
     // <th>サイト連絡先・メール</th> ... <td> 教員名, <a href="mailto:..."> ...
-    // 教員名はカンマ or '<' の手前まで
-    const m = html.match(
-      /サイト連絡先[・･\u30FB]?メール[\s\S]*?<td[^>]*>\s*([^,<\n]+?)\s*(?:,|<)/
-    );
-    if (!m) return null;
-    const name = m[1].trim();
-    if (!name || /<|>/.test(name)) return null;
+    // 教員名は、見出しの後の最初の <td> の中の、カンマ or '<' の手前まで。
+    // 1 本の正規表現で探すと、<td> の後に空白が長く続くとき、空白の取り合いで
+    // 入力長の 3 乗の時間がかかる（4,000 字で約 20 秒）ため、位置を順に探して切り出す
+    const heading = html.search(/サイト連絡先[・･\u30FB]?メール/);
+    if (heading < 0) return null;
+    const td = html.indexOf("<td", heading);
+    const cellStart = td < 0 ? -1 : html.indexOf(">", td);
+    if (cellStart < 0) return null;
+    const cell = html.slice(cellStart + 1);
+    const cellEnd = cell.search(/[,<]/);
+    if (cellEnd < 0) return null;
+    const name = cell.slice(0, cellEnd).trim();
+    if (!name || /[<>\n]/.test(name)) return null;
     return name;
   } catch (e) {
     console.warn("[KULMS] fetchSakaiSiteContact error:", e.message);
