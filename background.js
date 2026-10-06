@@ -348,6 +348,41 @@ async function disambiguateByTeacher(candidates, options) {
   return found || null;
 }
 
+// HTML の文字参照（&amp; &lt; &#12354; &#x3042; など）をデコードする。1 つずつ順に置き換えると、
+// &amp;lt; が &lt; を経て < になってしまうため、すべての参照を 1 回で置き換える。
+// Shift_JIS にない文字は数値文字参照で書かれるので、数値文字参照もデコードする
+const NAMED_CHARACTER_REFERENCES = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+
+function decodeCharacterReferences(text) {
+  return text.replace(/&(?:#(\d+)|#[xX]([\da-fA-F]+)|([A-Za-z]+));/g, (ref, dec, hex, name) => {
+    if (name) {
+      // 知らない名前の参照は、そのまま残す
+      return Object.prototype.hasOwnProperty.call(NAMED_CHARACTER_REFERENCES, name)
+        ? NAMED_CHARACTER_REFERENCES[name]
+        : ref;
+    }
+    const code = dec ? Number(dec) : parseInt(hex, 16);
+    // 0、サロゲート、範囲外の数値は、これまでどおり捨てる
+    if (!(code > 0 && code <= 0x10ffff) || (code >= 0xd800 && code <= 0xdfff)) return "";
+    return String.fromCodePoint(code);
+  });
+}
+
+// HTML タグを空白に置き換える。最後の > より後ろはタグにならないので、正規表現に渡さない
+// （閉じない < が長く続くと、/<[^>]+>/g は入力長の 2 乗の時間がかかる）
+function stripTags(html) {
+  const end = html.lastIndexOf(">") + 1;
+  return html.slice(0, end).replace(/<[^>]+>/g, " ") + html.slice(end);
+}
+
+// 末尾から、chars に当てはまる文字を取り除く
+// （/[...]+$/ は、その文字が途中に長く続くと入力長の 2 乗の時間がかかる）
+function trimTrailing(str, chars) {
+  let end = str.length;
+  while (end > 0 && chars.test(str[end - 1])) end--;
+  return str.slice(0, end);
+}
+
 // シラバス詳細ページから教科書・参考書情報を抽出
 async function fetchSyllabusDetail(lectureNo, departmentNo) {
   const url = departmentNo
@@ -362,18 +397,12 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
   // 複数のパターンで走査する
 
   // HTMLタグを除去してプレーンテキスト化（セクション区切りを保持）
-  const text = html
+  const marked = html
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(?:div|p|tr|td|th|li|h[1-6])>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&#\d+;/g, "")
-    .replace(/[ \t]+/g, " ");
+    .replace(/<\/(?:div|p|tr|td|th|li|h[1-6])>/gi, "\n");
+  const text = decodeCharacterReferences(stripTags(marked)).replace(/[ \t]+/g, " ");
 
   // セクション見出しで教科書/参考書を判定し、エントリを解析
   // シラバスHTML構造:
@@ -430,15 +459,20 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
     }
 
     // 『書名』パターン: 著者『書名』(出版社)
-    const bracketMatch = line.match(/^(.*?)\u300E(.+?)\u300F/);
-    if (bracketMatch) {
-      author = bracketMatch[1]
+    // （/^(.*?)『(.+?)』/ は、』の無い行で入力長の 2 乗の時間がかかるため、位置で探す）
+    const bracketOpen = line.indexOf("\u300E");
+    const bracketClose = bracketOpen < 0 ? -1 : line.indexOf("\u300F", bracketOpen + 2);
+    if (bracketClose >= 0) {
+      author = line
+        .slice(0, bracketOpen)
         .replace(/[,、]\s*$/, "")
         .trim();
-      title = bracketMatch[2].trim();
+      title = line.slice(bracketOpen + 1, bracketClose).trim();
 
-      // 出版社: (xxx) or （xxx）
-      const pubMatch = line.match(/[\uFF08(]([^\uFF09)]+)[\uFF09)]/);
+      // 出版社: (xxx) or （xxx）。最後の閉じ括弧より後ろでは一致しないので探さない
+      // （閉じない括弧が長く続くと、入力長の 2 乗の時間がかかる）
+      const lastClose = Math.max(line.lastIndexOf(")"), line.lastIndexOf("\uFF09"));
+      const pubMatch = line.slice(0, lastClose + 1).match(/[\uFF08(]([^\uFF09)]+)[\uFF09)]/);
       if (pubMatch) {
         publisher = pubMatch[1]
           .replace(/[、,]\s*\d{4}\u5E74?/, "") // 年を除去
@@ -446,11 +480,12 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
       }
     } else {
       // 『』がない場合はフォールバック: 行全体から情報を抽出
-      title = line
-        .replace(/ISBN[:\s{}-]*[\d-]+/gi, "")
-        .replace(/\d{4}\u5E74?$/g, "")
-        .replace(/[\s,\u3001;\uFF1B]+$/g, "")
-        .trim();
+      title = trimTrailing(
+        line
+          .replace(/ISBN[:\s{}-]*[\d-]+/gi, "")
+          .replace(/\d{4}\u5E74?$/g, ""),
+        /[\s,\u3001;\uFF1B]/
+      ).trim();
 
       const pubFallback = line.match(
         /[,\u3001]\s*([^,\u3001]+?(?:\u793E|\u51FA\u7248|\u66F8[\u5E97\u9662\u623F]|\u30D7\u30EC\u30B9|Press|Publishing|University Press))/i
