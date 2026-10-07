@@ -565,7 +565,9 @@ const TOTP_LEGACY_CIPHER_KEY = "kulms-totp-encrypted"; // 旧: chrome.storage.lo
 const BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 function base32Decode(input) {
-  const cleaned = input.replace(/[\s-]/g, "").replace(/=+$/, "").toUpperCase();
+  // 末尾の = を取る。= の連なりの途中からは始めないよう、その前の 1 字と一緒に一致させる
+  // （/=+$/ は、= が途中に長く続くと、その一つ一つから探し直して入力長の 2 乗の時間がかかる）
+  const cleaned = input.replace(/[\s-]/g, "").replace(/(^|[^=])=+$/, "$1").toUpperCase();
   if (!cleaned) return null;
   const output = [];
   let buffer = 0;
