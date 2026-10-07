@@ -225,11 +225,14 @@ async function searchSyllabus(keyword, options) {
   // テーブル行単位で lectureNo, departmentNo, 科目名を抽出
   // 検索結果の構造:
   //   <tr><td>科目名</td><td>教員</td>...<td><a href="department_syllabus?lectureNo=XXX&departmentNo=YY"><img/></a></td></tr>
-  const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi;
+  // 閉じない <tr> からは、残りを丸ごと一致させて探すのをやめる（その先に </tr> は
+  // 無いので、後ろの <tr> も閉じない。</tr> だけを探すと、閉じない <tr> が長く続く
+  // とき、その一つ一つから末尾まで探し直して入力長の 2 乗の時間がかかる）
+  const rowRe = /<tr(?:[^>]*>([\s\S]*?)<\/tr>|[\s\S]*)/gi;
   const results = [];
   const seen = new Set();
   let rm;
-  while ((rm = rowRe.exec(html)) !== null) {
+  while ((rm = rowRe.exec(html)) !== null && rm[1] !== undefined) {
     const rowHtml = rm[1];
     const lectureMatch = rowHtml.match(
       /(?:department_syllabus|la_syllabus)\?lectureNo=(\d+)(?:&(?:amp;)?departmentNo=(\d+))?/
@@ -240,12 +243,13 @@ async function searchSyllabus(keyword, options) {
     if (seen.has(lectureNo)) continue;
     seen.add(lectureNo);
 
-    // <td> セルのテキスト内容を抽出（imgタグ等を除去）
-    const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi;
+    // <td> セルのテキスト内容を抽出（imgタグ等を除去）。閉じない <td> と < は、
+    // <tr> と同じく残りを丸ごと一致させて、探し直さない
+    const tdRe = /<td(?:[^>]*>([\s\S]*?)<\/td>|[\s\S]*)/gi;
     const cells = [];
     let td;
-    while ((td = tdRe.exec(rowHtml)) !== null) {
-      const text = td[1].replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    while ((td = tdRe.exec(rowHtml)) !== null && td[1] !== undefined) {
+      const text = td[1].replace(/<[^>]+(?:>|$)/g, (m) => (m.endsWith(">") ? "" : m)).replace(/\s+/g, " ").trim();
       if (text && text.length > 1) cells.push(text);
     }
 
@@ -368,11 +372,11 @@ function decodeCharacterReferences(text) {
   });
 }
 
-// HTML タグを空白に置き換える。最後の > より後ろはタグにならないので、正規表現に渡さない
-// （閉じない < が長く続くと、/<[^>]+>/g は入力長の 2 乗の時間がかかる）
+// HTML タグを空白に置き換える。閉じない < からは、残りを丸ごと一致させてそのまま返す
+// （その先に > は無いので、後ろの < もタグにならない。/<[^>]+>/g は、閉じない < が
+// 長く続くと、その一つ一つから末尾まで探し直して入力長の 2 乗の時間がかかる）
 function stripTags(html) {
-  const end = html.lastIndexOf(">") + 1;
-  return html.slice(0, end).replace(/<[^>]+>/g, " ") + html.slice(end);
+  return html.replace(/<[^>]+(?:>|$)/g, (m) => (m.endsWith(">") ? " " : m));
 }
 
 // 末尾から、chars に当てはまる文字を取り除く
@@ -397,9 +401,12 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
   // 複数のパターンで走査する
 
   // HTMLタグを除去してプレーンテキスト化（セクション区切りを保持）
+  // 閉じない <style> と <script> は、残りを丸ごと一致させてそのまま返す（その先に
+  // 閉じタグは無いので、後ろのものも閉じない。閉じタグまでの遅延一致だけでは、
+  // 閉じないものが長く続くと、その一つ一つから末尾まで探し直して 2 乗の時間がかかる）
   const marked = html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style(?:([^>]*>[\s\S]*?<\/style>)|[\s\S]*)/gi, (m, closed) => (closed === undefined ? m : ""))
+    .replace(/<script(?:([^>]*>[\s\S]*?<\/script>)|[\s\S]*)/gi, (m, closed) => (closed === undefined ? m : ""))
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(?:div|p|tr|td|th|li|h[1-6])>/gi, "\n");
   const text = decodeCharacterReferences(stripTags(marked)).replace(/[ \t]+/g, " ");
@@ -469,11 +476,12 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
         .trim();
       title = line.slice(bracketOpen + 1, bracketClose).trim();
 
-      // 出版社: (xxx) or （xxx）。最後の閉じ括弧より後ろでは一致しないので探さない
-      // （閉じない括弧が長く続くと、入力長の 2 乗の時間がかかる）
-      const lastClose = Math.max(line.lastIndexOf(")"), line.lastIndexOf("\uFF09"));
-      const pubMatch = line.slice(0, lastClose + 1).match(/[\uFF08(]([^\uFF09)]+)[\uFF09)]/);
-      if (pubMatch) {
+      // 出版社: (xxx) or （xxx）。閉じない括弧からは、残りを丸ごと一致させて探すのを
+      // やめる（その先に閉じ括弧は無いので、後ろの括弧も閉じない。閉じ括弧だけを
+      // 探すと、閉じない括弧が長く続くとき、その一つ一つから末尾まで探し直して入力長の
+      // 2 乗の時間がかかる）
+      const pubMatch = line.match(/[\uFF08(](?:([^\uFF09)]+)[\uFF09)]|[^\uFF09)]*$)/);
+      if (pubMatch && pubMatch[1] !== undefined) {
         publisher = pubMatch[1]
           .replace(/[、,]\s*\d{4}\u5E74?/, "") // 年を除去
           .trim();
@@ -487,11 +495,15 @@ async function fetchSyllabusDetail(lectureNo, departmentNo) {
         /[\s,\u3001;\uFF1B]/
       ).trim();
 
+      // 区切りの後の空白と出版社名が空白を取り合わないよう、出版社名は空白でない文字
+      // から始める。区切りの後の空白の直後に出版社の語があるときだけは、これまでどおり
+      // 最後の空白 1 字を含めて取る（空白の連なりと出版社名の先頭を取り合うと、空白が
+      // 長く続くとき入力長の 2 乗の時間がかかる）
       const pubFallback = line.match(
-        /[,\u3001]\s*([^,\u3001]+?(?:\u793E|\u51FA\u7248|\u66F8[\u5E97\u9662\u623F]|\u30D7\u30EC\u30B9|Press|Publishing|University Press))/i
+        /[,\u3001](?:\s*([^,\u3001\s][^,\u3001]*?(?:\u793E|\u51FA\u7248|\u66F8[\u5E97\u9662\u623F]|\u30D7\u30EC\u30B9|Press|Publishing|University Press))|\s*(\s(?:\u793E|\u51FA\u7248|\u66F8[\u5E97\u9662\u623F]|\u30D7\u30EC\u30B9|Press|Publishing|University Press)))/i
       );
       if (pubFallback) {
-        publisher = pubFallback[1].trim();
+        publisher = (pubFallback[1] !== undefined ? pubFallback[1] : pubFallback[2]).trim();
         title = title.replace(publisher, "").replace(/[,\u3001]\s*$/, "").trim();
       }
     }
