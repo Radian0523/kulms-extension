@@ -7,7 +7,7 @@
   if (window.__kulmsSettings && window.__kulmsSettings.textbooks === false) return;
 
   const TEXTBOOK_CACHE_KEY = "kulms-textbooks-v3";
-  // キャッシュは無期限 (更新ボタンで手動リフレッシュ)
+  // キャッシュは学期内は無期限 (更新ボタンで手動リフレッシュ)、学期が変わると取り直す
   const BASE_URL = window.location.origin;
 
   function extractLectureCodeFromSiteId(siteId) {
@@ -66,15 +66,45 @@
     });
   }
 
+  // --- 学期判定 ---
+  // 科目名の先頭 [2026前期水２] から年度・学期を読み、今の学期の科目だけ残す。
+  // 京大の年度は4月始まりで、前期は4〜9月、後期は10〜翌3月。
+  var TERM_RE = /^\s*\[(\d{4})(前期|後期|通年)?/;
+
+  function getCurrentTerm() {
+    var now = new Date();
+    var month = now.getMonth() + 1;
+    var year = month >= 4 ? now.getFullYear() : now.getFullYear() - 1;
+    return { year: year, term: month >= 4 && month <= 9 ? "前期" : "後期" };
+  }
+
+  function getCurrentTermKey() {
+    var cur = getCurrentTerm();
+    return cur.year + cur.term;
+  }
+
+  function isCurrentTermCourse(name) {
+    var m = String(name || "").match(TERM_RE);
+    // 年度表記のないサイト（プロジェクトサイト等）は判定できないので残す
+    if (!m) return true;
+    var cur = getCurrentTerm();
+    if (parseInt(m[1], 10) !== cur.year) return false;
+    // 通年・集中など前期/後期以外は同じ年度なら残す
+    return !m[2] || m[2] === "通年" || m[2] === cur.term;
+  }
+
   async function getCourses() {
+    var courses = [];
     // APIを優先
     try {
-      var courses = await fetchCoursesFromAPI();
-      if (courses.length > 0) return courses;
-    } catch (e) {
+      courses = await fetchCoursesFromAPI();
+    } catch {
       // fallthrough to DOM
     }
-    return extractCoursesFromDOM();
+    if (courses.length === 0) courses = extractCoursesFromDOM();
+    return courses.filter(function (c) {
+      return isCurrentTermCourse(c.name);
+    });
   }
 
   // --- キャッシュ ---
@@ -83,7 +113,8 @@
     return new Promise((resolve) => {
       window.__kulmsSafeStorage.get(TEXTBOOK_CACHE_KEY, (result) => {
         const cached = result[TEXTBOOK_CACHE_KEY];
-        if (cached && cached.data) {
+        // 学期が変わったら（または学期情報のない古いキャッシュは）取り直す
+        if (cached && cached.data && cached.term === getCurrentTermKey()) {
           resolve(cached.data);
         } else {
           resolve(null);
@@ -94,7 +125,7 @@
 
   function saveCache(data) {
     window.__kulmsSafeStorage.set({
-      [TEXTBOOK_CACHE_KEY]: { timestamp: Date.now(), data: data },
+      [TEXTBOOK_CACHE_KEY]: { timestamp: Date.now(), term: getCurrentTermKey(), data: data },
     });
   }
 
