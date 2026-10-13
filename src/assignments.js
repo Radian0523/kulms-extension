@@ -2971,12 +2971,63 @@
     }
   }
 
+  // --- 他のタブとの同期 ---
+
+  // 完了チェック・削除済み・メモは、タブごとにメモリへ読み込み、変更のたびに
+  // 全体を保存する。他のタブが保存した変更をメモリに取り込まないまま保存すると、
+  // その変更を古い内容で上書きして消してしまうため、保存されるたびに取り込む。
+  function applyStoredState(values) {
+    var applied = false;
+    if (CHECKED_KEY in values) {
+      checkedState = values[CHECKED_KEY] || {};
+      applied = true;
+    }
+    if (DISMISSED_KEY in values) {
+      dismissedState = values[DISMISSED_KEY] || {};
+      applied = true;
+    }
+    if (MEMO_KEY in values) {
+      memos = values[MEMO_KEY] || [];
+      applied = true;
+    }
+    if (!applied) return;
+
+    // 表示中の一覧も描き直す。ただし読み込み中と、メモの入力中
+    // （描き直すと入力した内容が消える）は、次に描くときに任せる
+    if (!panelEl || !panelEl.classList.contains("open") || currentView !== "assignments" || isLoading) return;
+    var memoForm = contentEl && contentEl.querySelector(".kulms-memo-form");
+    if (memoForm && memoForm.style.display !== "none") return;
+    renderAssignments(lastAssignments);
+    colorSidebarTabs(lastAssignments);
+  }
+
+  function watchStoredState() {
+    try {
+      chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area !== "local") return;
+        var values = {};
+        [CHECKED_KEY, DISMISSED_KEY, MEMO_KEY].forEach(function (key) {
+          if (changes[key]) values[key] = changes[key].newValue;
+        });
+        applyStoredState(values);
+      });
+    } catch { /* extension context invalidated */ }
+    // バックフォワードキャッシュから戻ったページは、その間の変更を受け取っていないので読み直す
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted) {
+        window.__kulmsSafeStorage.get([CHECKED_KEY, DISMISSED_KEY, MEMO_KEY], applyStoredState);
+      }
+    });
+  }
+
   // --- 初期化 ---
 
   async function init() {
     if (window !== window.top) return;
     await window.__kulmsSettingsReady;
     textbooksEnabled = (window.__kulmsSettings || {}).textbooks !== false;
+    // 読み込みより先に監視を始め、読み込み中に他のタブが保存した変更も取りこぼさない
+    watchStoredState();
     await loadCheckedState();
     await loadMemos();
     await loadDismissedState();
