@@ -549,6 +549,35 @@
     window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checkedState });
   }
 
+  // submit-detect.js が sessionStorage に残した提出キーを消費し、
+  // checkedState に反映して即座に完了表示にする。提出クリック直後の
+  // ページ遷移で chrome.storage への非同期書き込みが失われるのを避け、
+  // 同期で書ける sessionStorage を信頼できる経路として使う。
+  function consumePendingSubmissions() {
+    var ids = [];
+    try {
+      ids = JSON.parse(sessionStorage.getItem("kulms-submitted-ids") || "[]");
+    } catch (e) {
+      ids = [];
+    }
+    var flag = sessionStorage.getItem("kulms-submitted");
+    if (!ids.length && !flag) return Promise.resolve(false);
+    sessionStorage.removeItem("kulms-submitted");
+    sessionStorage.removeItem("kulms-submitted-ids");
+    return loadCheckedState().then(function () {
+      var changed = false;
+      ids.forEach(function (id) {
+        // 既存の値("active"=ユーザーが未完了に戻した 等)は上書きしない
+        if (id && !checkedState[id]) {
+          checkedState[id] = Date.now();
+          changed = true;
+        }
+      });
+      if (changed) saveCheckedState();
+      return loadAssignments(true);
+    });
+  }
+
   function getCheckedKey(assignment) {
     if (assignment.entityId) return assignment.entityId;
     return assignment.courseId + ":" + assignment.name;
@@ -640,14 +669,19 @@
       var entry = dismissedState[key];
       var ts = typeof entry === "number" ? entry : (entry && entry.dismissedAt) || 0;
       if (now - ts > expiry) {
-        // メモも完全削除
         if (entry && entry.type === "memo" && entry._memoId) {
+          // メモは拡張の中にしか無いので、メモごと完全削除
           memos = memos.filter(function (m) {
             return normalizeMemo(m).id !== entry._memoId;
           });
+          delete dismissedState[key];
+          changed = true;
+        } else if (entry && typeof entry === "object") {
+          // 課題・クイズは LMS に残り続けるので、記録を消すと一覧に戻ってしまう。
+          // 削除済みセクションには出ない、削除日時だけの記録にして隠し続ける
+          dismissedState[key] = ts || now;
+          changed = true;
         }
-        delete dismissedState[key];
-        changed = true;
       }
     });
     if (changed) {
@@ -2937,12 +2971,63 @@
     }
   }
 
+  // --- 他のタブとの同期 ---
+
+  // 完了チェック・削除済み・メモは、タブごとにメモリへ読み込み、変更のたびに
+  // 全体を保存する。他のタブが保存した変更をメモリに取り込まないまま保存すると、
+  // その変更を古い内容で上書きして消してしまうため、保存されるたびに取り込む。
+  function applyStoredState(values) {
+    var applied = false;
+    if (CHECKED_KEY in values) {
+      checkedState = values[CHECKED_KEY] || {};
+      applied = true;
+    }
+    if (DISMISSED_KEY in values) {
+      dismissedState = values[DISMISSED_KEY] || {};
+      applied = true;
+    }
+    if (MEMO_KEY in values) {
+      memos = values[MEMO_KEY] || [];
+      applied = true;
+    }
+    if (!applied) return;
+
+    // 表示中の一覧も描き直す。ただし読み込み中と、メモの入力中
+    // （描き直すと入力した内容が消える）は、次に描くときに任せる
+    if (!panelEl || !panelEl.classList.contains("open") || currentView !== "assignments" || isLoading) return;
+    var memoForm = contentEl && contentEl.querySelector(".kulms-memo-form");
+    if (memoForm && memoForm.style.display !== "none") return;
+    renderAssignments(lastAssignments);
+    colorSidebarTabs(lastAssignments);
+  }
+
+  function watchStoredState() {
+    try {
+      chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area !== "local") return;
+        var values = {};
+        [CHECKED_KEY, DISMISSED_KEY, MEMO_KEY].forEach(function (key) {
+          if (changes[key]) values[key] = changes[key].newValue;
+        });
+        applyStoredState(values);
+      });
+    } catch { /* extension context invalidated */ }
+    // バックフォワードキャッシュから戻ったページは、その間の変更を受け取っていないので読み直す
+    window.addEventListener("pageshow", function (e) {
+      if (e.persisted) {
+        window.__kulmsSafeStorage.get([CHECKED_KEY, DISMISSED_KEY, MEMO_KEY], applyStoredState);
+      }
+    });
+  }
+
   // --- 初期化 ---
 
   async function init() {
     if (window !== window.top) return;
     await window.__kulmsSettingsReady;
     textbooksEnabled = (window.__kulmsSettings || {}).textbooks !== false;
+    // 読み込みより先に監視を始め、読み込み中に他のタブが保存した変更も取りこぼさない
+    watchStoredState();
     await loadCheckedState();
     await loadMemos();
     await loadDismissedState();
@@ -2963,6 +3048,9 @@
       // キャッシュ読み込み失敗時は無視
     }
 
+    // 提出直後（submit-detect.js が sessionStorage に記録）なら即反映
+    consumePendingSubmissions();
+
     if (sessionStorage.getItem("kulms-panel-open") === "1") {
       openPanel();
     }
@@ -2981,13 +3069,9 @@
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState !== "visible") return;
 
-      // 提出フラグがある場合はキャッシュ無効化してリフレッシュ
-      var submittedAt = sessionStorage.getItem("kulms-submitted");
-      if (submittedAt) {
-        sessionStorage.removeItem("kulms-submitted");
-        loadCheckedState().then(function () {
-          loadAssignments(true);
-        });
+      // 提出フラグ(submit-detect.js)があれば消費して即リフレッシュ
+      if (sessionStorage.getItem("kulms-submitted") || sessionStorage.getItem("kulms-submitted-ids")) {
+        consumePendingSubmissions();
         return;
       }
 

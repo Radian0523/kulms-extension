@@ -3,8 +3,17 @@
 (function () {
   "use strict";
 
-  var CHECKED_KEY = "kulms-checked-assignments";
   var detected = false;
+
+  // Sakaiの提出フォームの assignmentId は reference 形式
+  // (/assignment/a/{siteId}/{uuid}) で入る。末尾のUUIDを取り出すと
+  // 課題API の entityId (素のUUID) と一致し、assignments.js の
+  // checkedState のキーと噛み合う。
+  function extractAssignmentUuid(ref) {
+    if (!ref || ref === "$assignmentReference") return "";
+    var parts = ref.split("/").filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : "";
+  }
 
   function detectSubmit() {
     if (detected) return;
@@ -14,55 +23,57 @@
     if (!form) return;
 
     var assignmentIdInput = form.querySelector("[name='assignmentId']");
-    // プレースホルダーの場合はまだ提出ページではない
+    // プレースホルダーのままなら、まだ入力ページ。assignmentId が
+    // 解決されるのは「進める」後の確認ページなので、そこまで待つ。
     if (!assignmentIdInput || assignmentIdInput.value === "$assignmentReference") return;
 
-    // 提出ボタンを探す
+    // 提出(post)ボタンは確認ページにのみ存在する。「進める(confirm)」は
+    // プレビューへ進むだけなので検知対象にしない。
     var postBtn = document.querySelector("[name='post']")
       || document.querySelector("input[name='eventSubmit_doSave_submission']");
     if (!postBtn) return;
 
     detected = true;
 
-    // URLからcourseIdを抽出
+    // URLからcourseIdを抽出（タイトルフォールバック用）
     var courseMatch = location.href.match(/\/portal\/site\/([^\/?#]+)/);
-    if (!courseMatch) return;
-    var courseId = courseMatch[1];
+    var courseId = courseMatch ? courseMatch[1] : "";
 
     postBtn.addEventListener("click", function () {
-      // 提出フラグをsessionStorageに立てる（キャッシュ無効化のトリガー）
-      sessionStorage.setItem("kulms-submitted", Date.now().toString());
+      // 保存キーを決定。entityId(UUID)を最優先。
+      var key = extractAssignmentUuid(assignmentIdInput.value);
 
-      // 課題名を取得してチェック状態に保存
-      window.__kulmsSafeStorage.get(CHECKED_KEY, function (result) {
-        var checked = result[CHECKED_KEY] || {};
-
-        // entityIdを使う（assignmentIdInputの値がentityIdに相当）
-        var entityId = assignmentIdInput ? assignmentIdInput.value : "";
-        if (entityId && entityId !== "$assignmentReference") {
-          checked[entityId] = Date.now();
-          window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checked });
-          return;
-        }
-
-        // フォールバック: ページ上の課題タイトルを取得
+      // フォールバック: UUIDが取れない場合はページ上の課題タイトルでキーを作る
+      if (!key && courseId) {
         var titleEl = document.querySelector(".page-header h3, h3.assignment-title");
         if (!titleEl) {
           var headings = document.querySelectorAll("h3");
           for (var i = 0; i < headings.length; i++) {
             var text = headings[i].textContent.trim();
-            if (text && text !== "" && !text.match(/^\d{4}/) && text.length < 200) {
+            if (text && !text.match(/^\d{4}/) && text.length < 200) {
               titleEl = headings[i];
               break;
             }
           }
         }
-        if (titleEl) {
-          var key = courseId + ":" + titleEl.textContent.trim();
-          checked[key] = Date.now();
-          window.__kulmsSafeStorage.set({ [CHECKED_KEY]: checked });
+        if (titleEl) key = courseId + ":" + titleEl.textContent.trim();
+      }
+
+      // 提出クリックは即フォーム送信→ページ遷移する。chrome.storage は
+      // 非同期で遷移に間に合わないため、同期で書ける sessionStorage に
+      // 提出キーを記録し、遷移先(提出完了ページ)の assignments.js が
+      // 確実に拾って checkedState へ反映する。
+      sessionStorage.setItem("kulms-submitted", Date.now().toString());
+      if (key) {
+        var pending;
+        try {
+          pending = JSON.parse(sessionStorage.getItem("kulms-submitted-ids") || "[]");
+        } catch (e) {
+          pending = [];
         }
-      });
+        if (pending.indexOf(key) === -1) pending.push(key);
+        sessionStorage.setItem("kulms-submitted-ids", JSON.stringify(pending));
+      }
     });
   }
 
