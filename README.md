@@ -45,7 +45,8 @@
 
 ### 4. 教科書パネル
 パネルの「教科書」タブでKULASISシラバスから教科書・参考書情報を取得して表示します。
-- 一度取得したデータはキャッシュされ、次回以降は即表示（手動更新も可能）
+- 今の学期（前期: 4〜9月、後期: 10〜3月）と通年の科目だけを表示
+- 一度取得したデータはキャッシュされ、次回以降は即表示（手動更新も可能、学期が変わると自動で取り直し）
 - 各科目のシラバスページへの直リンク付き
 - Amazonへのリンク付き
 
@@ -216,12 +217,13 @@ kulms-extension/
 
 ## ビルド
 
-`build.sh` でブラウザ別の配布用 ZIP を生成できます（要 `jq`）。
+`build.sh` でブラウザ別の配布用 ZIP を生成できます（要 `jq`）。ZIP と Safari 版には、拡張機能の動作に必要なファイル（`build.sh` の `RESOURCES`）だけが入ります。
 
 ```bash
 ./build.sh chrome   # Chrome / Edge 用 ZIP
 ./build.sh firefox  # Firefox 用 ZIP（manifest に gecko 設定を追加）
-./build.sh all      # 両方生成（デフォルト）
+./build.sh safari   # Safari 版の Resources に同期
+./build.sh all      # すべて実行（デフォルト）
 ```
 
 ## 対応環境

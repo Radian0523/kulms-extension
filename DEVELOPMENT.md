@@ -61,7 +61,7 @@ src/
 ├── course-name.js       # IIFE: 科目名整理 + ピン留めソート + 授業中NOWバッジ
 ├── course-click.js      # IIFE: コース行クリック
 ├── tool-visibility.js   # IIFE: ツール表示管理
-├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携)
+├── textbooks.js         # IIFE: 教科書パネル (background.jsと連携、科目名の [年度学期] で今の学期に絞り込み)
 ├── sidebar-resize.js    # IIFE: サイドバーリサイズ
 ├── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
 ├── grading-ta.js        # IIFE: TA 採点支援 (状態分類・ジャンプ・未採点数・一覧アイコン・未保存ガード)
@@ -100,9 +100,12 @@ chrome.storage → popup.js render() → DOM
 | `kulms-settings` | 全設定値 (機能ON/OFF、閾値、色、言語) |
 | `kulms-assignments` | 課題キャッシュ (TTL 30分) |
 | `kulms-checked-assignments` | チェック済み状態 (`{ entityId: timestamp }`) |
-| `kulms-dismissed-assignments` | 削除済み状態 (`{ key: { dismissedAt, name, ... } }`)。30日で自動パージ |
+| `kulms-dismissed-assignments` | 削除済み状態 (`{ key: { dismissedAt, name, ... } }`)。30日経過で削除日時だけの数値に縮約（メモは完全削除） |
 | `kulms-memos` | メモ一覧 (`[{ id, text, courseId, deadline, ... }]`) |
 | `kulms-prev-assignment-ids` | 前回取得の課題ID一覧 (新着バッジ用) |
+| `kulms-textbooks-v3` | 教科書キャッシュ (`{ timestamp, term, data }`)。`term`（例: `2026後期`）が今の学期と違えば取り直す |
+
+チェック済み・削除済み・メモは各タブがメモリに読み込み、変更のたびに全体を保存する。他のタブの変更を古い内容で上書きしないよう、`chrome.storage.onChanged` で他タブの保存を取り込む（パネル表示中は再描画、ただし読み込み中とメモ入力中は除く）。
 
 ### i18n (多言語対応)
 
@@ -138,7 +141,9 @@ async function loadOverrideMessages(lang) {
 2. **保存**: `dismissedState` にアイテム情報とタイムスタンプを保存
 3. **表示**: 「削除済み」セクション（デフォルト折りたたみ）に打ち消し線で表示
 4. **復元**: 「元に戻す」ボタンでワンクリック復元
-5. **自動パージ**: `loadDismissedState()` 時に30日超のエントリを自動削除。メモの場合は `memos` 配列からも完全削除
+5. **自動パージ**: `loadDismissedState()` 時に30日超のエントリを処理する
+   - メモ: エントリと `memos` 配列の本体を完全削除
+   - 課題・クイズ: LMS に残り続けるため、エントリを消すと一覧に戻ってしまう。削除日時だけの数値に置き換え、削除済みセクション（オブジェクトのエントリのみ表示）からは外しつつ非表示を維持する
 
 ## 直面した技術的課題と解決策
 

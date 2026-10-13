@@ -21,6 +21,8 @@ KULMS+ への貢献を歓迎します。
 - `styles.css` に全機能のスタイルを集約
 - `background.js` はサービスワーカー（シラバス取得など）
 - `_locales/` に i18n メッセージファイル
+- `vendor/` に同梱ライブラリ（jsQR、qrcode-generator）
+- `safari/KULMS+ Extension/Resources/` は `./build.sh safari` で生成される複製なので、直接編集しない
 
 技術詳細は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
 
