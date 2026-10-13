@@ -669,14 +669,19 @@
       var entry = dismissedState[key];
       var ts = typeof entry === "number" ? entry : (entry && entry.dismissedAt) || 0;
       if (now - ts > expiry) {
-        // メモも完全削除
         if (entry && entry.type === "memo" && entry._memoId) {
+          // メモは拡張の中にしか無いので、メモごと完全削除
           memos = memos.filter(function (m) {
             return normalizeMemo(m).id !== entry._memoId;
           });
+          delete dismissedState[key];
+          changed = true;
+        } else if (entry && typeof entry === "object") {
+          // 課題・クイズは LMS に残り続けるので、記録を消すと一覧に戻ってしまう。
+          // 削除済みセクションには出ない、削除日時だけの記録にして隠し続ける
+          dismissedState[key] = ts || now;
+          changed = true;
         }
-        delete dismissedState[key];
-        changed = true;
       }
     });
     if (changed) {
