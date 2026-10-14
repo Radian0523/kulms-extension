@@ -76,6 +76,9 @@
         </div>
         <div class="slide-shot"><picture><source srcset="images/avif/assignments.avif" type="image/avif"><img src="images/png/assignments.png" width="1280" height="1052" alt="課題一覧パネルのスクリーンショット"></picture></div>
       </div>
+      <!-- 2 枚目からの画像は loading="lazy" で、スライドが近づいてから読み込む。Edge はこのとき
+           コンソールに info の案内（Images loaded lazily and replaced with placeholders. …）を
+           出すが、意図どおりの動作である -->
       <div class="slide">
         <div class="slide-text">
           <h3>ポップアップ課題一覧</h3>
@@ -184,11 +187,11 @@
       <li>右上ハンバーガーメニュー →「FIDO認証デバイスの設定」→ 登録</li>
     </ul>
     <div class="downloads downloads-start">
-      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/" target="_blank" rel="noopener">
+      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/ja/services/account/mfa" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
         多要素認証について
       </a>
-      <a class="feedback-link" href="https://iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">
+      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
         詳しい設定手順 (PDF)
       </a>

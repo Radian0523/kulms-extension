@@ -118,19 +118,24 @@ a:hover{text-decoration:underline}
 .header p{font-size:1rem;color:var(--fg3)}
 
 /* ヘッダー（トップページ） */
-.header-hero{position:relative;overflow:hidden}
+/* 飾りの円は、横は画面の端で切り、下は次の節まではみ出して描く（切ると円の
+   下側がまっすぐ切れる）。overflow: clip に対応しないブラウザーでは hidden に
+   なり、これまでどおり下側も切れる */
+.header-hero{position:relative;overflow:hidden;overflow:clip visible}
 .header-hero img{width:clamp(2.5rem,24vw,6rem);border-radius:16.67%}
 .header-hero h1{font-size:clamp(1.5rem,10vw,3.25rem);margin:0.4em 0 0.15em}
 .header-hero p{font-size:clamp(1rem,4.5vw,1.25rem);color:var(--fg2)}
+/* z-index を負にして、ページの背景のすぐ上、どの内容よりも後ろに描く
+   （.header-hero は重ね合わせの文脈を作らないので、はみ出した部分も、
+   下の節の文字やボタンの後ろになる） */
 .header-hero::before,.header-hero::after{
   content:"";position:absolute;border-radius:50%;
   aspect-ratio:1;
-  pointer-events:none;opacity:0.18;z-index:0;
+  pointer-events:none;opacity:0.18;z-index:-1;
   background:radial-gradient(circle,var(--accent),transparent 70%);
 }
 .header-hero::before{width:21.25rem;top:-5rem;left:-3.75rem}
 .header-hero::after{width:16.25rem;bottom:-2.5rem;right:-2.5rem}
-.header-hero>*{position:relative;z-index:1}
 
 /* 節（トップページ） */
 .section,.section-divider,.footer{
