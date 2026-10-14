@@ -1,0 +1,532 @@
+/*
+ * KULMS+ のサイト（docs/）の共通のスタイル。
+ *
+ * どの大きさの画面でも崩れないよう、固定の大きさを持たない。長さはすべて、
+ * ページの基準の文字の大きさ（rem）、要素の文字の大きさ（em）、割合で表す。
+ * 基準の文字の大きさは、画面の大きさから滑らかに決める（下の html）。
+ * 細い線は枠線（border）で描く。枠線の太さは、0 より大きく 1 デバイス
+ * ピクセル未満なら 1 デバイスピクセルに切り上げられ（CSS Values 4、§6 の
+ * snap as a border width）、どれほど小さな画面でも消えない。
+ *
+ * CSP（style-src 'self'）の下で読み込むため、ページには style 要素も
+ * style 属性も置かない。
+ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* 色。文字と背景の組み合わせは、どれも WCAG 2.2 の AA（4.5:1 以上）を満たす */
+:root{
+  color-scheme:light dark;
+  --bg:#f5f4ed;
+  --bg-card:#faf9f5;
+  --fg:#141413;
+  --fg2:#5e5d59;
+  --fg3:#6c6b65;
+  --accent:#c96442;            /* 線とぼかしの色 */
+  --accent-text:#ad5031;       /* 文字としてのアクセント（リンク、選ばれたタブ） */
+  --accent-bg:#b75534;         /* ボタンとバッジの背景 */
+  --accent-bg-hover:#a14a2d;
+  --on-accent:#faf9f5;         /* アクセントの背景の上の文字 */
+  --ios-bg:#0071ed;
+  --ios-bg-hover:#005fc8;
+  --android-bg:#298642;
+  --android-bg-hover:#23733a;
+  --on-store:#fff;
+  --border:#f0eee6;
+  --border-strong:#e8e6dc;
+  --ring:#d1cfc5;
+  --disabled-bg:#e8e6dc;
+  --disabled-fg:#676661;
+  --banner-bg:#e3f2fd;
+  --banner-fg:#1565c0;
+  --shadow:rgba(0,0,0,0.05);
+  --glow:rgba(201,100,66,0.25);
+  --serif:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
+  /* 画面の端との余白と、本文の列の幅 */
+  --gutter:clamp(0.25rem,4vw,1.5rem);
+  --measure:46rem;
+  --measure-text:42.5rem;
+  --hairline:0.0625rem;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#141413;
+    --bg-card:#30302e;
+    --fg:#faf9f5;
+    --fg2:#b0aea5;
+    --fg3:#999892;
+    --accent:#d97757;
+    --accent-text:#db8062;
+    --accent-bg:#d97757;
+    --accent-bg-hover:#e08a6c;
+    --on-accent:#141413;
+    --border:#30302e;
+    --border-strong:#3d3d3a;
+    --ring:#4d4c48;
+    --disabled-bg:#30302e;
+    --disabled-fg:#999893;
+    --banner-bg:#0d2137;
+    --banner-fg:#64b5f6;
+    --shadow:rgba(0,0,0,0.15);
+  }
+}
+
+/*
+ * 基準の文字の大きさ。
+ * - 狭い画面では幅に比例させる（幅 320px で 16px）。ただし既定の大きさの
+ *   56.25%（既定が 16px なら 9px）を下回らない。
+ * - 普通の画面では、利用者が決めた既定の大きさ（100%）にする。
+ * - 縦横とも約 1000px を超える大きな画面では、短い辺に比例させて上限なく
+ *   大きくする（4K で約 35px、8K で約 69px、16K で約 138px）。どこでも
+ *   値は途切れずにつながる。
+ */
+html{
+  font-size:clamp(56.25%,5vw,max(100%,1.6vmin));
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
+  background:var(--bg);color:var(--fg);
+  line-height:1.6;
+  /* 長い英単語や URL も、箱からはみ出さずに折り返す */
+  overflow-wrap:anywhere;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;height:auto}
+a{color:var(--accent-text);text-decoration:none;transition:color 0.2s ease}
+a:hover{text-decoration:underline}
+:focus-visible{outline:0.125rem solid var(--accent-text);outline-offset:0.15em}
+
+/* ヘッダー（下のページ） */
+.header{
+  text-align:center;
+  padding:clamp(2rem,12vw,5rem) var(--gutter) clamp(1.25rem,5vw,2rem);
+}
+.header img{
+  display:inline-block;vertical-align:middle;
+  width:clamp(2rem,16vw,4rem);
+  border-radius:18.75%;
+  box-shadow:var(--shadow) 0 0.25rem 1.5rem;
+}
+.header h1{
+  font-family:var(--serif);
+  font-size:clamp(1.25rem,7vw,2.25rem);font-weight:500;
+  margin:0.45em 0 0.1em;line-height:1.1;
+  color:var(--fg);
+}
+.header p{font-size:1rem;color:var(--fg3)}
+
+/* ヘッダー（トップページ） */
+.header-hero{position:relative;overflow:hidden}
+.header-hero img{width:clamp(2.5rem,24vw,6rem);border-radius:16.67%}
+.header-hero h1{font-size:clamp(1.5rem,10vw,3.25rem);margin:0.4em 0 0.15em}
+.header-hero p{font-size:clamp(1rem,4.5vw,1.25rem);color:var(--fg2)}
+.header-hero::before,.header-hero::after{
+  content:"";position:absolute;border-radius:50%;
+  aspect-ratio:1;
+  pointer-events:none;opacity:0.18;z-index:0;
+  background:radial-gradient(circle,var(--accent),transparent 70%);
+}
+.header-hero::before{width:21.25rem;top:-5rem;left:-3.75rem}
+.header-hero::after{width:16.25rem;bottom:-2.5rem;right:-2.5rem}
+.header-hero>*{position:relative;z-index:1}
+
+/* 節（トップページ） */
+.section,.section-divider,.footer{
+  width:min(100% - 2 * var(--gutter),var(--measure));
+  margin-inline:auto;
+}
+.section{padding-block:clamp(1.25rem,6vw,2.5rem)}
+.section h2{
+  font-family:var(--serif);
+  font-size:clamp(1.25rem,6.5vw,2rem);font-weight:500;
+  line-height:1.2;margin-bottom:0.75em;
+  text-align:center;color:var(--fg);
+}
+.section-divider{
+  display:block;height:0;border:none;
+  border-top:0.125rem solid;
+  border-image:linear-gradient(90deg,transparent,var(--accent),transparent) 1;
+  opacity:0.2;
+}
+.lead{
+  text-align:center;font-size:0.9375rem;
+  color:var(--fg2);margin-bottom:1.5rem;
+}
+
+/* ダウンロードのボタン */
+.downloads{display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center}
+.downloads-start{justify-content:flex-start}
+.links-row{margin-bottom:0.75rem}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  gap:0.5em;max-width:100%;
+  padding:0.5em 1em;border-radius:0.75em;
+  font:inherit;font-size:1rem;line-height:1.3;text-align:center;
+  border:var(--hairline) solid transparent;cursor:pointer;
+  transition:background-color 0.15s,transform 0.2s,box-shadow 0.2s;
+}
+.btn:hover{text-decoration:none}
+.btn svg{width:1.25em;height:1.25em;flex:none;fill:currentColor}
+.btn-small{font-size:0.9375rem}
+.btn-small svg{width:1.2em;height:1.2em}
+.btn-primary{background:var(--accent-bg);color:var(--on-accent)}
+.btn-primary:hover{background:var(--accent-bg-hover)}
+.btn-ios{background:var(--ios-bg);color:var(--on-store)}
+.btn-ios:hover{background:var(--ios-bg-hover)}
+.btn-android{background:var(--android-bg);color:var(--on-store)}
+.btn-android:hover{background:var(--android-bg-hover)}
+.btn-primary:hover,.btn-ios:hover,.btn-android:hover{
+  transform:translateY(-0.125rem);
+  box-shadow:0 0.25rem 1rem var(--glow);
+}
+.btn-disabled{
+  background:var(--disabled-bg);color:var(--disabled-fg);
+  border-color:var(--ring);
+  cursor:default;
+}
+.badge{font-size:0.75em;color:inherit;margin-inline-start:0.2em}
+.ios-banner{margin-top:1.25rem;text-align:center}
+.ios-banner-inner{
+  display:inline-block;max-width:100%;
+  background:var(--banner-bg);color:var(--banner-fg);
+  border-radius:0.75rem;padding:0.75em clamp(0.75em,4vw,1.5em);
+  font-size:0.9375rem;line-height:1.6;
+}
+
+/* 機能のカルーセル */
+.carousel-nav{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:0.375rem;margin-bottom:1rem;
+}
+.carousel-nav-btn{
+  width:2rem;height:2rem;flex:none;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:none;border:var(--hairline) solid var(--border-strong);
+  color:var(--fg3);font:inherit;font-size:1rem;line-height:1;
+  cursor:pointer;
+  transition:background-color 0.15s,color 0.15s,border-color 0.15s;
+}
+.carousel-nav-btn:hover{background:var(--border-strong);color:var(--fg);border-color:var(--ring)}
+.dots{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:0.5rem;padding:0 0.5rem;min-width:0;
+}
+.dot{
+  width:0.5rem;height:0.5rem;flex:none;border-radius:50%;
+  background:var(--ring);border:none;padding:0;cursor:pointer;
+  transition:background-color 0.25s,transform 0.25s,box-shadow 0.25s;
+}
+.dot[aria-current="true"]{
+  background:var(--accent);transform:scale(1.25);
+  box-shadow:0 0 0 0.1875rem var(--glow);
+}
+.carousel{
+  /* どのスライドも同じ高さにする。切り替えても、下の要素は動かない */
+  display:flex;gap:1rem;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.carousel::-webkit-scrollbar{display:none}
+.slide{
+  flex:0 0 100%;min-width:0;
+  scroll-snap-align:center;scroll-snap-stop:always;
+  display:flex;flex-direction:column;
+  background:var(--bg-card);
+  border:var(--hairline) solid var(--border);
+  border-radius:0.75rem;padding:clamp(0.5rem,4vw,1.5rem);
+  box-shadow:var(--shadow) 0 0.25rem 1.5rem;
+  transition:box-shadow 0.25s ease;
+}
+/* カルーセルは上下も切り取るので、スライドは浮かせず、影だけを濃くする */
+.slide:hover{box-shadow:var(--shadow) 0 0.5rem 2rem}
+.slide-text{flex:none;margin-bottom:1rem}
+.slide h3{
+  font-family:var(--serif);
+  font-size:1.3rem;font-weight:500;
+  color:var(--fg);margin-bottom:0.35rem;
+}
+.slide p{font-size:0.9375rem;color:var(--fg2);line-height:1.6}
+/* スクリーンショットは、スライドの幅に対して 4:3 の枠に、縦横比を保って
+   収める。縦長の画像もスライドを高くせず、スライドの高さをそろえても
+   画像の下に空白ができない */
+.slide-shot{
+  position:relative;flex:1 0 auto;aspect-ratio:4/3;
+  background:var(--bg);
+  border:var(--hairline) solid var(--border-strong);
+  border-radius:0.5rem;overflow:hidden;
+}
+.slide-shot img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:contain;
+}
+
+.carousel-note{
+  text-align:center;font-size:0.8rem;
+  color:var(--fg3);margin-top:1rem;
+}
+
+/* そのほかの機能（スクリーンショットの無いもの）。カードは、置き場所の幅が
+   足りれば 2 列の格子に並べ（コンテナクエリ。rem は画面とともに伸び縮み
+   するので、どの大きさの画面でも同じ構図になる）、奇数枚の最後の 1 枚は
+   2 列にまたがって、行に穴を残さない。同じ行のカードは同じ高さになる */
+.more-features{container-type:inline-size;margin-top:clamp(1.5rem,6vw,2.5rem)}
+.more-features h3{
+  font-family:var(--serif);
+  font-size:clamp(1.15rem,5vw,1.5rem);font-weight:500;
+  text-align:center;color:var(--fg);margin-bottom:1rem;
+}
+.feature-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:1rem}
+@container (min-width:31rem){
+  .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .feature:last-child:nth-child(odd){grid-column:1 / -1}
+}
+.feature{
+  background:var(--bg-card);
+  border:var(--hairline) solid var(--border);
+  border-radius:0.75rem;
+  padding:clamp(0.75rem,4vw,1.25rem);
+  box-shadow:var(--shadow) 0 0.125rem 0.75rem;
+}
+.feature h4{
+  font-family:var(--serif);
+  font-size:1.15rem;font-weight:500;
+  color:var(--fg);margin-bottom:0.35rem;
+}
+.feature p{font-size:0.9375rem;color:var(--fg2);line-height:1.6}
+
+/* カード（更新履歴とセキュリティ） */
+.release{
+  background:var(--bg-card);
+  border:var(--hairline) solid var(--border);
+  border-radius:0.75rem;
+  padding:1.25rem clamp(0.75rem,5vw,1.5rem);
+  margin-bottom:1rem;
+  box-shadow:var(--shadow) 0 0.125rem 0.75rem;
+  transition:transform 0.2s ease,box-shadow 0.2s ease;
+}
+.release:hover{transform:translateY(-0.125rem);box-shadow:var(--shadow) 0 0.375rem 1.25rem}
+.release-callout{margin-bottom:1.5rem}
+.release-head{
+  display:flex;flex-wrap:wrap;align-items:baseline;
+  gap:0.25rem 0.75rem;margin-bottom:0.75rem;
+}
+.release-version{
+  font-family:var(--serif);
+  font-size:1.25rem;font-weight:500;color:var(--fg);
+}
+.release-latest{
+  display:inline-block;
+  font-size:0.7rem;font-weight:500;
+  color:var(--on-accent);background:var(--accent-bg);
+  padding:0.15em 0.6em;border-radius:999em;
+  letter-spacing:0.03em;
+}
+.release p{
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.65;margin-bottom:0.75rem;
+}
+.release ul{list-style:none}
+.release-callout ul{margin-bottom:0.75rem}
+.release li{
+  position:relative;padding-left:1.25rem;
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.65;margin-bottom:0.25rem;
+}
+.release li::before{
+  content:"";position:absolute;
+  left:0.25rem;top:0.7em;
+  width:0.375rem;height:0.375rem;border-radius:50%;
+  background:var(--fg3);
+}
+.release li ul{margin-top:0.25rem}
+.release li li{padding-left:1.25rem;font-size:0.875rem}
+.release li li::before{background:var(--ring);width:0.25rem;height:0.25rem;top:0.75em}
+.changelog-more{
+  text-align:center;margin-top:1.5rem;
+  font-size:0.9375rem;color:var(--fg2);
+}
+
+/* 過去のバージョン（details 要素で開閉する） */
+.changelog-older{margin:1rem 0}
+.changelog-older>summary{
+  display:block;list-style:none;
+  padding:0.625em 0.5em;
+  border:var(--hairline) solid var(--border-strong);border-radius:0.5rem;
+  font-size:0.875rem;color:var(--fg3);text-align:center;
+  cursor:pointer;
+  transition:background-color 0.15s,color 0.15s;
+}
+.changelog-older>summary::-webkit-details-marker{display:none}
+.changelog-older>summary:hover{background:var(--border);color:var(--fg2)}
+.changelog-older[open]>summary{margin-bottom:1rem}
+.changelog-older .when-open,.changelog-older[open] .when-closed{display:none}
+.changelog-older[open] .when-open{display:inline}
+
+/* タブ（更新履歴と 2 段階認証の手順） */
+.tabs{
+  display:flex;flex-wrap:wrap;
+  margin-bottom:1.5rem;
+  border-bottom:var(--hairline) solid var(--border-strong);
+}
+.tab{
+  flex:1 1 auto;min-width:0;
+  padding:0.625em 0.5em;
+  background:none;border:none;
+  border-bottom:0.125rem solid transparent;
+  font:inherit;font-size:0.9375rem;
+  color:var(--fg3);cursor:pointer;text-align:center;
+  transition:color 0.15s,border-color 0.15s;
+}
+.tab:hover{color:var(--fg2)}
+.tab[aria-selected="true"]{
+  color:var(--accent-text);border-bottom-color:var(--accent-text);
+  font-weight:500;
+}
+.tab-panel[hidden]{display:none}
+.tab-panel{animation:fadeInUp 0.35s ease-out}
+
+/* 連絡先などのリンク */
+.feedback-links{
+  display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;
+  margin-bottom:1.5rem;
+}
+.feedback-link{
+  display:inline-flex;align-items:center;gap:0.4em;max-width:100%;
+  padding:0.4em 0.9em;border-radius:0.5rem;
+  font-size:0.875rem;
+  border:var(--hairline) solid var(--border-strong);
+  color:var(--fg2);
+  transition:background-color 0.15s,color 0.15s,border-color 0.15s;
+}
+.feedback-link:hover{
+  background:var(--border);color:var(--fg);
+  border-color:var(--ring);text-decoration:none;
+}
+.feedback-link svg{width:1.15em;height:1.15em;flex:none;fill:currentColor}
+
+/* フッター */
+.footer{
+  text-align:center;padding-block:2rem;
+  color:var(--fg3);font-size:0.85rem;
+  border-top:var(--hairline) solid var(--border);
+}
+.footer-hero{
+  margin-top:1rem;padding-block:3rem;
+  border-top:0.125rem solid;
+  border-image:linear-gradient(90deg,transparent,var(--accent),transparent) 1;
+}
+.footer-support{margin-bottom:1.25rem}
+/* フッターの文字のリンクだけを控えめな色にする（ボタンの文字の色は変えない） */
+.footer a:not(.btn){color:var(--fg3)}
+.footer a:not(.btn):hover{color:var(--accent-text)}
+.footer .sep{margin:0 0.5em}
+
+/* 本文（下のページ） */
+.content{
+  width:min(100% - 2 * var(--gutter),var(--measure-text));
+  margin-inline:auto;padding-bottom:3rem;
+}
+.content h2{
+  font-family:var(--serif);
+  font-size:clamp(1.15rem,5.5vw,1.4rem);font-weight:500;
+  margin:2.5rem 0 0.75rem;color:var(--fg);
+}
+.content h3{font-size:1.05rem;font-weight:600;margin:1.5rem 0 0.5rem;color:var(--fg)}
+.content p,.content ul,.content ol{
+  font-size:0.9375rem;color:var(--fg2);
+  margin-bottom:0.75rem;
+}
+.content ul,.content ol{padding-left:1.5rem}
+.content li{margin-bottom:0.35rem}
+.content code{
+  font-size:0.85em;
+  background:var(--border);
+  padding:0.15em 0.4em;border-radius:0.25rem;
+  color:var(--fg);
+}
+.card{
+  background:var(--bg-card);
+  border:var(--hairline) solid var(--border);
+  border-radius:0.75rem;
+  padding:1.25rem clamp(0.75rem,5vw,1.5rem);
+  margin-bottom:1rem;
+  box-shadow:var(--shadow) 0 0.125rem 0.75rem;
+}
+.card h3{
+  font-family:var(--serif);
+  font-size:1.15rem;font-weight:500;
+  color:var(--fg);margin:0 0 0.5rem;
+}
+.card p{
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.7;margin-bottom:0.5rem;
+}
+.card p:last-child{margin-bottom:0}
+.card .more{margin-top:0.75rem}
+.card table{
+  width:100%;table-layout:fixed;border-collapse:collapse;
+  margin:0.75rem 0;font-size:0.9375rem;
+}
+.card th,.card td{
+  text-align:left;vertical-align:top;
+  padding:0.5em clamp(0.25em,2vw,0.75em);
+  border-bottom:var(--hairline) solid var(--border-strong);
+  color:var(--fg2);
+}
+.card th{font-weight:500;color:var(--fg);font-size:0.875rem}
+.card tr:last-child td{border-bottom:none}
+.notice{border-left:0.1875rem solid var(--accent)}
+.steps{list-style:none;padding:0;counter-reset:step}
+.content .steps{padding-left:0}
+.steps li{
+  position:relative;padding-left:2rem;
+  font-size:0.9375rem;color:var(--fg2);
+  line-height:1.7;margin-bottom:0.5rem;
+  counter-increment:step;
+}
+.steps li::before{
+  content:counter(step);
+  position:absolute;left:0;top:0.15em;
+  width:1.5rem;height:1.5rem;border-radius:50%;
+  background:var(--accent-bg);color:var(--on-accent);
+  font-size:0.8rem;font-weight:500;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.steps li li{padding-left:0;counter-increment:none}
+.steps li li::before{content:none}
+
+/* 動き */
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-0.5rem)}
+}
+@keyframes fadeInUp{
+  from{opacity:0;transform:translateY(1.5rem)}
+  to{opacity:1;transform:none}
+}
+@keyframes heroFadeIn{
+  from{opacity:0;transform:translateY(1rem)}
+  to{opacity:1;transform:none}
+}
+.header-hero img{animation:float 4s ease-in-out infinite}
+.header-hero h1{animation:heroFadeIn 0.8s ease-out 0.15s both}
+.header-hero p{animation:heroFadeIn 0.8s ease-out 0.35s both}
+
+/* スクロールで現れる節。スクリプトが、読み込んだ時点で画面の外にある節にだけ
+   reveal-pending を付け、画面に入ったら外す。スクリプトが動かなくても、
+   どの節も隠れたままにはならない */
+.reveal{transition:opacity 0.6s ease-out,transform 0.6s ease-out}
+.reveal-pending{opacity:0;transform:translateY(1.5rem)}
+.reveal-child{transition:opacity 0.5s ease-out,transform 0.5s ease-out}
+.reveal-pending .reveal-child{opacity:0;transform:translateY(1rem)}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal-pending,.reveal-pending .reveal-child{opacity:1;transform:none}
+  .release:hover,.btn:hover{transform:none}
+}
