@@ -2,452 +2,55 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests; require-trusted-types-for 'script'; trusted-types 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light dark">
 <title>KULMS+ — 京都大学LMSをもっと便利に</title>
 <meta name="description" content="KULMS+は京都大学のLMS (PandA) をもっと便利にするブラウザ拡張機能です。課題一覧、教科書パネル、ダークモードなど。">
 <link rel="icon" href="icon128.png" type="image/png">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f5f4ed;
-  --bg-card:#faf9f5;
-  --fg:#141413;
-  --fg2:#5e5d59;
-  --fg3:#87867f;
-  --accent:#c96442;
-  --accent-hover:#b85838;
-  --border:#f0eee6;
-  --border-strong:#e8e6dc;
-  --ring:#d1cfc5;
-  --disabled-bg:#e8e6dc;
-  --disabled-fg:#87867f;
-  --shadow:rgba(0,0,0,0.05);
-}
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#141413;
-    --bg-card:#30302e;
-    --fg:#faf9f5;
-    --fg2:#b0aea5;
-    --fg3:#87867f;
-    --accent:#d97757;
-    --accent-hover:#e08a6c;
-    --border:#30302e;
-    --border-strong:#3d3d3a;
-    --ring:#4d4c48;
-    --disabled-bg:#30302e;
-    --disabled-fg:#5e5d59;
-    --shadow:rgba(0,0,0,0.15);
-  }
-}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif;
-  background:var(--bg);color:var(--fg);
-  line-height:1.6;-webkit-font-smoothing:antialiased;
-}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-
-/* Header */
-.header{text-align:center;padding:5rem 1.5rem 2rem}
-.header img{
-  width:96px;height:96px;border-radius:16px;
-  box-shadow:var(--shadow) 0px 4px 24px;
-}
-.header h1{
-  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:3.25rem;font-weight:500;
-  margin:1.25rem 0 0.5rem;line-height:1.1;
-  color:var(--fg);
-}
-.header p{
-  font-size:1.25rem;font-weight:400;
-  color:var(--fg2);line-height:1.6;
-}
-
-/* Section */
-.section{max-width:740px;margin:0 auto;padding:2.5rem 1.5rem}
-.section h2{
-  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:2rem;font-weight:500;
-  line-height:1.2;margin-bottom:1.5rem;
-  text-align:center;color:var(--fg);
-}
-
-/* Download buttons */
-.downloads{display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center}
-.btn{
-  display:inline-flex;align-items:center;gap:0.5rem;
-  padding:8px 16px;border-radius:12px;
-  font-size:1rem;font-weight:400;
-  border:none;cursor:pointer;
-  transition:background 0.15s;
-}
-.btn-primary{
-  background:var(--accent);color:#faf9f5;
-  box-shadow:var(--accent) 0px 0px 0px 0px,var(--accent) 0px 0px 0px 1px;
-}
-.btn-primary:hover{background:var(--accent-hover);text-decoration:none}
-.btn-ios{
-  background:#007aff;color:#fff;
-  box-shadow:#007aff 0px 0px 0px 0px,#007aff 0px 0px 0px 1px;
-}
-.btn-ios:hover{background:#0063d1;text-decoration:none}
-.btn-android{
-  background:#34a853;color:#fff;
-  box-shadow:#34a853 0px 0px 0px 0px,#34a853 0px 0px 0px 1px;
-}
-.btn-android:hover{background:#2d9249;text-decoration:none}
-.btn-disabled{
-  background:var(--disabled-bg);color:var(--disabled-fg);
-  box-shadow:var(--disabled-bg) 0px 0px 0px 0px,var(--ring) 0px 0px 0px 1px;
-  cursor:default;pointer-events:none;
-}
-.ios-banner{
-  max-width:740px;margin:0 auto;padding:0 1.5rem;
-  text-align:center;
-}
-.ios-banner-inner{
-  display:inline-block;
-  background:#e3f2fd;color:#1565c0;
-  border-radius:12px;padding:12px 24px;
-  font-size:0.9375rem;line-height:1.6;
-}
-@media(prefers-color-scheme:dark){
-  .ios-banner-inner{background:#0d2137;color:#64b5f6}
-  .btn-ios{color:#e3f2fd}
-  .btn-android{color:#e8f5e9}
-}
-.btn svg{width:20px;height:20px;flex-shrink:0;fill:currentColor}
-.badge{
-  font-size:0.75rem;font-weight:400;
-  color:var(--fg3);margin-left:0.2rem;
-}
-
-/* Carousel */
-.carousel{
-  display:flex;overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  gap:1rem;
-}
-.carousel::-webkit-scrollbar{display:none}
-.slide{
-  flex:0 0 100%;scroll-snap-align:center;
-  display:flex;flex-direction:column;
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:12px;padding:1.5rem;
-  box-shadow:var(--shadow) 0px 4px 24px;
-}
-.slide-text{flex-shrink:0;margin-bottom:1rem}
-.slide h3{
-  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:1.3rem;font-weight:500;
-  color:var(--fg);margin-bottom:0.35rem;
-}
-.slide p{
-  font-size:0.9375rem;font-weight:400;
-  color:var(--fg2);line-height:1.6;
-}
-.slide img{
-  flex:1;min-height:0;
-  width:100%;border-radius:8px;
-  border:1px solid var(--border-strong);
-  object-fit:contain;object-position:top;
-}
-
-/* Carousel nav bar: [← ● ● ● ● ● ● →] */
-.carousel-nav{
-  display:flex;align-items:center;justify-content:center;
-  gap:6px;margin-bottom:1rem;
-}
-.carousel-nav-btn{
-  width:32px;height:32px;border-radius:50%;
-  background:none;border:1px solid var(--border-strong);
-  color:var(--fg3);font-size:1rem;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:background 0.15s,color 0.15s,border-color 0.15s;
-  flex-shrink:0;
-}
-.carousel-nav-btn:hover{background:var(--border-strong);color:var(--fg);border-color:var(--ring)}
-.dots{display:flex;align-items:center;gap:8px;padding:0 8px}
-.dot{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--ring);border:none;
-  cursor:pointer;padding:0;
-  transition:background 0.2s,transform 0.2s;
-}
-.dot.active{background:var(--accent);transform:scale(1.25)}
-.carousel-note{
-  text-align:center;font-size:0.8rem;
-  color:var(--fg3);margin-top:1rem;
-}
-
-/* Changelog */
-.release{
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:1.25rem 1.5rem;
-  margin-bottom:1rem;
-  box-shadow:var(--shadow) 0px 2px 12px;
-}
-.release-head{
-  display:flex;align-items:baseline;
-  gap:0.75rem;margin-bottom:0.75rem;
-}
-.release-version{
-  font-family:Georgia,"Times New Roman","Hiragino Mincho ProN",serif;
-  font-size:1.25rem;font-weight:500;color:var(--fg);
-}
-.release-latest{
-  display:inline-block;
-  font-size:0.7rem;font-weight:500;
-  color:#faf9f5;background:var(--accent);
-  padding:2px 8px;border-radius:999px;
-  letter-spacing:0.03em;
-}
-.release ul{
-  list-style:none;padding:0;margin:0;
-}
-.release li{
-  position:relative;padding-left:1.25rem;
-  font-size:0.9375rem;color:var(--fg2);
-  line-height:1.65;margin-bottom:0.25rem;
-}
-.release li::before{
-  content:"";position:absolute;
-  left:0.25rem;top:0.7em;
-  width:6px;height:6px;border-radius:50%;
-  background:var(--fg3);
-}
-.release li ul{
-  margin-top:0.25rem;
-}
-.release li li{
-  padding-left:1.25rem;font-size:0.875rem;
-}
-.release li li::before{
-  background:var(--ring);
-  width:4px;height:4px;top:0.75em;
-}
-.changelog-more{
-  text-align:center;margin-top:1.5rem;
-  font-size:0.9375rem;color:var(--fg2);
-}
-.changelog-older{display:none}
-.changelog-older.open{display:block}
-.changelog-toggle{
-  display:block;width:100%;margin:1rem 0;padding:0.625rem 0;
-  background:none;border:1px solid var(--border-strong);
-  border-radius:8px;font-size:0.875rem;font-weight:400;
-  color:var(--fg3);cursor:pointer;font-family:inherit;
-  transition:background 0.15s,color 0.15s;
-}
-.changelog-toggle:hover{background:var(--border);color:var(--fg2)}
-
-
-/* Feedback links */
-.feedback-links{
-  display:flex;flex-wrap:wrap;gap:0.75rem;justify-content:center;
-  margin-bottom:1.5rem;
-}
-.feedback-link{
-  display:inline-flex;align-items:center;gap:0.4rem;
-  padding:6px 14px;border-radius:8px;
-  font-size:0.875rem;font-weight:400;
-  border:1px solid var(--border-strong);
-  color:var(--fg2);transition:background 0.15s,color 0.15s,border-color 0.15s;
-}
-.feedback-link:hover{
-  background:var(--border);color:var(--fg);
-  border-color:var(--ring);text-decoration:none;
-}
-.feedback-link svg{width:16px;height:16px;flex-shrink:0;fill:currentColor}
-
-/* Changelog tabs */
-.changelog-tabs{
-  display:flex;gap:0;
-  margin-bottom:1.5rem;
-  border-bottom:1px solid var(--border-strong);
-}
-.changelog-tab{
-  flex:1;padding:0.625rem 0;
-  background:none;border:none;
-  font-size:0.9375rem;font-weight:400;
-  color:var(--fg3);cursor:pointer;
-  border-bottom:2px solid transparent;
-  transition:color 0.15s,border-color 0.15s;
-  text-align:center;font-family:inherit;
-}
-.changelog-tab:hover{color:var(--fg2)}
-.changelog-tab.active{
-  color:var(--accent);border-bottom-color:var(--accent);
-  font-weight:500;
-}
-.changelog-panel{display:none}
-.changelog-panel.active{display:block}
-
-/* Footer */
-.footer{
-  text-align:center;padding:3rem 1.5rem;
-  color:var(--fg3);font-size:0.85rem;
-  max-width:740px;margin:1rem auto 0;
-}
-.footer a{color:var(--fg3)}
-.footer a:hover{color:var(--accent)}
-
-/* === Animations === */
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-8px)}
-}
-@keyframes fadeInUp{
-  from{opacity:0;transform:translateY(24px)}
-  to{opacity:1;transform:translateY(0)}
-}
-@keyframes heroFadeIn{
-  from{opacity:0;transform:translateY(16px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* Hero decorative blobs */
-.header{position:relative;overflow:hidden}
-.header::before,.header::after{
-  content:"";position:absolute;border-radius:50%;
-  pointer-events:none;opacity:0.18;
-  z-index:0;
-}
-.header::before{
-  width:340px;height:340px;
-  top:-80px;left:-60px;
-  background:radial-gradient(circle,var(--accent),transparent 70%);
-}
-.header::after{
-  width:260px;height:260px;
-  bottom:-40px;right:-40px;
-  background:radial-gradient(circle,var(--accent),transparent 70%);
-}
-.header>*{position:relative;z-index:1}
-
-/* Hero icon float */
-.header img{animation:float 4s ease-in-out infinite}
-
-/* Hero text fade-in on load */
-.header h1{animation:heroFadeIn 0.8s ease-out both;animation-delay:0.15s}
-.header p{animation:heroFadeIn 0.8s ease-out both;animation-delay:0.35s}
-
-/* Scroll-reveal */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.6s ease-out,transform 0.6s ease-out}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.reveal .reveal-child{
-  opacity:0;transform:translateY(16px);
-  transition:opacity 0.5s ease-out,transform 0.5s ease-out;
-}
-.reveal.visible .reveal-child{opacity:1;transform:translateY(0)}
-
-/* Download button hover lift + glow */
-.btn{transition:background 0.15s,transform 0.2s,box-shadow 0.2s}
-.btn-primary:hover,.btn-ios:hover,.btn-android:hover{
-  transform:translateY(-2px);
-  box-shadow:0 4px 16px rgba(201,100,66,0.25);
-}
-
-/* Carousel card hover lift */
-.slide{transition:transform 0.25s ease,box-shadow 0.25s ease}
-.slide:hover{transform:translateY(-3px);box-shadow:var(--shadow) 0px 8px 32px}
-
-/* Changelog card hover lift */
-.release{transition:transform 0.2s ease,box-shadow 0.2s ease}
-.release:hover{transform:translateY(-2px);box-shadow:var(--shadow) 0px 6px 20px}
-
-/* Changelog tab fade transition */
-.changelog-panel{transition:opacity 0.3s ease}
-.changelog-panel.active{display:block;animation:fadeInUp 0.35s ease-out}
-
-/* Dot indicator transition */
-.dot{transition:background 0.25s,transform 0.25s,box-shadow 0.25s}
-.dot.active{box-shadow:0 0 0 3px rgba(201,100,66,0.2)}
-
-/* Link hover transition */
-a{transition:color 0.2s ease}
-
-/* Section dividers */
-.section-divider{
-  display:block;height:2px;border:none;margin:0 auto;
-  max-width:740px;
-  background:linear-gradient(90deg,transparent,var(--accent),transparent);
-  opacity:0.2;
-}
-
-/* Footer top gradient */
-.footer{
-  border-top:none;
-  border-image:linear-gradient(90deg,transparent,var(--accent),transparent) 1;
-  border-top-width:2px;border-top-style:solid;
-}
-
-/* Reduced motion */
-@media(prefers-reduced-motion:reduce){
-  .header img{animation:none}
-  .header h1,.header p{animation:none;opacity:1}
-  .reveal{opacity:1;transform:none;transition:none}
-  .reveal .reveal-child{opacity:1;transform:none;transition:none}
-  .slide,.release,.btn{transition:none}
-  .changelog-panel.active{animation:none}
-  .dot{transition:none}
-}
-
-/* Responsive */
-@media(max-width:640px){
-  .header{padding:3.5rem 1.5rem 1.5rem}
-  .header h1{font-size:2.25rem}
-  .header p{font-size:1.0625rem}
-  .section h2{font-size:1.5rem}
-  .downloads{flex-direction:column;align-items:center}
-  .btn{width:100%;max-width:320px;justify-content:center}
-}
-</style>
+<link rel="stylesheet" href="assets/site.css">
+<script src="assets/site.js" defer></script>
 </head>
 <body>
 
-<header class="header">
+<header class="header header-hero">
   <img src="icon128.png" alt="KULMS+ icon" width="96" height="96">
   <h1>KULMS+</h1>
   <p>京都大学LMSをもっと便利に</p>
 </header>
 
+<main>
+
 <section class="section reveal">
   <h2>ダウンロード</h2>
   <div class="downloads">
     <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5A6.5 6.5 0 0 1 18.5 12H15a3 3 0 0 0-3-3V5.5zM5.5 12a6.5 6.5 0 0 1 3.26-5.63L10.64 9.5A3 3 0 0 0 9 12a3 3 0 0 0 .64 1.85L7.76 17.13A6.48 6.48 0 0 1 5.5 12zm6.5 6.5a6.48 6.48 0 0 1-2.74-.6l1.88-3.25a3 3 0 0 0 3.72 0l1.88 3.25A6.48 6.48 0 0 1 12 18.5z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5A6.5 6.5 0 0 1 18.5 12H15a3 3 0 0 0-3-3V5.5zM5.5 12a6.5 6.5 0 0 1 3.26-5.63L10.64 9.5A3 3 0 0 0 9 12a3 3 0 0 0 .64 1.85L7.76 17.13A6.48 6.48 0 0 1 5.5 12zm6.5 6.5a6.48 6.48 0 0 1-2.74-.6l1.88-3.25a3 3 0 0 0 3.72 0l1.88 3.25A6.48 6.48 0 0 1 12 18.5z"/></svg>
       Chrome
     </a>
     <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/kulms+/akfadmompgbhncnocomalofhcihpejjb" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M21.86 17.86q.14 0 .25.12.1.13.1.25t-.11.33l-.32.46-.43.53-.44.5q-.21.25-.38.42l-.22.23q-.58.53-1.34 1.04-.76.51-1.6.91-.86.4-1.74.64t-1.67.24q-.9 0-1.69-.28-.8-.28-1.48-.78-.68-.5-1.22-1.17-.53-.66-.92-1.44-.38-.77-.58-1.6-.2-.83-.2-1.67 0-1 .32-1.96.33-.97.87-1.8.14.95.55 1.77.41.81 1.02 1.5.6.68 1.38 1.21.78.54 1.64.9.86.34 1.78.5.93.14 1.85.08zm-9.5-2.36q0-.61.14-1.24.15-.63.45-1.2.3-.57.75-1.07.44-.51 1.03-.89.59-.39 1.33-.63.73-.23 1.59-.23.39 0 .8.06.42.07.83.17-.73-.67-1.57-1.16-.84-.48-1.76-.79-.92-.3-1.89-.44-.96-.13-1.93-.06.08-.82.36-1.61.28-.79.73-1.49.45-.71 1.05-1.3.6-.6 1.33-1.04.72-.45 1.54-.72.82-.27 1.7-.27.76 0 1.46.2.71.22 1.3.57.62.35 1.08.83.47.47.81 1.02.33.54.51 1.16.18.61.18 1.27 0 .42-.08.85-.09.42-.24.82-.14.4-.34.77-.2.36-.46.68l-.48.6q-.26.28-.54.53-.27.26-.52.48h4.12q.12 0 .18.06t.06.18v.6q0 .12-.06.18t-.18.06H12.36z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21.86 17.86q.14 0 .25.12.1.13.1.25t-.11.33l-.32.46-.43.53-.44.5q-.21.25-.38.42l-.22.23q-.58.53-1.34 1.04-.76.51-1.6.91-.86.4-1.74.64t-1.67.24q-.9 0-1.69-.28-.8-.28-1.48-.78-.68-.5-1.22-1.17-.53-.66-.92-1.44-.38-.77-.58-1.6-.2-.83-.2-1.67 0-1 .32-1.96.33-.97.87-1.8.14.95.55 1.77.41.81 1.02 1.5.6.68 1.38 1.21.78.54 1.64.9.86.34 1.78.5.93.14 1.85.08zm-9.5-2.36q0-.61.14-1.24.15-.63.45-1.2.3-.57.75-1.07.44-.51 1.03-.89.59-.39 1.33-.63.73-.23 1.59-.23.39 0 .8.06.42.07.83.17-.73-.67-1.57-1.16-.84-.48-1.76-.79-.92-.3-1.89-.44-.96-.13-1.93-.06.08-.82.36-1.61.28-.79.73-1.49.45-.71 1.05-1.3.6-.6 1.33-1.04.72-.45 1.54-.72.82-.27 1.7-.27.76 0 1.46.2.71.22 1.3.57.62.35 1.08.83.47.47.81 1.02.33.54.51 1.16.18.61.18 1.27 0 .42-.08.85-.09.42-.24.82-.14.4-.34.77-.2.36-.46.68l-.48.6q-.26.28-.54.53-.27.26-.52.48h4.12q.12 0 .18.06t.06.18v.6q0 .12-.06.18t-.18.06H12.36z"/></svg>
       Edge
     </a>
     <a class="btn btn-primary" href="https://addons.mozilla.org/ja/firefox/addon/kulms-plus-for-firefox/" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
       Firefox
     </a>
     <span class="btn btn-disabled">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1.31-4.69L7.4 8.27l7.04 3.29L17.73 15zm-.19-4.5L13.5 13.5l-2.69-2.69z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1.31-4.69L7.4 8.27l7.04 3.29L17.73 15zm-.19-4.5L13.5 13.5l-2.69-2.69z"/></svg>
       Safari<span class="badge">準備中</span>
     </span>
     <a class="btn btn-ios" href="https://apps.apple.com/jp/app/kulms-mobile/id6762236865" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
       iOS
     </a>
     <a class="btn btn-android" href="https://play.google.com/store/apps/details?id=com.radian0523.kulms_plus_for_android" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M17.6 11.48l1.34 2.33c.1.18.05.4-.12.52a.38.38 0 0 1-.52-.12l-1.35-2.34a7.49 7.49 0 0 1-3.29.75 7.49 7.49 0 0 1-3.29-.75l-1.35 2.34a.38.38 0 0 1-.52.12.39.39 0 0 1-.12-.52l1.34-2.33A7.36 7.36 0 0 1 6.51 7h10.98a7.36 7.36 0 0 1-3.13 4.48zM9.6 9.8a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zm4.8 0a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zM5.5 7h13A6.5 6.5 0 0 0 12 2 6.5 6.5 0 0 0 5.5 7z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.6 11.48l1.34 2.33c.1.18.05.4-.12.52a.38.38 0 0 1-.52-.12l-1.35-2.34a7.49 7.49 0 0 1-3.29.75 7.49 7.49 0 0 1-3.29-.75l-1.35 2.34a.38.38 0 0 1-.52.12.39.39 0 0 1-.12-.52l1.34-2.33A7.36 7.36 0 0 1 6.51 7h10.98a7.36 7.36 0 0 1-3.13 4.48zM9.6 9.8a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zm4.8 0a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zM5.5 7h13A6.5 6.5 0 0 0 12 2 6.5 6.5 0 0 0 5.5 7z"/></svg>
       Android
     </a>
   </div>
-  <div class="ios-banner" style="margin-top:1.25rem">
+  <div class="ios-banner">
     <div class="ios-banner-inner">
       📱 <strong>KULMS+ モバイル版登場!</strong><br>
       iOS / Android 対応。通知機能で課題の出し忘れをゼロに。
@@ -460,150 +63,148 @@ a{transition:color 0.2s ease}
 <section class="section reveal">
   <h2>主な機能</h2>
   <div class="carousel-nav">
-    <button class="carousel-nav-btn" id="prev" aria-label="前へ">&#8249;</button>
+    <button type="button" class="carousel-nav-btn" id="prev" aria-label="前のスライド">&#8249;</button>
     <div class="dots" id="dots"></div>
-    <button class="carousel-nav-btn" id="next" aria-label="次へ">&#8250;</button>
+    <button type="button" class="carousel-nav-btn" id="next" aria-label="次のスライド">&#8250;</button>
   </div>
   <div class="carousel-wrap">
-    <div class="carousel" id="carousel">
+    <div class="carousel" id="carousel" role="region" aria-label="主な機能" tabindex="0">
       <div class="slide">
         <div class="slide-text">
           <h3>課題一覧</h3>
           <p>全科目の課題を締め切り順にまとめて表示。緊急度別にセクション分けされ、提出状況もひと目で確認。</p>
         </div>
-        <img src="images/assignments.png" alt="課題一覧パネルのスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/assignments.avif" type="image/avif"><img src="images/png/assignments.png" width="1280" height="1052" alt="課題一覧パネルのスクリーンショット"></picture></div>
       </div>
+      <!-- 2 枚目からの画像は loading="lazy" で、スライドが近づいてから読み込む。Edge はこのとき
+           コンソールに info の案内（Images loaded lazily and replaced with placeholders. …）を
+           出すが、意図どおりの動作である -->
       <div class="slide">
         <div class="slide-text">
           <h3>ポップアップ課題一覧</h3>
           <p>ツールバー右上の拡張機能ボタン（🧩）→「KULMS+」を選択。ピン留め（📌）すればワンクリックで開けます。LMSを開かなくても、キャッシュされた課題を緊急度別にサッとチェック。ダークモード対応。</p>
         </div>
-        <img src="images/popup.png" alt="ポップアップ課題一覧のスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/popup.avif" type="image/avif"><img src="images/png/popup.png" width="720" height="1000" loading="lazy" decoding="async" alt="ポップアップ課題一覧のスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>教科書パネル</h3>
           <p>KULASISシラバスから教科書・参考書情報を自動取得。Amazonリンク付きですぐに購入可能。</p>
         </div>
-        <img src="images/textbooks.png" alt="教科書パネルのスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/textbooks.avif" type="image/avif"><img src="images/png/textbooks.png" width="1280" height="1266" loading="lazy" decoding="async" alt="教科書パネルのスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>メモ</h3>
           <p>科目ごとにメモを残せる。締切日時を設定すれば課題と同じように緊急度表示。</p>
         </div>
-        <img src="images/memo.png" alt="メモ機能のスクリーンショット">
-      </div>
-      <div class="slide">
-        <div class="slide-text">
-          <h3>モバイル版メモ入力</h3>
-          <p>タッチデバイスではモーダルオーバーレイでメモを入力。締切日時は select ドロップダウン式ピッカーで設定でき、Android WebView でも快適に操作できます。</p>
-        </div>
+        <div class="slide-shot"><picture><source srcset="images/avif/memo.avif" type="image/avif"><img src="images/png/memo.png" width="1280" height="734" loading="lazy" decoding="async" alt="メモ機能のスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>サイドバー色分け</h3>
           <p>サイドバーの各科目を、最も近い締切の緊急度に応じて色分け表示。</p>
         </div>
-        <img src="images/sidebar-color.png" alt="サイドバー色分けのスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/sidebar-color.avif" type="image/avif"><img src="images/png/sidebar-color.png" width="1280" height="676" loading="lazy" decoding="async" alt="サイドバー色分けのスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>ツール整理</h3>
           <p>使わないツールを「その他」に折りたたみ、よく使うツールだけを表示。各ツールの +/- ボタンで科目ごとにカスタマイズ可能。</p>
         </div>
-        <img src="images/tool-visibility.png" alt="ツール整理のスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/tool-visibility.avif" type="image/avif"><img src="images/png/tool-visibility.png" width="1280" height="1050" loading="lazy" decoding="async" alt="ツール整理のスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>科目名整理</h3>
           <p>長い科目名を自動で短縮。年度・学期情報を除去し、曜日・時限を先頭に表示。</p>
         </div>
-        <img src="images/course-name.png" alt="科目名整理のスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/course-name.avif" type="image/avif"><img src="images/png/course-name.png" width="1280" height="654" loading="lazy" decoding="async" alt="科目名整理のスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>授業中ハイライト</h3>
           <p>時間割に基づき、現在の授業にNOW、休み時間は次の授業にNEXTバッジを自動表示。</p>
         </div>
-        <img src="images/now-badge.png" alt="授業中ハイライトのスクリーンショット">
+        <div class="slide-shot"><picture><source srcset="images/avif/now-badge.avif" type="image/avif"><img src="images/png/now-badge.png" width="690" height="1006" loading="lazy" decoding="async" alt="授業中ハイライトのスクリーンショット"></picture></div>
       </div>
       <div class="slide">
         <div class="slide-text">
           <h3>ピン留め上部バー</h3>
           <p>ヘッダー直下にピン留め科目を横並びで常時表示。サイズ 4 段階、色分けスタイルに対応。タブクリックでツール一覧をドロップダウン表示（コース行クリック展開 ON 時）。</p>
         </div>
-        <img src="images/top-favbar.png" alt="ピン留め上部バーのスクリーンショット">
-      </div>
-      <div class="slide">
-        <div class="slide-text">
-          <h3>ファイル ドラッグ＆ドロップ</h3>
-          <p>課題提出ページにドロップゾーンを追加。ファイルをドラッグ＆ドロップするだけで添付できます。クリックでファイル選択ダイアログを開くことも可能。</p>
-        </div>
-      </div>
-      <div class="slide">
-        <div class="slide-text">
-          <h3>ツリービュー拡張</h3>
-          <p>授業資料をFinder/VSCode風のツリー表示に変更。インデント・矢印・フォルダ太字で階層を見やすく。↑↓←→キーでナビゲーション、Enterでファイルを開けます。</p>
-        </div>
-      </div>
-      <div class="slide">
-        <div class="slide-text">
-          <h3>TA 採点支援</h3>
-          <p>TAロール専用の採点効率化機能。未採点の学生へワンクリックでジャンプ、受講者一覧に状態アイコンを表示、未採点件数をリアルタイム表示。採点パネルを開いたまま背景の資料を操作可能に。</p>
-        </div>
-      </div>
-      <div class="slide">
-        <div class="slide-text">
-          <h3>2段階認証（TOTP）を設定パネルに</h3>
-          <p>KULMSの設定パネル内（「外観」と「パネル」の間）から、現在のワンタイムコード表示（30秒カウントダウン）・QRコード生成・シークレット登録/削除をポップアップを開かずに操作できます。ログイン時のOTP自動入力にも対応。</p>
-        </div>
+        <div class="slide-shot"><picture><source srcset="images/avif/top-favbar.avif" type="image/avif"><img src="images/png/top-favbar.png" width="2296" height="1030" loading="lazy" decoding="async" alt="ピン留め上部バーのスクリーンショット"></picture></div>
       </div>
     </div>
   </div>
   <p class="carousel-note">※ 画像はイメージです。実際の表示とは異なる場合があります。</p>
+  <div class="more-features">
+  <h3>そのほかの機能</h3>
+  <div class="feature-grid">
+    <article class="feature">
+      <h4>モバイル版メモ入力</h4>
+      <p>タッチデバイスではモーダルオーバーレイでメモを入力。締切日時は select ドロップダウン式ピッカーで設定でき、Android WebView でも快適に操作できます。</p>
+    </article>
+    <article class="feature">
+      <h4>ファイル ドラッグ＆ドロップ</h4>
+      <p>課題提出ページにドロップゾーンを追加。ファイルをドラッグ＆ドロップするだけで添付できます。クリックでファイル選択ダイアログを開くことも可能。</p>
+    </article>
+    <article class="feature">
+      <h4>ツリービュー拡張</h4>
+      <p>授業資料をFinder/VSCode風のツリー表示に変更。インデント・矢印・フォルダ太字で階層を見やすく。↑↓←→キーでナビゲーション、Enterでファイルを開けます。</p>
+    </article>
+    <article class="feature">
+      <h4>TA 採点支援</h4>
+      <p>TAロール専用の採点効率化機能。未採点の学生へワンクリックでジャンプ、受講者一覧に状態アイコンを表示、未採点件数をリアルタイム表示。採点パネルを開いたまま背景の資料を操作可能に。</p>
+    </article>
+    <article class="feature">
+      <h4>2段階認証（TOTP）を設定パネルに</h4>
+      <p>KULMSの設定パネル内（「外観」と「パネル」の間）から、現在のワンタイムコード表示（30秒カウントダウン）・QRコード生成・シークレット登録/削除をポップアップを開かずに操作できます。ログイン時のOTP自動入力にも対応。</p>
+    </article>
+  </div>
+  </div>
 </section>
 
 <hr class="section-divider">
 
 <section class="section reveal" id="security">
   <h2>セキュリティと仕組み</h2>
-  <p style="text-align:center;font-size:0.9375rem;color:var(--fg2);margin-bottom:1.5rem">KULMS+ は認証情報を開発者のサーバーに送信しません。データはすべてお使いの端末内に保存されます。</p>
+  <p class="lead">KULMS+ は認証情報を開発者のサーバーに送信しません。データはすべてお使いの端末内に保存されます。</p>
 
-  <div class="release" style="margin-bottom:1.5rem">
+  <div class="release release-callout">
     <div class="release-head">
       <span class="release-version">FIDO認証（パスキー）</span>
       <span class="release-latest">おすすめ</span>
     </div>
-    <p style="font-size:0.9375rem;color:var(--fg2);line-height:1.65;margin-bottom:0.75rem">京大の2段階認証は <strong>FIDO認証（パスキー）</strong>にも対応しています。セキュリティキーや生体認証（指紋・顔認証）を登録すれば、パスワード＋ワンタイムパスワードの入力なしでログインできます。</p>
-    <p style="font-size:0.9375rem;color:var(--fg2);line-height:1.65;margin-bottom:0.75rem"><strong>設定方法:</strong></p>
-    <ul style="margin-bottom:0.75rem">
+    <p>京大の2段階認証は <strong>FIDO認証（パスキー）</strong>にも対応しています。セキュリティキーや生体認証（指紋・顔認証）を登録すれば、パスワード＋ワンタイムパスワードの入力なしでログインできます。</p>
+    <p><strong>設定方法:</strong></p>
+    <ul>
       <li><a href="https://auth.iimc.kyoto-u.ac.jp/user/" target="_blank" rel="noopener">auth.iimc.kyoto-u.ac.jp/user/</a> にログイン</li>
       <li>右上ハンバーガーメニュー →「FIDO認証デバイスの設定」→ 登録</li>
     </ul>
-    <div class="downloads" style="justify-content:flex-start">
-      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/ja/services/cert/mfa/" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+    <div class="downloads downloads-start">
+      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/ja/services/account/mfa" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
         多要素認証について
       </a>
-      <a class="feedback-link" href="https://iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <a class="feedback-link" href="https://www.iimc.kyoto-u.ac.jp/sites/default/files/2025-03/info31_0.pdf" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
         詳しい設定手順 (PDF)
       </a>
     </div>
   </div>
 
-  <div class="downloads" style="margin-bottom:0.75rem">
+  <div class="downloads links-row">
     <a class="feedback-link" href="security/">
-      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
       セキュリティの詳細
     </a>
     <a class="feedback-link" href="2fa/">
-      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
       2段階認証の設定 (TOTP)
     </a>
     <a class="feedback-link" href="privacy.html">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
       プライバシーポリシー
     </a>
   </div>
@@ -613,13 +214,13 @@ a{transition:color 0.2s ease}
 
 <section class="section reveal" id="changelog">
   <h2>更新履歴</h2>
-  <div class="changelog-tabs">
-    <button class="changelog-tab active" data-target="cl-extension">拡張機能</button>
-    <button class="changelog-tab" data-target="cl-ios">iOS</button>
-    <button class="changelog-tab" data-target="cl-android">Android</button>
+  <div class="tabs" role="tablist" aria-label="更新履歴の対象">
+    <button type="button" class="tab" role="tab" id="tab-cl-extension" aria-controls="cl-extension" aria-selected="true">拡張機能</button>
+    <button type="button" class="tab" role="tab" id="tab-cl-ios" aria-controls="cl-ios" aria-selected="false" tabindex="-1">iOS</button>
+    <button type="button" class="tab" role="tab" id="tab-cl-android" aria-controls="cl-android" aria-selected="false" tabindex="-1">Android</button>
   </div>
 
-  <div class="changelog-panel active" id="cl-extension">
+  <div class="tab-panel" id="cl-extension" role="tabpanel" aria-labelledby="tab-cl-extension">
 
   <article class="release">
     <div class="release-head">
@@ -755,8 +356,8 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
-  <div class="changelog-older">
+  <details class="changelog-older">
+  <summary><span class="when-closed">▼ 過去のバージョンを表示</span><span class="when-open">▲ 過去のバージョンを閉じる</span></summary>
 
   <article class="release">
     <div class="release-head">
@@ -1074,14 +675,14 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  </div><!-- /changelog-older -->
+  </details><!-- /changelog-older -->
 
   <p class="changelog-more">
     すべての更新履歴は <a href="https://github.com/Radian0523/kulms-extension/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
   </p>
   </div>
 
-  <div class="changelog-panel" id="cl-ios">
+  <div class="tab-panel" id="cl-ios" role="tabpanel" aria-labelledby="tab-cl-ios" hidden>
 
   <article class="release">
     <div class="release-head">
@@ -1132,8 +733,8 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
-  <div class="changelog-older">
+  <details class="changelog-older">
+  <summary><span class="when-closed">▼ 過去のバージョンを表示</span><span class="when-open">▲ 過去のバージョンを閉じる</span></summary>
 
   <article class="release">
     <div class="release-head">
@@ -1218,14 +819,14 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  </div><!-- /changelog-older -->
+  </details><!-- /changelog-older -->
 
   <p class="changelog-more">
     すべての更新履歴は <a href="https://github.com/Radian0523/kulms-ios-webview/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
   </p>
   </div>
 
-  <div class="changelog-panel" id="cl-android">
+  <div class="tab-panel" id="cl-android" role="tabpanel" aria-labelledby="tab-cl-android" hidden>
 
   <article class="release">
     <div class="release-head">
@@ -1286,8 +887,8 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
-  <div class="changelog-older">
+  <details class="changelog-older">
+  <summary><span class="when-closed">▼ 過去のバージョンを表示</span><span class="when-open">▲ 過去のバージョンを閉じる</span></summary>
 
   <article class="release">
     <div class="release-head">
@@ -1373,7 +974,7 @@ a{transition:color 0.2s ease}
     </ul>
   </article>
 
-  </div><!-- /changelog-older -->
+  </details><!-- /changelog-older -->
 
   <p class="changelog-more">
     すべての更新履歴は <a href="https://github.com/Radian0523/kulms-android-webview/blob/main/CHANGELOG.md" target="_blank" rel="noopener">CHANGELOG.md</a> を参照してください。
@@ -1388,117 +989,31 @@ a{transition:color 0.2s ease}
   <h2>お問い合わせ</h2>
   <div class="feedback-links">
     <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLSeiGVguFncfiViN7CicvmHwMrHXm7bFlTYwWYR1_P-0gP_mqw/viewform" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5A6.5 6.5 0 0 1 18.5 12H15a3 3 0 0 0-3-3V5.5zM5.5 12a6.5 6.5 0 0 1 3.26-5.63L10.64 9.5A3 3 0 0 0 9 12a3 3 0 0 0 .64 1.85L7.76 17.13A6.48 6.48 0 0 1 5.5 12zm6.5 6.5a6.48 6.48 0 0 1-2.74-.6l1.88-3.25a3 3 0 0 0 3.72 0l1.88 3.25A6.48 6.48 0 0 1 12 18.5z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.5A6.5 6.5 0 0 1 18.5 12H15a3 3 0 0 0-3-3V5.5zM5.5 12a6.5 6.5 0 0 1 3.26-5.63L10.64 9.5A3 3 0 0 0 9 12a3 3 0 0 0 .64 1.85L7.76 17.13A6.48 6.48 0 0 1 5.5 12zm6.5 6.5a6.48 6.48 0 0 1-2.74-.6l1.88-3.25a3 3 0 0 0 3.72 0l1.88 3.25A6.48 6.48 0 0 1 12 18.5z"/></svg>
       拡張機能
     </a>
     <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLSdmc4tCHa98mzt1j4Wxu9IJo88wKz3-VQHVYAQjbtJ3Jo_CPw/viewform?usp=dialog" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15.5 1h-8A2.5 2.5 0 0 0 5 3.5v17A2.5 2.5 0 0 0 7.5 23h8a2.5 2.5 0 0 0 2.5-2.5v-17A2.5 2.5 0 0 0 15.5 1zm-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4.5-4H7V4h9v14z"/></svg>
       iOS
     </a>
     <a class="feedback-link" href="https://docs.google.com/forms/d/e/1FAIpQLScLn4G2IF1w0-QOWPKZ7R1LXjOq7OocYUmGJLoNA6JBuA20EA/viewform?usp=dialog" target="_blank" rel="noopener">
-      <svg viewBox="0 0 24 24"><path d="M17.6 11.48l1.34 2.33c.1.18.05.4-.12.52a.38.38 0 0 1-.52-.12l-1.35-2.34a7.49 7.49 0 0 1-3.29.75 7.49 7.49 0 0 1-3.29-.75l-1.35 2.34a.38.38 0 0 1-.52.12.39.39 0 0 1-.12-.52l1.34-2.33A7.36 7.36 0 0 1 6.51 7h10.98a7.36 7.36 0 0 1-3.13 4.48zM9.6 9.8a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zm4.8 0a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zM5.5 7h13A6.5 6.5 0 0 0 12 2 6.5 6.5 0 0 0 5.5 7z"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M17.6 11.48l1.34 2.33c.1.18.05.4-.12.52a.38.38 0 0 1-.52-.12l-1.35-2.34a7.49 7.49 0 0 1-3.29.75 7.49 7.49 0 0 1-3.29-.75l-1.35 2.34a.38.38 0 0 1-.52.12.39.39 0 0 1-.12-.52l1.34-2.33A7.36 7.36 0 0 1 6.51 7h10.98a7.36 7.36 0 0 1-3.13 4.48zM9.6 9.8a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zm4.8 0a.6.6 0 1 0 0-1.2.6.6 0 0 0 0 1.2zM5.5 7h13A6.5 6.5 0 0 0 12 2 6.5 6.5 0 0 0 5.5 7z"/></svg>
       Android
     </a>
   </div>
 </section>
 
-<footer class="footer">
-  <p style="margin-bottom:1.25rem">
-    <a class="btn btn-primary" href="https://ko-fi.com/radian0523" target="_blank" rel="noopener" style="font-size:0.9375rem">
-      <svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 8.5A3.5 3.5 0 0 1 5.5 5h9A3.5 3.5 0 0 1 18 8.5v.5h.5A3.5 3.5 0 0 1 22 12.5 3.5 3.5 0 0 1 18.5 16H18v.5A3.5 3.5 0 0 1 14.5 20h-9A3.5 3.5 0 0 1 2 16.5v-8zm16 5.5h.5a1.5 1.5 0 0 0 0-3H18v3z"/></svg>
+</main>
+
+<footer class="footer footer-hero">
+  <p class="footer-support">
+    <a class="btn btn-primary btn-small" href="https://ko-fi.com/radian0523" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 8.5A3.5 3.5 0 0 1 5.5 5h9A3.5 3.5 0 0 1 18 8.5v.5h.5A3.5 3.5 0 0 1 22 12.5 3.5 3.5 0 0 1 18.5 16H18v.5A3.5 3.5 0 0 1 14.5 20h-9A3.5 3.5 0 0 1 2 16.5v-8zm16 5.5h.5a1.5 1.5 0 0 0 0-3H18v3z"/></svg>
       開発を応援する
     </a>
   </p>
   <a href="https://github.com/Radian0523/kulms-extension" target="_blank" rel="noopener">GitHub</a>
 </footer>
-
-<script>
-(function(){
-  var c=document.getElementById('carousel');
-  var dots=document.getElementById('dots');
-  var slides=c.querySelectorAll('.slide');
-  var n=slides.length;
-  // Create dots
-  for(var i=0;i<n;i++){
-    var d=document.createElement('button');
-    d.className='dot'+(i===0?' active':'');
-    d.setAttribute('aria-label','Slide '+(i+1));
-    d.dataset.i=i;
-    dots.appendChild(d);
-  }
-  var allDots=dots.querySelectorAll('.dot');
-  // Scroll to slide
-  function goTo(i){c.scrollTo({left:slides[i].offsetLeft-c.offsetLeft,behavior:'smooth'})}
-  // Update dots on scroll
-  var ticking=false;
-  c.addEventListener('scroll',function(){
-    if(!ticking){requestAnimationFrame(function(){
-      var sl=c.scrollLeft,sw=c.scrollWidth-c.clientWidth;
-      var idx=sw>0?Math.round(sl/sw*(n-1)):0;
-      allDots.forEach(function(d,j){d.classList.toggle('active',j===idx)});
-      ticking=false;
-    });ticking=true;}
-  });
-  // Dot click
-  dots.addEventListener('click',function(e){
-    if(e.target.classList.contains('dot'))goTo(+e.target.dataset.i);
-  });
-  // Arrow buttons
-  document.getElementById('prev').addEventListener('click',function(){
-    var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
-    goTo(Math.max(0,idx-1));
-  });
-  document.getElementById('next').addEventListener('click',function(){
-    var idx=Math.round(c.scrollLeft/(c.scrollWidth-c.clientWidth)*(n-1));
-    goTo(Math.min(n-1,idx+1));
-  });
-})();
-// Changelog tabs
-(function(){
-  var tabs=document.querySelectorAll('.changelog-tab');
-  var panels=document.querySelectorAll('.changelog-panel');
-  tabs.forEach(function(tab){
-    tab.addEventListener('click',function(){
-      tabs.forEach(function(t){t.classList.remove('active')});
-      panels.forEach(function(p){p.classList.remove('active')});
-      tab.classList.add('active');
-      document.getElementById(tab.dataset.target).classList.add('active');
-    });
-  });
-})();
-// Scroll-reveal with stagger
-(function(){
-  var reducedMotion=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var reveals=document.querySelectorAll('.reveal');
-  if(reducedMotion){
-    reveals.forEach(function(el){el.classList.add('visible')});
-    return;
-  }
-  // Mark stagger children: .downloads > .btn, .release
-  document.querySelectorAll('.downloads > .btn, .downloads > a').forEach(function(el){
-    el.classList.add('reveal-child');
-  });
-  document.querySelectorAll('.release').forEach(function(el){
-    el.classList.add('reveal-child');
-  });
-  // Assign stagger delays within each .reveal
-  reveals.forEach(function(section){
-    var children=section.querySelectorAll('.reveal-child');
-    children.forEach(function(child,i){
-      child.style.transitionDelay=(i*0.08)+'s';
-    });
-  });
-  var observer=new IntersectionObserver(function(entries){
-    entries.forEach(function(entry){
-      if(entry.isIntersecting){
-        entry.target.classList.add('visible');
-        observer.unobserve(entry.target);
-      }
-    });
-  },{threshold:0.1,rootMargin:'0px 0px -40px 0px'});
-  reveals.forEach(function(el){observer.observe(el)});
-})();
-</script>
 
 </body>
 </html>
