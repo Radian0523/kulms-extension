@@ -1,0 +1,29 @@
+name: Auto Assign
+
+# フォークからの PR では、pull_request で動くジョブの GITHUB_TOKEN は読み取りの権限しか
+# 持たないので、担当者を付けられない（403 Resource not accessible by integration）。
+# pull_request_target なら、このリポジトリーのワークフローとして書き込みの権限で動く。
+# PR のコードは取り出さず、実行もしない。担当者は、ランナーにある gh で REST API を
+# 呼んで付ける（actions は使わない）。PR の番号などは環境変数で渡し、コマンドには
+# 埋め込まない。
+on:
+  pull_request_target:
+    types: [opened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  assign:
+    name: Auto Assign
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Assign the owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          NUMBER: ${{ github.event.pull_request.number }}
+        run: gh api --method POST "repos/$REPOSITORY/issues/$NUMBER/assignees" -f "assignees[]=$OWNER" --jq '.assignees[].login'
