@@ -468,6 +468,12 @@
   "featTreeViewEnhancedDesc": {
     "message": "Show resources with indentation, guide lines, and arrow key navigation"
   },
+  "featLinkPrerender": {
+    "message": "Page Preloading"
+  },
+  "featLinkPrerenderDesc": {
+    "message": "Load sidebar links while hovering so pages open instantly on click (Chrome / Edge only)"
+  },
   "featFileDrop": {
     "message": "File Drag & Drop"
   },

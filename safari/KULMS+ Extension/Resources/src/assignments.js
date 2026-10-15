@@ -2042,6 +2042,8 @@
       { key: "sidebarResize", labelKey: "featSidebarResize", descKey: "featSidebarResizeDesc" },
       { key: "sidebarStyle", labelKey: "featSidebarStyle", descKey: "featSidebarStyleDesc" },
       { key: "currentPeriodHighlight", labelKey: "featCurrentPeriod", descKey: "featCurrentPeriodDesc" },
+      // モバイルアプリは prerender.js を読み込まないため拡張機能限定
+      { key: "linkPrerender", labelKey: "featLinkPrerender", descKey: "featLinkPrerenderDesc", extensionOnly: true },
     ]},
     { sectionKey: "sectionTopFavbar", features: [
       { key: "topFavbar", labelKey: "featTopFavbar", descKey: "featTopFavbarDesc" },
@@ -2520,6 +2522,7 @@
     FEATURE_GROUPS.forEach(function (group) {
       createSettingsSection(t(group.sectionKey), group.sectionKey);
       group.features.forEach(function (feat) {
+        if (feat.extensionOnly && window.__kulmsPlatform) return;
         addFeatureToggle(feat);
         // ピン留め上部バーの直下にサイズ設定を配置 (ON 時のみ表示)
         if (feat.key === "topFavbar") {
@@ -3024,13 +3027,15 @@
 
   async function init() {
     if (window !== window.top) return;
+    // サイドバーの色分けを反映するまで表示を保留 (書き換え前の色が一瞬見えるのを防ぐ)
+    var releaseReveal = window.__kulmsHoldReveal();
     await window.__kulmsSettingsReady;
     textbooksEnabled = (window.__kulmsSettings || {}).textbooks !== false;
     // 読み込みより先に監視を始め、読み込み中に他のタブが保存した変更も取りこぼさない
     watchStoredState();
-    await loadCheckedState();
-    await loadMemos();
-    await loadDismissedState();
+    // 表示を保留している間の待ち時間を減らすため、ストレージ読み込みは並列で行う
+    var staleCachePromise = loadStaleCache();
+    await Promise.all([loadCheckedState(), loadMemos(), loadDismissedState()]);
     createFloatingButton();
     createPanel();
     injectSidebarOverride();
@@ -3039,7 +3044,7 @@
     // ページ読み込み時にキャッシュからサイドバー色分け・バッジを適用
     // TTL を無視して読み込み、期限切れでも即座に色分けを反映する
     try {
-      var cached = await loadStaleCache();
+      var cached = await staleCachePromise;
       if (cached && cached.assignments) {
         colorSidebarTabs(cached.assignments);
         checkNotificationBadges(cached.assignments);
@@ -3047,6 +3052,7 @@
     } catch (e) {
       // キャッシュ読み込み失敗時は無視
     }
+    releaseReveal();
 
     // 提出直後（submit-detect.js が sessionStorage に記録）なら即反映
     consumePendingSubmissions();

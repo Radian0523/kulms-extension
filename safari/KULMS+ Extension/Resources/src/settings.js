@@ -57,6 +57,12 @@ window.__kulmsSafeStorage = {
   }
 };
 
+// === 表示保留 (preload.js) ===
+// preload.js が無い環境 (モバイルアプリ等) では何もしない
+window.__kulmsHoldReveal = function () {
+  return window.__kulmsHold ? window.__kulmsHold() : function () {};
+};
+
 // === 設定読み込み ===
 
 window.__kulmsDefaults = {
@@ -66,6 +72,7 @@ window.__kulmsDefaults = {
   notificationBadge: false, sidebarStyle: false, memos: true,
   panelPush: false, previewMode: false, autoComplete: true, currentPeriodHighlight: false, fileDrop: true,
   topFavbar: false,
+  linkPrerender: true,
   topFavbarSize: "medium",
   fetchInterval: 120,
   dangerHours: 24,
@@ -90,11 +97,24 @@ if (!window.__kulmsSettingsReady) window.__kulmsSettingsReady = new Promise(func
       window.__kulmsSafeStorage.set({ "kulms-settings": saved });
     }
     window.__kulmsSettings = Object.assign({}, DEFAULTS, saved);
+    // preload.js が document_start で同期的に読めるよう、必要な設定だけ写しておく
+    try {
+      localStorage.setItem("kulms-preload-flags", JSON.stringify({
+        courseNameCleanup: window.__kulmsSettings.courseNameCleanup !== false
+      }));
+    } catch (e) { /* ストレージ不可なら preload 側は何もしない */ }
     loadOverrideMessages(window.__kulmsSettings.language).then(function () {
       resolve(window.__kulmsSettings);
     });
   });
 });
+
+// 各スクリプトの設定読み込み後の初回処理が終わるまで表示を保留する
+// (同じ Promise への then は登録順に実行されるので、setTimeout で全員の後に回す)
+(function () {
+  var release = window.__kulmsHoldReveal();
+  window.__kulmsSettingsReady.then(function () { setTimeout(release, 0); });
+})();
 
 // === i18n ヘルパー ===
 var __kulmsOverrideMessages = null;

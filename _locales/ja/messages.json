@@ -468,6 +468,12 @@
   "featTreeViewEnhancedDesc": {
     "message": "授業資料をインデント・ガイド線・矢印キー操作付きのツリー表示に変更"
   },
+  "featLinkPrerender": {
+    "message": "ページ先読み"
+  },
+  "featLinkPrerenderDesc": {
+    "message": "サイドバーのリンクにマウスを乗せた時点で遷移先を読み込み、クリック後すぐに表示 (Chrome / Edge のみ)"
+  },
   "featFileDrop": {
     "message": "ファイル D&D"
   },

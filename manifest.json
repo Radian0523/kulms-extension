@@ -33,6 +33,12 @@
     },
     {
       "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"],
+      "js": ["src/preload.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://lms.gakusei.kyoto-u.ac.jp/*"],
       "css": ["styles.css"],
       "js": [
         "src/settings.js",
@@ -46,9 +52,10 @@
         "src/textbooks.js",
         "src/sidebar-resize.js",
         "src/top-favbar.js",
-        "src/grading-ta.js"
+        "src/grading-ta.js",
+        "src/prerender.js"
       ],
-      "run_at": "document_idle",
+      "run_at": "document_end",
       "all_frames": true
     },
     {

@@ -1,3 +1,13 @@
+/* 拡張機能の書き換えが終わるまでページを隠す (preload.js) */
+html.kulms-preload body {
+  visibility: hidden !important;
+}
+
+/* 科目名の整理 (course-name.js) が済むまで、整理前の名前を隠す */
+html.kulms-hide-raw-course-names a[href*="/portal/site/"]:not([data-kulms-name-checked]) {
+  visibility: hidden !important;
+}
+
 /* KULMS Extension Styles */
 
 /* === 緊急度カラー CSS変数 === */
@@ -1372,6 +1382,11 @@ table.resourcesList.kulms-hide-columns td.modified,
 table.resourcesList.kulms-hide-columns th.size,
 table.resourcesList.kulms-hide-columns td.size {
   display: none !important;
+}
+
+/* 初回の全展開が終わるまで中身を隠す (tree-view.js) */
+table.resourcesList.kulms-tree-pending tbody {
+  visibility: hidden;
 }
 
 /* テーブルのグリッド線を除去 */

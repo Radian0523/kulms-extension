@@ -51,12 +51,15 @@
     }
   }
 
+  // 確認済みのリンクには data-kulms-name-checked を付ける。
+  // preload.js + styles.css が未確認のリンクを隠しているので、整理前の名前は表示されない
   function cleanAll() {
     document
       .querySelectorAll('a[href*="/portal/site/"]')
       .forEach(function (a) {
-        if (a.dataset.kulmsNameCleaned) return;
-        if (COURSE_RE.test(a.textContent)) cleanLink(a);
+        // 確認済みでも、後から文字が入るリンクに備えて整理前なら再確認する
+        if (!a.dataset.kulmsNameCleaned && COURSE_RE.test(a.textContent)) cleanLink(a);
+        if (!a.dataset.kulmsNameChecked) a.dataset.kulmsNameChecked = "1";
       });
   }
 
@@ -196,8 +199,10 @@
 
   window.__kulmsSettingsReady.then(function (s) {
     if (s.courseNameCleanup !== false) cleanAll();
-    if (s.pinSort !== false) setTimeout(sortPinned, 600);
-    if (s.currentPeriodHighlight) setTimeout(startNowBadgeUpdater, 800);
+    else document.documentElement.classList.remove("kulms-hide-raw-course-names");
+    // 表示前に一度適用し、遅れて描画される要素のために少し後でも再適用する
+    if (s.pinSort !== false) { sortPinned(); setTimeout(sortPinned, 600); }
+    if (s.currentPeriodHighlight) { updateNowBadges(); setTimeout(startNowBadgeUpdater, 800); }
 
     new MutationObserver(function () {
       if (sorting || updatingNowBadges) return;

@@ -206,11 +206,19 @@
 
   // fetchでフォルダ操作を実行 (ページ遷移なし)
   async function submitFolderAction(action, collectionId) {
+    var html = await fetchFolderAction(action, collectionId);
+    if (html === null) return false;
+    table.querySelector("tbody").innerHTML = html;
+    return true;
+  }
+
+  // フォルダ操作を POST し、結果ページの tbody の innerHTML を返す (失敗時 null)
+  async function fetchFolderAction(action, collectionId) {
     var form =
       document.getElementById("showForm") ||
       table.closest("form") ||
       document.querySelector("form");
-    if (!form) return false;
+    if (!form) return null;
 
     var params = new URLSearchParams();
     form.querySelectorAll("input").forEach(function (inp) {
@@ -225,41 +233,150 @@
         body: params,
         credentials: "include",
       });
-      if (!res.ok) return false;
+      if (!res.ok) return null;
 
       var html = await res.text();
       var doc = new DOMParser().parseFromString(html, "text/html");
       var newTable = doc.querySelector("table.resourcesList");
-      if (!newTable) return false;
+      if (!newTable) return null;
 
       var newTbody = newTable.querySelector("tbody");
-      var oldTbody = table.querySelector("tbody");
-      if (!newTbody || !oldTbody) return false;
-      oldTbody.innerHTML = newTbody.innerHTML;
-      return true;
+      if (!newTbody || !table.querySelector("tbody")) return null;
+      return newTbody.innerHTML;
     } catch (e) {
       console.warn("[KULMS] folder action failed:", e);
-      return false;
+      return null;
     }
+  }
+
+  // --- 展開済みツリーのキャッシュ (localStorage) ---
+  // 前回の展開結果を即表示し、裏で最新を取り直して差し替える
+  var CACHE_PREFIX = "kulms-tree-cache:";
+  var CACHE_MAX_ENTRIES = 20;
+  var CACHE_MAX_BYTES = 1500000;
+
+  function getCacheKey(rootId) {
+    return CACHE_PREFIX + location.pathname + "|" + rootId;
+  }
+
+  function loadCache(rootId) {
+    try {
+      var entry = JSON.parse(localStorage.getItem(getCacheKey(rootId)));
+      return entry && typeof entry.html === "string" ? entry.html : null;
+    } catch (e) { return null; }
+  }
+
+  function getCacheKeys() {
+    var keys = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf(CACHE_PREFIX) === 0) keys.push(k);
+    }
+    return keys;
+  }
+
+  function saveCache(rootId, html) {
+    if (html.length > CACHE_MAX_BYTES) return;
+    var value = JSON.stringify({ html: html, savedAt: Date.now() });
+    try {
+      localStorage.setItem(getCacheKey(rootId), value);
+    } catch (e) {
+      // 容量超過: 自分のキャッシュを全消去して一度だけ再試行
+      try {
+        getCacheKeys().forEach(function (k) { localStorage.removeItem(k); });
+        localStorage.setItem(getCacheKey(rootId), value);
+      } catch (e2) { return; }
+    }
+    pruneCache();
+  }
+
+  // 古いエントリから削除して件数を抑える
+  function pruneCache() {
+    try {
+      var entries = getCacheKeys().map(function (k) {
+        var savedAt = 0;
+        try { savedAt = JSON.parse(localStorage.getItem(k)).savedAt || 0; } catch (e) {}
+        return { key: k, savedAt: savedAt };
+      });
+      if (entries.length <= CACHE_MAX_ENTRIES) return;
+      entries.sort(function (a, b) { return a.savedAt - b.savedAt; });
+      entries.slice(0, entries.length - CACHE_MAX_ENTRIES).forEach(function (en) {
+        localStorage.removeItem(en.key);
+      });
+    } catch (e) {}
+  }
+
+  // 「すべて展開」の対象 collectionId (Sakai の expand-all リンク → サイトのルート)
+  function getRootCollectionId() {
+    var link = document.querySelector('a[onclick*="doExpandall"], a[onclick*="doUnexpandall"]');
+    if (link) {
+      var parsed = parseOnclick(link.getAttribute("onclick") || "");
+      if (parsed) return parsed.collectionId;
+    }
+    var any = table.querySelector('a[onclick*="collectionId"]');
+    if (any) {
+      var m = (any.getAttribute("onclick") || "").match(/'(\/group\/[^/']+\/)/);
+      if (m) return m[1];
+    }
+    return null;
+  }
+
+  function hasCollapsedFolders() {
+    return !!table.querySelector('td.title a[onclick*="doExpand_collection"]');
   }
 
   // --- 全フォルダ自動展開 ---
   async function expandAllFolders() {
-    isBusy = true;
-    for (var i = 0; i < 30; i++) {
-      var collapsed = table.querySelectorAll(
-        'td.title a[onclick*="doExpand_collection"]'
-      );
-      if (collapsed.length === 0) break;
+    var rootId = getRootCollectionId();
 
-      var parsed = parseOnclick(collapsed[0].getAttribute("onclick") || "");
+    // サーバー側で既に全展開済み (同一セッションで再訪など) なら通信不要
+    if (!hasCollapsedFolders()) {
+      if (rootId) saveCache(rootId, table.querySelector("tbody").innerHTML);
+      return;
+    }
+
+    isBusy = true;
+
+    // 1. キャッシュがあれば即座に表示 (最新化は下で行う)
+    // キャッシュが無い初回は、閉じた状態が見えてから開くカクつきを避けるため
+    // 展開が終わるまで中身を隠す (長引いた場合は途中でも表示)
+    var cached = rootId ? loadCache(rootId) : null;
+    var pendingTimer = null;
+    if (cached) {
+      table.querySelector("tbody").innerHTML = cached;
+      refreshTreeView();
+    } else {
+      table.classList.add("kulms-tree-pending");
+      pendingTimer = setTimeout(function () {
+        table.classList.remove("kulms-tree-pending");
+      }, 3000);
+    }
+
+    // 2. Sakai の doExpandall で全階層を 1 リクエストで展開
+    var html = rootId ? await fetchFolderAction("doExpandall", rootId) : null;
+    var fresh = html !== null;
+    if (fresh) {
+      table.querySelector("tbody").innerHTML = html;
+    }
+
+    // 3. フォールバック: まだ閉じたフォルダが残っていれば 1 つずつ展開
+    for (var i = 0; i < 30 && hasCollapsedFolders(); i++) {
+      var collapsed = table.querySelector('td.title a[onclick*="doExpand_collection"]');
+      var parsed = parseOnclick(collapsed.getAttribute("onclick") || "");
       if (!parsed) break;
 
       var ok = await submitFolderAction(parsed.action, parsed.collectionId);
       if (!ok) break;
+      fresh = true;
+    }
+
+    if (rootId && fresh && !hasCollapsedFolders()) {
+      saveCache(rootId, table.querySelector("tbody").innerHTML);
     }
     isBusy = false;
     refreshTreeView();
+    clearTimeout(pendingTimer);
+    table.classList.remove("kulms-tree-pending");
   }
 
   // --- 手動の展開/折りたたみクリックをインターセプト ---
