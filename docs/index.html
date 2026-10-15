@@ -544,7 +544,7 @@ a{transition:color 0.2s ease}
       <div class="slide">
         <div class="slide-text">
           <h3>ツリービュー拡張</h3>
-          <p>授業資料をFinder/VSCode風のツリー表示に変更。インデント・矢印・フォルダ太字で階層を見やすく。↑↓←→キーでナビゲーション、Enterでファイルを開けます。</p>
+          <p>授業資料をFinder/VSCode風のツリー表示に変更。インデント・矢印・フォルダ太字で階層を見やすく。↑↓←→キーでナビゲーション、Enterでファイルを開けます。全フォルダの自動展開は1回の通信で完了し、前回の結果をすぐ表示。</p>
         </div>
       </div>
       <div class="slide">
@@ -557,6 +557,12 @@ a{transition:color 0.2s ease}
         <div class="slide-text">
           <h3>2段階認証（TOTP）を設定パネルに</h3>
           <p>KULMSの設定パネル内（「外観」と「パネル」の間）から、現在のワンタイムコード表示（30秒カウントダウン）・QRコード生成・シークレット登録/削除をポップアップを開かずに操作できます。ログイン時のOTP自動入力にも対応。</p>
+        </div>
+      </div>
+      <div class="slide">
+        <div class="slide-text">
+          <h3>ページ先読み</h3>
+          <p>サイドバーやピン留め上部バーのリンクにマウスを乗せた時点で遷移先を裏で読み込み、クリックした瞬間に表示。授業資料の全フォルダ展開も1回の通信で完了し、前回の結果をすぐに表示します（先読みは Chrome / Edge のみ）。</p>
         </div>
       </div>
     </div>
@@ -623,8 +629,20 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v1.21.1</span>
+      <span class="release-version">v1.22.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>ページ先読みを追加</strong>: サイドバー / ピン留め上部バーのリンクにマウスを約 0.2 秒乗せると、遷移先を裏で読み込んでおき、クリック後すぐに表示（Chrome / Edge のみ。設定でオフにできます）</li>
+      <li><strong>授業資料の自動展開を高速化</strong>: Sakai の「すべて展開」を 1 回送るだけで全階層を展開。展開結果をキャッシュし、次回はすぐに表示</li>
+      <li><strong>ページ読み込み時のちらつきを解消</strong>: 拡張機能を適用する前の画面（整理前の科目名など）が一瞬見える問題を修正</li>
+      <li>起動時のストレージ読み込みを並列化</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.21.1</span>
     </div>
     <ul>
       <li><strong>教科書パネルで今学期の科目だけを表示</strong>: 後期に前期の科目まで表示されていた問題を修正。学期が変わるとキャッシュを自動で取り直す</li>
@@ -757,6 +775,90 @@ a{transition:color 0.2s ease}
 
   <button class="changelog-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▲ 過去のバージョンを閉じる':'▼ 過去のバージョンを表示'">▼ 過去のバージョンを表示</button>
   <div class="changelog-older">
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.14.0</span>
+    </div>
+    <ul>
+      <li><strong>ファイル ドラッグ＆ドロップ機能を追加</strong>: 課題提出ページにドロップゾーンを追加し、ファイルをドラッグ＆ドロップで添付可能に。クリックでファイル選択ダイアログも開けます（設定の「コースページ」からオン/オフ、デフォルトON）</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.13.2</span>
+    </div>
+    <ul>
+      <li>メモ入力欄・締切日時ピッカーのフォントサイズを 16px に統一（iOS WebView での自動ズームを防止）</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.13.1</span>
+    </div>
+    <ul>
+      <li>ハンバーガーメニュー（☰）ボタンとパネルの重複生成を防止</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.13.0</span>
+    </div>
+    <ul>
+      <li><strong>繰り返しメモ機能を追加</strong>: 「毎週繰り返し」オプションで、完了チェック時に次週分のメモを自動生成</li>
+      <li><strong>プラットフォーム別お問い合わせリンク</strong>: iOS / Android アプリからのフィードバックを専用フォームに分離</li>
+      <li>ランディングページにお問い合わせセクションを追加、更新履歴を折りたたみ表示に変更</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.12.4</span>
+    </div>
+    <ul>
+      <li><strong>上部ピン留めバー</strong>: システム警告バナー表示時にバーがヘッダーの裏に隠れる問題を修正</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.12.3</span>
+    </div>
+    <ul>
+      <li><strong>モバイル</strong>: 課題リンクをタップするとパネルを自動で閉じるように改善</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.12.2</span>
+    </div>
+    <ul>
+      <li>期限なしメモの表示位置を「その他」と「完了済み」の間に変更</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.12.1</span>
+    </div>
+    <ul>
+      <li><strong>ログアウト判定のバグを修正</strong>: ログインページへのリダイレクトとサーバーエラーを区別</li>
+      <li>キャッシュ期限切れでもページ読み込み時にタブ色分け・通知バッジを即座に適用</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v1.12.0</span>
+    </div>
+    <ul>
+      <li><strong>モバイルのメモ入力をモーダル表示に</strong>: 締切日時は select ドロップダウン式ピッカーで入力（Android WebView の datetime-local 非対応を解消）</li>
+    </ul>
+  </article>
 
   <article class="release">
     <div class="release-head">
@@ -1085,8 +1187,17 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.11.1</span>
+      <span class="release-version">v2.12.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>拡張機能スクリプト同期</strong>: 授業資料の全フォルダ自動展開を高速化（1 回の通信で展開し、前回の結果をすぐ表示）、起動時の読み込みを並列化</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.11.1</span>
     </div>
     <ul>
       <li><strong>拡張機能スクリプト同期</strong>: 教科書パネルで今学期の科目だけを表示、提出判定の修正、削除した課題が 30 日後に一覧へ戻る問題の修正</li>
@@ -1229,8 +1340,17 @@ a{transition:color 0.2s ease}
 
   <article class="release">
     <div class="release-head">
-      <span class="release-version">v2.10.2</span>
+      <span class="release-version">v2.11.0</span>
       <span class="release-latest">最新</span>
+    </div>
+    <ul>
+      <li><strong>拡張機能スクリプト同期</strong>: 授業資料の全フォルダ自動展開を高速化（1 回の通信で展開し、前回の結果をすぐ表示）、起動時の読み込みを並列化</li>
+    </ul>
+  </article>
+
+  <article class="release">
+    <div class="release-head">
+      <span class="release-version">v2.10.2</span>
     </div>
     <ul>
       <li><strong>拡張機能スクリプト同期</strong>: 教科書パネルで今学期の科目だけを表示、提出判定の修正、削除した課題が 30 日後に一覧へ戻る問題の修正</li>

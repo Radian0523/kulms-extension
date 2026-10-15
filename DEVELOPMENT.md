@@ -47,6 +47,7 @@ popup.js      # キャッシュ読み取り + 課題表示ロジック
 
 ```
 src/
+├── preload.js           # document_start: 初回の書き換えが終わるまでページを隠す (window.__kulmsHold)
 ├── settings.js          # 設定読み込み (共有Promise: window.__kulmsSettingsReady) + i18nヘルパー
 ├── assignments.js       # IIFE: 課題一覧パネル ★メイン機能
 │   ├── Sakai API通信層 (sakaiGet, getCourses, fetchAssignments, fetchQuizzes)
@@ -66,6 +67,7 @@ src/
 ├── top-favbar.js        # IIFE: ピン留め上部バー (PC のみ、ドロップダウンツール対応)
 ├── grading-ta.js        # IIFE: TA 採点支援 (状態分類・ジャンプ・未採点数・一覧アイコン・未保存ガード)
 ├── grading-ta-page.js   # page-world bridge: <sakai-grader> の originalSubmissions を取得
+├── prerender.js         # IIFE: ページ先読み (Speculation Rules、Chrome / Edge のみ)
 ├── auth-totp.js         # SSO ログインページの OTP フォーム検出 + TOTP 自動入力
 └── auth-totp-register.js # SSO ログインページの TOTP シークレット自動登録（リダイレクトから secret 抽出）
 
@@ -429,6 +431,22 @@ window.__kulmsSettingsReady = new Promise(function (resolve) {
 300ms タイムアウト付きで、page bridge が応答しない場合は採点一覧ページの HTML パースにフォールバック。状態マップは `sessionStorage` にキャッシュし、保存ボタンクリック後に自動更新。
 
 **起動条件**: ページに `#grader-submitter-select` または `#submissionList` が存在する場合のみ起動。学生ロールでは Sakai サーバー側でこれらの要素が生成されないため、学生への影響はゼロ（実機検証済み）。
+
+### 16. ページ読み込み時のちらつき
+
+**問題**: Content Script を `document_idle` で注入していたため、Sakai の元の UI（科目名 `[2026前期月２]…`、色分け前のサイドバー等）が一度描画されてから拡張機能の UI に切り替わり、カクついて見えた。
+
+**解決策**:
+- `preload.js` を `document_start` で注入し、`<html>` に `kulms-preload` クラスを付けて `body` を `visibility: hidden` にする。各スクリプトは `window.__kulmsHoldReveal()` で表示の保留を登録し、初回の書き換え後に解除する。全員が解除したら表示（保険として最長 0.8 秒で必ず表示）
+- メインのスクリプトを `document_end` に変更し、画像などのサブリソースを待たずに実行
+- 科目名の整理は、後から描き足される科目にも効くよう、リンク単位で隠す。`course-name.js` が確認したリンクに `data-kulms-name-checked` を付け、未確認のリンクは CSS で隠す。`document_start` 時点では設定を非同期でしか読めないため、`settings.js` が `localStorage` の `kulms-preload-flags` に必要な設定を写しておき、`preload.js` が同期で読む
+- モバイルアプリは `preload.js` を読み込まないため、`__kulmsHoldReveal()` は何もしない関数になる
+
+### 17. 授業資料の全展開
+
+**問題**: 閉じたフォルダを 1 つずつ `doExpand_collection` で POST して展開していたため、フォルダ数だけ往復が発生して遅かった。
+
+**解決策**: Sakai の `ResourcesAction.doExpandall` を使い、`collectionId=/group/{siteId}/` を 1 回 POST するだけで全階層を展開する。展開後の `tbody` を `localStorage`（`kulms-tree-cache:` + パス + ルート ID、最大 20 件・1 件 1.5MB まで）に保存し、次回はキャッシュを即表示してから裏で最新に差し替える。`doExpandall` が使えない場合は従来の 1 つずつ展開にフォールバック。通信の調査結果は [docs/sakai-network-requests.md](docs/sakai-network-requests.md) を参照。
 
 ## 対応環境
 
