@@ -51,12 +51,25 @@
 
   // --- Sakai Direct API ヘルパー ---
 
+  // 応答が LMS 自身（このページと同じオリジン）から来たか。リダイレクトで別の
+  // オリジンや http に移った応答は、TLS が LMS のものと保証しない
+  function isFromLms(res) {
+    try {
+      return new URL(res.url).origin === BASE_URL;
+    } catch {
+      return false;
+    }
+  }
+
   async function sakaiGet(path) {
     const res = await fetch(BASE_URL + path, { credentials: "include" });
     // ログアウト検知: /portal/xlogin などにリダイレクトされたか、
     // JSON 以外 (ログインページの HTML) が返ってきた場合
     if (res.redirected && /\/portal\/(x?login|relogin|logout)/.test(res.url)) {
       throw LoggedOutError();
+    }
+    if (!isFromLms(res)) {
+      throw new Error(`API ${path} was redirected to another origin`);
     }
     const ct = res.headers.get("content-type") || "";
     if (ct && ct.indexOf("json") === -1) {
@@ -116,6 +129,7 @@
   async function fetchCoursesFromPortal() {
     const res = await fetch(BASE_URL + "/portal", { credentials: "include" });
     if (!res.ok) throw new Error("Portal fetch failed: " + res.status);
+    if (!isFromLms(res)) throw new Error("Portal fetch was redirected to another origin");
     const html = await res.text();
     const doc = new DOMParser().parseFromString(html, "text/html");
     const courses = [];

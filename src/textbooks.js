@@ -26,6 +26,10 @@
       credentials: "include",
     });
     if (!res.ok) throw new Error("API failed");
+    // リダイレクトで別のオリジンや http に移った応答は、TLS が LMS のものと保証しない
+    var from = null;
+    try { from = new URL(res.url).origin; } catch { from = null; }
+    if (from !== BASE_URL) throw new Error("API was redirected to another origin");
     const data = await res.json();
     return (data.site_collection || [])
       .filter((s) => s.type === "course" || s.type === "project")
