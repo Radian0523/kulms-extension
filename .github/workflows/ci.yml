@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+# PR のコードを動かすジョブなので、読み取りの権限だけを与える
+# （担当者の自動付与は auto-assign.yml に分けた）
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: ESLint
@@ -13,20 +18,3 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bunx eslint .
-
-  assign:
-    name: Auto Assign
-    runs-on: ubuntu-latest
-    if: github.event.action == 'opened'
-    permissions:
-      pull-requests: write
-    steps:
-      - uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.addAssignees({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              assignees: [context.repo.owner],
-            });
