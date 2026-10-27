@@ -59,6 +59,16 @@ function normalizeTeacherName(str) {
     .trim();
 }
 
+// 応答が、求めた先と同じオリジン（スキームとホスト）から来たか。リダイレクトで
+// 別のオリジンや http に移った応答は、TLS が KULMS や KULASIS のものと保証しない
+function isFromOrigin(res, origin) {
+  try {
+    return new URL(res.url).origin === origin;
+  } catch {
+    return false;
+  }
+}
+
 // Sakai サイト情報ツールから「サイト連絡先・メール」欄の教員名を抽出
 // 失敗時は null を返す（呼び出し元はフォールバック判断）
 async function fetchSakaiSiteContact(siteId) {
@@ -69,7 +79,7 @@ async function fetchSakaiSiteContact(siteId) {
       `${LMS_BASE}/direct/site/${encodeURIComponent(siteId)}/pages.json`,
       { credentials: "include" }
     );
-    if (!pagesRes.ok) return null;
+    if (!pagesRes.ok || !isFromOrigin(pagesRes, LMS_BASE)) return null;
     const pages = await pagesRes.json();
     let placementId = null;
     for (const p of pages || []) {
@@ -88,7 +98,7 @@ async function fetchSakaiSiteContact(siteId) {
       `${LMS_BASE}/portal/tool/${encodeURIComponent(placementId)}`,
       { credentials: "include" }
     );
-    if (!htmlRes.ok) return null;
+    if (!htmlRes.ok || !isFromOrigin(htmlRes, LMS_BASE)) return null;
     const html = await htmlRes.text();
 
     // <th>サイト連絡先・メール</th> ... <td> 教員名, <a href="mailto:..."> ...
@@ -186,6 +196,7 @@ function encodeShiftJIS(str) {
 async function fetchAndDecode(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error("Fetch failed: " + res.status);
+  if (!isFromOrigin(res, new URL(url).origin)) throw new Error("Fetch was redirected to another origin");
   const buf = await res.arrayBuffer();
   const ct = res.headers.get("content-type") || "";
   const charsetMatch = ct.match(/charset=([^\s;]+)/i);

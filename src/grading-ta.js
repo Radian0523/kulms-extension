@@ -462,7 +462,11 @@
       var attempt = function (idx) {
         if (idx >= urls.length) return Promise.resolve(null);
         return fetch(urls[idx], { credentials: "include" })
-          .then(function (res) { return res.text(); })
+          .then(function (res) {
+            // リダイレクトで別のオリジンや http に移った応答は、TLS が LMS のものと保証しない
+            if (new URL(res.url).origin !== window.location.origin) throw new Error("redirected to another origin");
+            return res.text();
+          })
           .then(function (html) {
             var doc = new DOMParser().parseFromString(html, "text/html");
             var map = parseSubmissionList(doc);
